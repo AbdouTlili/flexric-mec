@@ -1,0 +1,8 @@
+add_executable(test_e2sm_hw_fb test_e2sm_hw_fb.c)
+target_link_libraries(test_e2sm_hw_fb PRIVATE e2sm_hw_fb_rf e2sm_hw_fb_app)
+add_dependencies(test test_e2sm_hw_fb)
+
+add_executable(e2sm_hw_fb_agent e2sm_hw_fb_agent.c)
+target_link_libraries(e2sm_hw_fb_agent PRIVATE flexric_agent e2sm_hw_fb_rf)
+add_executable(e2sm_hw_fb_ric e2sm_hw_fb_ric.c)
+target_link_libraries(e2sm_hw_fb_ric PRIVATE e2ap_server e2sm_hw_fb_app)

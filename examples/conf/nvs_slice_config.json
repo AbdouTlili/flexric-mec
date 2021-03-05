@@ -1,0 +1,28 @@
+{
+  "dl": {
+    "algorithm": "NVS",
+    "slices": [{
+        "id": 0,
+        "label": "label",
+        "params_type": "nvs",
+        "params": {
+          "config_type": "rate",
+          "config": {
+            "mbpsRequired": 5,
+            "mbpsReference": 10
+          }
+        }
+      },{
+        "id": 2,
+        "label": "label",
+        "params_type": "nvs",
+        "params": {
+          "config_type": "capacity",
+          "config": {
+            "pctReserved": 0.5
+          }
+        }
+      }
+    ]
+  }
+}

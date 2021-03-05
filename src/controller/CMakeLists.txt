@@ -1,0 +1,2 @@
+add_subdirectory(flexran)
+add_subdirectory(recursive_slicing)

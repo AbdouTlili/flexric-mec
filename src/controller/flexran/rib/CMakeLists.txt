@@ -1,0 +1,23 @@
+add_library(flexran_rib
+            rib.cc
+            node_rib_info.cc
+            ind_info.cc
+            mac_info.cc
+            mac_stats.cc
+            mac_rslicing.cc
+            pdcp_stats.cc
+            rlc_stats.cc
+            rrc_info.cc
+            rrc_node_conf.cc
+            rrc_stats.cc
+            rrc_ue_stats.cc)
+target_include_directories(flexran_rib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(flexran_rib
+                      PUBLIC
+                        e2ap_server
+                        fb_mac_stats_msgs
+                        fb_rslicing_msgs
+                        fb_pdcp_stats_msgs
+                        fb_rlc_stats_msgs
+                        fb_rrc_conf_msgs
+                        fb_rrc_stats_msgs)

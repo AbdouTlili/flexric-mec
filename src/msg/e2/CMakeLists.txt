@@ -1,0 +1,18 @@
+if(E2AP_ENCODING STREQUAL "ASN")
+  add_subdirectory(ap)
+elseif(E2AP_ENCODING STREQUAL "FLATBUFFERS")
+  add_subdirectory(ap-fb)
+endif()
+
+if(SM_HW)
+  add_subdirectory(sm-hw)
+endif()
+
+if(FlatCC_FOUND)
+  add_subdirectory(sm-hw-fb)
+  add_subdirectory(sm-mac-stats-fb)
+  add_subdirectory(sm-pdcp-stats-fb)
+  add_subdirectory(sm-rlc-stats-fb)
+  add_subdirectory(sm-rrc-fb)
+  add_subdirectory(sm-rslicing-fb)
+endif()

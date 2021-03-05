@@ -1,0 +1,63 @@
+namespace pdcp.stats;
+
+
+table EventTrigger {
+  msReportPeriod: uint16;
+}
+//root_type EventTrigger;
+
+
+enum ReportStyleType: uint8 { Minimal, Complete }
+table ReportStyle {
+  type: ReportStyleType;
+}
+table ActionDefinition {
+  reportStyle: ReportStyle;
+}
+//root_type ActionDefinition;
+
+
+table IndicationHeader {
+  frame: uint16;
+  slot: uint8;
+}
+//root_type IndicationHeader;
+
+
+table RBStats {
+  rbid: uint8;
+  txPduPkts: uint32;
+  rxPduPkts: uint32;
+  txPduBytes: uint64;
+  rxPduBytes: uint64;
+  txPduSn: uint32;
+  rxPduSn: uint32;
+  rxPduOoPkts: uint32;
+  rxPduOoBytes: uint64;
+  rxPduDdPkts: uint32;
+  rxPduDdBytes: uint64;
+  rxPduRoCount: uint32;
+}
+table UEStats {
+  rnti: uint16;
+  rb: [RBStats];
+}
+table IndicationMessage {
+  ueStats: [UEStats];
+}
+//root_type IndicationMessage;
+
+
+// No ControlHeader in this SM
+
+
+// No ControlMessage in this SM
+
+
+// No CallProcessId in this SM
+
+
+table RanFunctionDefinition {
+  supportedReportStyles: [ReportStyle];
+}
+//root_type RanFunctionDefinition;

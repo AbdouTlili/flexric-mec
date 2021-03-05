@@ -1,0 +1,108 @@
+add_subdirectory(ds)
+add_subdirectory(e2ap)
+
+add_library(types OBJECT type_defs.c 
+  e2ap_types/ric_subscription_request.c
+  e2ap_types/ric_subscription_response.c
+  e2ap_types/ric_subscription_failure.c 
+  e2ap_types/ric_indication.c 
+  e2ap_types/ric_subscription_delete_request.c 
+  e2ap_types/ric_subscription_delete_response.c 
+  e2ap_types/ric_subscription_delete_failure.c 
+  e2ap_types/ric_control_request.c
+  e2ap_types/ric_control_ack.c 
+  e2ap_types/ric_control_failure.c
+  e2ap_types/e2ap_error_indication.c 
+  e2ap_types/e2_setup_request.c 
+  e2ap_types/e2_setup_response.c 
+  e2ap_types/e2_setup_failure.c 
+  e2ap_types/e2ap_reset_request.c 
+  e2ap_types/e2ap_reset_response.c 
+  e2ap_types/ric_service_update.c 
+  e2ap_types/ric_service_update_ack.c 
+  e2ap_types/ric_service_update_failure.c 
+  e2ap_types/ric_service_query.c 
+  e2ap_types/e2_node_configuration_update.c 
+  e2ap_types/common/e2ap_ran_function_id_rev.c 
+  e2ap_types/common/e2ap_ran_function_id.c 
+  e2ap_types/common/ric_action.c 
+  e2ap_types/common/ric_gen_id.c 
+  e2ap_types/common/ric_action_admitted.c 
+  e2ap_types/common/ric_action_not_admitted.c 
+  e2ap_types/common/e2ap_criticality_diagnostics.c 
+  e2ap_types/common/e2ap_cause.c 
+  e2ap_types/common/e2ap_global_node_id.c
+  e2ap_types/common/e2ap_global_ric_id.c 
+  e2ap_types/common/e2ap_ran_function.c 
+  e2ap_types/common/e2ap_time_to_wait.c 
+  e2ap_types/common/e2ap_rejected_ran_function.c 
+  e2ap_types/common/e2ap_node_component_config_update.c  
+  e2ap_types/common/transport_layer_info.c 
+  e2ap_types/common/e2ap_plmn.c 
+  e2ap_types/common/ric_subsequent_action.c)
+
+target_include_directories(types
+                           PUBLIC
+                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/e2ap_types>"
+                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/e2ap_types/common>"
+                           "$<INSTALL_INTERFACE:include>")
+target_link_libraries(types PUBLIC e2ap_ds_lib)
+install(FILES type_defs.h ngran_types.h global_consts.h DESTINATION include/flexric)
+install(FILES
+          e2ap_types/e2ap_error_indication.h
+          e2ap_types/e2ap_reset_request.h
+          e2ap_types/e2ap_reset_response.h
+          e2ap_types/e2_node_configuration_update_ack.h
+          e2ap_types/e2_node_configuration_update_failure.h
+          e2ap_types/e2_node_configuration_update.h
+          e2ap_types/e2_node_connection_update_ack.h
+          e2ap_types/e2_node_connection_update_failure.h
+          e2ap_types/e2_node_connection_update.h
+          e2ap_types/e2_setup_failure.h
+          e2ap_types/e2_setup_request.h
+          e2ap_types/e2_setup_response.h
+          e2ap_types/ric_control_ack.h
+          e2ap_types/ric_control_failure.h
+          e2ap_types/ric_control_request.h
+          e2ap_types/ric_indication.h
+          e2ap_types/ric_service_query.h
+          e2ap_types/ric_service_update_ack.h
+          e2ap_types/ric_service_update_failure.h
+          e2ap_types/ric_service_update.h
+          e2ap_types/ric_subscription_delete_failure.h
+          e2ap_types/ric_subscription_delete_request.h
+          e2ap_types/ric_subscription_delete_response.h
+          e2ap_types/ric_subscription_failure.h
+          e2ap_types/ric_subscription_request.h
+          e2ap_types/ric_subscription_response.h
+        DESTINATION
+          include/flexric)
+install(FILES
+          e2ap_types/common/e2ap_cause.h
+          e2ap_types/common/e2ap_connection_setup_failed.h
+          e2ap_types/common/e2ap_connection_update_item.h
+          e2ap_types/common/e2ap_connection_update_remove_item.h
+          e2ap_types/common/e2ap_criticality_diagnostics.h
+          e2ap_types/common/e2ap_criticality.h
+          e2ap_types/common/e2ap_global_node_id.h
+          e2ap_types/common/e2ap_global_ric_id.h
+          e2ap_types/common/e2ap_ie_criticality_diagnostics.h
+          e2ap_types/common/e2ap_node_component_config_update_ack_item.h
+          e2ap_types/common/e2ap_node_component_config_update.h
+          e2ap_types/common/e2ap_plmn.h
+          e2ap_types/common/e2ap_ran_function.h
+          e2ap_types/common/e2ap_ran_function_id.h
+          e2ap_types/common/e2ap_ran_function_id_rev.h
+          e2ap_types/common/e2ap_rejected_ran_function.h
+          e2ap_types/common/e2ap_time_to_wait.h
+          e2ap_types/common/e2ap_tnl_information.h
+          e2ap_types/common/e2ap_tnl_usage.h
+          e2ap_types/common/ric_action_admitted.h
+          e2ap_types/common/ric_action.h
+          e2ap_types/common/ric_action_not_admitted.h
+          e2ap_types/common/ric_gen_id.h
+          e2ap_types/common/ric_subsequent_action.h
+          e2ap_types/common/transport_layer_info.h
+        DESTINATION
+          include/flexric/common)

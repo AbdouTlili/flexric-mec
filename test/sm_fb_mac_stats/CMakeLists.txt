@@ -1,0 +1,3 @@
+add_executable(test_mac_stats test_mac_stats.c)
+target_link_libraries(test_mac_stats fb_mac_stats_msgs)
+add_dependencies(test test_mac_stats)

@@ -1,0 +1,217 @@
+diff --git a/examples/conf/nvs_slice_config.json b/examples/conf/nvs_slice_config.json
+index d58ec54..0fd8654 100644
+--- a/examples/conf/nvs_slice_config.json
++++ b/examples/conf/nvs_slice_config.json
+@@ -3,23 +3,22 @@
+     "algorithm": "NVS",
+     "slices": [{
+         "id": 0,
+-        "label": "label",
++        "label": "default",
+         "params_type": "nvs",
+         "params": {
+-          "config_type": "rate",
++          "config_type": "capacity",
+           "config": {
+-            "mbpsRequired": 5,
+-            "mbpsReference": 10
++            "pctReserved": 0.34
+           }
+         }
+       },{
+-        "id": 2,
+-        "label": "label",
++        "id": 1,
++        "label": "extra",
+         "params_type": "nvs",
+         "params": {
+           "config_type": "capacity",
+           "config": {
+-            "pctReserved": 0.5
++            "pctReserved": 0.66
+           }
+         }
+       }
+diff --git a/examples/conf/ue_assoc.json b/examples/conf/ue_assoc.json
+index 788bad6..bb72008 100644
+--- a/examples/conf/ue_assoc.json
++++ b/examples/conf/ue_assoc.json
+@@ -1,12 +1,8 @@
+ {
+     "ues": [
+       {
+-        "rnti": 8732,
+-        "dlId": 0
+-      },
+-      {
+-        "rnti": 10970,
+-        "dlId": 2
++        "rnti": 16439,
++        "dlId": 1
+       }
+     ]
+ }
+diff --git a/src/controller/recursive_slicing/conn_manager.cc b/src/controller/recursive_slicing/conn_manager.cc
+index ad1196c..9a81c6a 100644
+--- a/src/controller/recursive_slicing/conn_manager.cc
++++ b/src/controller/recursive_slicing/conn_manager.cc
+@@ -90,7 +90,7 @@ void conn_manager::node_connection(const e2node_event_t* event)
+ 
+   for (const auto& e: _endpoints) {
+     ep_id_t ep_id = add_endpoint(_agent, e.first.c_str(), e.second, &filtered_e2_sr);
+-    float res = ep_id == 1 ? 0.25 : 0.74; // leave 0.01 for default slice
++    float res = 0.495; // leave 0.01 for default slice
+     _rslicing_manager->add_endpoint(ep_id, res, 17.5);
+     std::cout << "add controller (" << e.first << ":" << e.second << "): ep_id " << ep_id << "\n";
+   }
+diff --git a/src/controller/recursive_slicing/recursive_slicing.cc b/src/controller/recursive_slicing/recursive_slicing.cc
+index b7b6ff7..8a443fd 100644
+--- a/src/controller/recursive_slicing/recursive_slicing.cc
++++ b/src/controller/recursive_slicing/recursive_slicing.cc
+@@ -11,7 +11,7 @@ extern "C" {
+ int main()
+ {
+   e2ap_ric_t ric = {};
+-  e2ap_init_server(&ric, "127.0.0.1", 36421);
++  e2ap_init_server(&ric, "192.168.12.246", 36421);
+ 
+   endpoint_list_t endpoints;
+   endpoints.emplace_back(std::make_pair("127.0.0.1", 10001));
+diff --git a/src/server/sub_mgmt.c b/src/server/sub_mgmt.c
+index 5ddf17c..be43192 100644
+--- a/src/server/sub_mgmt.c
++++ b/src/server/sub_mgmt.c
+@@ -223,7 +223,10 @@ void sub_mgmt_ctrl_req_ack(sub_mgmt_t* sub_mgmt, int assoc_id, const ric_control
+ 
+   const hkey_t key = generate_key(assoc_id, ack->ric_id);
+   hentry_t* e = hash_table_find(&sub_mgmt->ctrl_tab, key);
+-  assert(e);
++  if (!e) {
++    printf("received control req ack for unknown control\n");
++    return;
++  }
+ 
+   ctrl_data_t* ctrl_data = e->data;
+   ctrl_data->cb_ctrl.ctrl_ack(ack, ctrl_data->user_data);
+diff --git a/src/sm/asn1_hw/e2sm_hw_app.c b/src/sm/asn1_hw/e2sm_hw_app.c
+index b3ecdc4..3956adb 100644
+--- a/src/sm/asn1_hw/e2sm_hw_app.c
++++ b/src/sm/asn1_hw/e2sm_hw_app.c
+@@ -38,8 +38,8 @@ void handle_indication(const ric_indication_t *i, void* data)
+ 
+   const long h = e2sm_hw_decode_indication_header(i->hdr);
+   if (h == app->count) {
+-    printf("[E2SM_HW_APP] received expected indication no %ld after %d usec\n", h, usec_rtt);
+-    fflush(stdout);
++    //printf("[E2SM_HW_APP] received expected indication no %ld after %d usec\n", h, usec_rtt);
++    //fflush(stdout);
+   } else {
+     printf("[E2SM_HW_APP] received indication no %ld after %d usec, but expected no %d\n",
+            h, usec_rtt, app->count);
+@@ -61,7 +61,7 @@ void* rtt_control_tick_thread(void* args)
+     gettimeofday(&app->control_sent, NULL);
+     app->count += 1;
+ 
+-    char *ctrl_text = "Hello from E2SM-HW, this is a control";
++    char *ctrl_text = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+     byte_array_t ctrl_msg = { .buf = (uint8_t*) ctrl_text, .len = strlen(ctrl_text) };
+     byte_array_t msg = e2sm_hw_generate_control_message(ctrl_msg);
+     byte_array_t hdr = e2sm_hw_generate_control_header(app->count);
+diff --git a/src/sm/asn1_hw/e2sm_hw_rf.c b/src/sm/asn1_hw/e2sm_hw_rf.c
+index 4acfae4..acab471 100644
+--- a/src/sm/asn1_hw/e2sm_hw_rf.c
++++ b/src/sm/asn1_hw/e2sm_hw_rf.c
+@@ -20,7 +20,7 @@ void e2sm_hw_handle_timer(e2ap_agent_t* ag, int tfd, void* data)
+   assert(data);
+   assert(tfd > -1);
+ 
+-  printf("[E2SM-HW] sending indication message after trigger now\n");
++  //printf("[E2SM-HW] sending indication message after trigger now\n");
+   byte_array_t ind_hdr = e2sm_hw_generate_indication_header(111);
+   const char *text = "Hello from E2SM-HW, this is an indication after trigger now";
+   byte_array_t ind_text = { .buf = (uint8_t*) text, .len = strlen(text) };
+@@ -117,8 +117,8 @@ void e2sm_hw_handle_control_request(e2ap_agent_t* ag, ep_id_t ep_id, const ric_c
+   }
+ 
+   static int count = 1;
+-  printf("[E2SM-HW] sending indication message after control request (no %d) to ep_id %d\n",
+-         count++, ep_id);
++  //printf("[E2SM-HW] sending indication message after control request (no %d) to ep_id %d\n",
++  //       count++, ep_id);
+   byte_array_t ind_hdr = e2sm_hw_generate_indication_header(hdr);
+   byte_array_t ind_msg = e2sm_hw_generate_indication_message(msg);
+   free_byte_array(msg);
+diff --git a/src/sm/fb_hw/e2sm_hw_fb_app.c b/src/sm/fb_hw/e2sm_hw_fb_app.c
+index fe96351..8e0671d 100644
+--- a/src/sm/fb_hw/e2sm_hw_fb_app.c
++++ b/src/sm/fb_hw/e2sm_hw_fb_app.c
+@@ -27,8 +27,8 @@ void handle_indication(const ric_indication_t *i, void* data)
+ 
+   const long h = e2sm_hw_fb_decode_indication_header(i->hdr);
+   if (h == app->count) {
+-    printf("[E2SM_HW_FB_APP] received expected indication no %ld after %d usec\n", h, usec_rtt);
+-    fflush(stdout);
++    //printf("[E2SM_HW_FB_APP] received expected indication no %ld after %d usec\n", h, usec_rtt);
++    //fflush(stdout);
+   } else {
+     printf("[E2SM_HW_FB_APP] received indication no %ld after %d usec, but expected no %d\n",
+            h, usec_rtt, app->count);
+@@ -50,7 +50,7 @@ void* rtt_control_tick_thread(void* args)
+     gettimeofday(&app->control_sent, NULL);
+     app->count += 1;
+ 
+-    char *ctrl_text = "Hello from E2SM-HW-FB, this is a control";
++    char *ctrl_text = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+     byte_array_t ctrl_msg = { .buf = (uint8_t*) ctrl_text, .len = strlen(ctrl_text) };
+     byte_array_t msg = e2sm_hw_fb_generate_control_message(ctrl_msg);
+     byte_array_t hdr = e2sm_hw_fb_generate_control_header(app->count);
+diff --git a/src/sm/fb_hw/e2sm_hw_fb_rf.c b/src/sm/fb_hw/e2sm_hw_fb_rf.c
+index d77def4..fa76720 100644
+--- a/src/sm/fb_hw/e2sm_hw_fb_rf.c
++++ b/src/sm/fb_hw/e2sm_hw_fb_rf.c
+@@ -13,7 +13,7 @@ void e2sm_hw_fb_handle_timer(e2ap_agent_t* ag, int tfd, void* data)
+   assert(!data);
+   assert(tfd > -1);
+ 
+-  printf("[E2SM-HW-FB] sending indication message after trigger now\n");
++  //printf("[E2SM-HW-FB] sending indication message after trigger now\n");
+   byte_array_t ind_hdr = e2sm_hw_fb_generate_indication_header(111);
+   const char *text = "Hello from E2SM-HW-FB, this is an indication after trigger now";
+   byte_array_t ind_text = { .buf = (uint8_t*) text, .len = strlen(text) };
+@@ -113,8 +113,8 @@ void e2sm_hw_fb_handle_control_request(e2ap_agent_t* ag, ep_id_t ep_id, const ri
+   }
+ 
+   static int count = 1;
+-  printf("[E2SM-HW-FB] sending indication message after control request (no %d) to ep_id %d\n",
+-         count++, ep_id);
++  //printf("[E2SM-HW-FB] sending indication message after control request (no %d) to ep_id %d\n",
++  //       count++, ep_id);
+   byte_array_t ind_hdr = e2sm_hw_fb_generate_indication_header(hdr);
+   byte_array_t ind_msg = e2sm_hw_fb_generate_indication_message(msg);
+   free_byte_array(msg);
+diff --git a/test/sm_asn1_hw/e2sm_hw_ric.c b/test/sm_asn1_hw/e2sm_hw_ric.c
+index 21c1625..2cd0580 100644
+--- a/test/sm_asn1_hw/e2sm_hw_ric.c
++++ b/test/sm_asn1_hw/e2sm_hw_ric.c
+@@ -9,7 +9,7 @@ int main()
+ 
+   e2sm_hw_app_t hw_app;
+   memset(&hw_app, 0, sizeof(hw_app));
+-  e2sm_hw_app_init(&hw_app, &ric, 1000);
++  e2sm_hw_app_init(&hw_app, &ric, 1);
+ 
+   e2ap_start_server(&ric);
+ 
+diff --git a/test/sm_fb_hw/e2sm_hw_fb_ric.c b/test/sm_fb_hw/e2sm_hw_fb_ric.c
+index 0c04a7b..1337e6e 100644
+--- a/test/sm_fb_hw/e2sm_hw_fb_ric.c
++++ b/test/sm_fb_hw/e2sm_hw_fb_ric.c
+@@ -9,7 +9,7 @@ int main()
+ 
+   e2sm_hw_fb_app_t hw_app;
+   memset(&hw_app, 0, sizeof(hw_app));
+-  e2sm_hw_fb_app_init(&hw_app, &ric, 1000);
++  e2sm_hw_fb_app_init(&hw_app, &ric, 1);
+ 
+   e2ap_start_server(&ric);
+ 

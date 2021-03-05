@@ -1,0 +1,6 @@
+{
+  "dl": {
+    "algorithm": "None",
+    "scheduler": "proportional_fair_wbcqi_dl"
+  }
+}

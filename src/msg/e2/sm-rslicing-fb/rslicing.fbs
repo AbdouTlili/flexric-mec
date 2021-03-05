@@ -1,0 +1,173 @@
+namespace mac.rslicing;
+
+// lists all algorithm
+enum SliceAlgorithm: uint8 {
+  None = 0,
+  Static = 1,
+  NVS = 2,
+  SCN19 = 3,
+  EDF = 4
+}
+
+// static algorithm definition
+table StaticSlice {
+  posLow: uint32;
+  posHigh: uint32;
+}
+
+// NVS algorithm definition
+table NvsRate {
+  mbpsRequired: float;
+  mbpsReference: float;
+}
+table NvsCapacity {
+  pctReserved: float;
+}
+union NvsSliceConfig {
+  rate: NvsRate,
+  capacity: NvsCapacity
+}
+table NvsSlice {
+  config: NvsSliceConfig;
+}
+
+// SCN19 algorithm definition
+table Scn19OnDemand {
+  pctReserved: float;
+  tau: uint32;
+  logDelta: float;
+}
+union Scn19SliceConfig {
+  dynamic: NvsRate,
+  fixed: StaticSlice,
+  ondemand: Scn19OnDemand
+}
+table Scn19Slice {
+  config: Scn19SliceConfig;
+}
+
+// EDF algorithm definition
+table EdfSlice {
+  deadline: uint32;
+  guaranteedPrbs: uint32;
+  maxReplenish: uint32;
+  override: [uint32];
+}
+
+// Generic Slice
+union SliceParams {
+  static: StaticSlice,
+  nvs: NvsSlice,
+  scn19: Scn19Slice,
+  edf: EdfSlice
+}
+table Slice {
+	id: uint32;
+  label: string;
+  scheduler:string;
+  params: SliceParams;
+}
+
+// Slice configuration in DL or UL
+table UlDlSliceConfig {
+  algorithm: SliceAlgorithm;
+  slices: [Slice];
+  scheduler: string; // if no slicing
+}
+
+// Slice Configuration in the system
+table SliceConfig {
+  dl: UlDlSliceConfig;
+  ul: UlDlSliceConfig;
+}
+
+// UE-slice association
+table UeSliceAssoc {
+  rnti: uint16;
+  dlId: uint32;
+  ulId: uint32;
+}
+table UeSliceConfig {
+  ues: [UeSliceAssoc];
+}
+
+// Type to delete slices
+table DelSliceConfig {
+  dl: [uint32];
+  ul: [uint32];
+}
+
+
+enum ReportOccasion: uint8 { onChange }
+table EventTrigger {
+  reportOccasion: ReportOccasion;
+}
+//root_type EventTrigger;
+
+
+//enum ReportStyleType: uint8 { Minimal, Complete }
+//table ReportStyle {
+//  type: ReportStyleType;
+//}
+//table ActionDefinition {
+  // empty
+//}
+//root_type ActionDefinition;
+
+
+table IndicationHeader {
+  // empty
+}
+//root_type IndicationHeader;
+
+
+table IndicationMessage {
+  sliceConfig: SliceConfig;
+  ueSliceConfig: UeSliceConfig;
+}
+//root_type IndicationMessage;
+
+
+table ControlHeader {
+  // empty;
+}
+//root_type ControlHeader;
+
+
+table AddModSliceCommand {
+  sliceConfig: SliceConfig;
+}
+table DelSliceCommand {
+  delSliceConfig: DelSliceConfig;
+}
+table UeSliceAssocCommand {
+  ueSliceConfig: UeSliceConfig;
+}
+union ControlCommand {
+  addModSlice: AddModSliceCommand,
+  delSlice: DelSliceCommand,
+  ueSliceAssoc: UeSliceAssocCommand
+}
+table ControlMessage {
+  command: ControlCommand;
+}
+
+
+table ControlOutcome {
+  diagnostic: string; // human-readable diagnostic for northbound
+}
+
+
+table CallProcessId {
+  id: uint32;
+}
+
+table SupportedAlgorithm {
+  algorithm: SliceAlgorithm;
+  // might add per-algorithm constraints or hints...
+}
+table RanFunctionDefinition {
+  //supportedReportStyles: [ReportStyle];
+  supportedAlgorithms: [SupportedAlgorithm];
+}
+//root_type RanFunctionDefinition;
