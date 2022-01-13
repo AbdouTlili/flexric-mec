@@ -1,18 +1,57 @@
-add_library(flexric_agent STATIC
-            e2ap_agent.c
-            e2ap_endpoint_agent.c
-            e2ap_msg_handler_agent.c
-            e2ap_multi_control.c)
-target_include_directories(flexric_agent
-                           PUBLIC
-                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-                           "$<INSTALL_INTERFACE:include>")
-target_link_libraries(flexric_agent
-                      PUBLIC
-                        types e2ap_ep e2ap_ds_lib
-                      PRIVATE
-                        e2ap_msg_dec e2ap_msg_enc)
-if(E2AP_ENCODING STREQUAL "ASN")
-  target_link_libraries(flexric_agent PUBLIC e2ap_asn1_lib)
+if(BUILDING_LIBRARY STREQUAL "STATIC")
+  set(E2_AGENT_BLD_LIB  "STATIC")
+elseif(BUILDING_LIBRARY STREQUAL "DYNAMIC")
+  set(E2_AGENT_BLD_LIB  "SHARED")
+else()
+  message(FATAL_ERROR "Unknown type")
 endif()
-install(FILES flexric_agent.h DESTINATION include/flexric)
+
+
+set(E2_AGENT_SRC 
+            asio_agent.c
+            e2ap_agent.c
+            e2_agent.c
+            e2_agent_api.c
+            endpoint_agent.c
+            msg_handler_agent.c
+            e2_agent_api.c
+            ind_event.c
+            plugin_agent.c
+            ../sm/sm_proc_data.c
+            $<TARGET_OBJECTS:e2ap_ap_obj>
+            $<TARGET_OBJECTS:e2ap_ep_obj>
+            $<TARGET_OBJECTS:e2ap_ds_obj>
+            $<TARGET_OBJECTS:e2ap_alg_obj>
+            $<TARGET_OBJECTS:pending_events_obj>
+            $<TARGET_OBJECTS:e2ap_types_obj>
+            $<TARGET_OBJECTS:e2ap_msg_enc_obj>
+            $<TARGET_OBJECTS:e2ap_msg_dec_obj>
+            $<TARGET_OBJECTS:e2ap_msg_free_obj>
+  )
+
+if(E2AP_ENCODING STREQUAL "ASN")
+
+    add_library(e2_agent ${E2_AGENT_BLD_LIB} #STATIC or SHARED
+            ${E2_AGENT_SRC}
+            $<TARGET_OBJECTS:e2ap_ie_obj>
+            $<TARGET_OBJECTS:e2ap_asn1_obj>
+            )
+elseif(E2AP_ENCODING STREQUAL "FLATBUFFERS")
+          add_library(e2_agent ${E2_AGENT_BLD_LIB} #STATIC or SHARED
+            ${E2_AGENT_SRC}
+           )
+
+          #bundle_static_library(e2_agent libflatccrt_d.a)
+else()
+  message(FATAL_ERROR "Error, while compiling the agent" )
+endif()
+
+
+if(INCL_WHAT_YOU_USE)
+  find_program(iwyu_path NAMES include-what-you-use iwyu REQUIRED)
+  set_property(TARGET e2_agent  PROPERTY C_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
+
+
+target_compile_definitions(e2_agent PRIVATE ${E2AP_ENCODING})
+

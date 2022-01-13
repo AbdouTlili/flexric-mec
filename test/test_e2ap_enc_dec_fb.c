@@ -19,13 +19,17 @@
  *      contact@openairinterface.org
  */
 
+
+
 #include <stdlib.h>
 #include <assert.h>
 
-#include "type_defs.h"
-#include "e2ap_msg_enc_fb.h"
-#include "e2ap_msg_dec_fb.h"
-#include "e2ap_msg_free.h"
+#include "../src/lib/ap/e2ap_ap.h"
+#include "../src/lib/ap/type_defs.h"
+#include "../src/lib/ap/enc/e2ap_msg_enc_fb.h"
+#include "../src/lib/ap/dec/e2ap_msg_dec_fb.h"
+#include "../src/lib/ap/free/e2ap_msg_free.h"
+
 
 e2ap_fb_t fb_type;
 
@@ -343,7 +347,8 @@ void test_setup_response()
 
 int main()
 {
-  init_enc_fb(&fb_type);
+  init_ap_fb(&fb_type);
+
   test_subscription_request();
   test_subscription_response();
   test_subscription_failure();

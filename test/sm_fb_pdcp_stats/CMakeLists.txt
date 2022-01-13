@@ -1,3 +1,0 @@
-add_executable(test_pdcp_stats test_pdcp_stats.c)
-target_link_libraries(test_pdcp_stats fb_pdcp_stats_msgs)
-add_dependencies(test test_pdcp_stats)

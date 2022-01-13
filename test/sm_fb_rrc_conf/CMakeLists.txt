@@ -1,3 +1,0 @@
-add_executable(test_rrc_conf test_rrc_conf.c)
-target_link_libraries(test_rrc_conf fb_rrc_conf_msgs)
-add_dependencies(test test_rrc_conf)

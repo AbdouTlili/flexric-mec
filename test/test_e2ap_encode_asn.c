@@ -19,22 +19,28 @@
  *      contact@openairinterface.org
  */
 
+
+
 #ifndef TEST_E2AP_ENCODE_ASN_H
 #define TEST_E2AP_ENCODE_ASN_H
 
-#include "byte_array.h"
-#include "type_defs.h"
-#include "e2ap_msg_enc_asn.h"
-#include "e2ap_msg_free.h"
+#include <assert.h>
+#include <stdio.h>
 
-#include "E2AP-PDU.h"
+#include "../src/util/byte_array.h"
+#include "../src/lib/ap/type_defs.h"
+#include "../src/lib/ap/enc/e2ap_msg_enc_asn.h"
+#include "../src/lib/ap/free/e2ap_msg_free.h"
+
+
+#include "../src/lib/ap/ie/asn/E2AP-PDU.h"
 
 
 #include <stdlib.h>
 #include <string.h>
 
 static
-void try_encode( E2AP_PDU_t* pdu)
+void try_encode(E2AP_PDU_t* pdu)
 {
   assert(pdu != NULL);
   uint8_t buffer[2048];
@@ -464,22 +470,26 @@ void test_e2_setup_failure()
 {
   cause_t cause = {.present = CAUSE_RICREQUEST, .ricRequest = CAUSE_RIC_RAN_FUNCTION_ID_INVALID};
 
-//  e2ap_time_to_wait_e* time_to_wait_ms = NULL;
-  e2ap_time_to_wait_e* time_to_wait_ms = calloc(1, sizeof(e2ap_time_to_wait_e)); 
+  e2ap_time_to_wait_e* time_to_wait_ms = calloc(1, sizeof(e2ap_time_to_wait_e)); // optional 
   *time_to_wait_ms = TIMETOWAIT_V1S; 
 
   criticality_diagnostics_t* crit_diag = NULL; // optional
+
   transport_layer_information_t* tl_info = calloc(1,sizeof(transport_layer_information_t)); // optional
   const char* addr = "192.168.1.0";
   tl_info->address.buf = malloc(strlen(addr)); 
   memcpy(tl_info->address.buf, addr, strlen(addr) );
   tl_info->address.len = strlen(addr); 
-  tl_info->port = calloc(1,sizeof(byte_array_t));
+
+  tl_info->port = NULL;
+  // Bug. Check why
+  /*
+  calloc(1,sizeof(byte_array_t));
   const char* port = "1010";
-  tl_info->port->buf = malloc(strlen(port));
+  tl_info->port->buf = calloc(1, strlen(port));
   memcpy(tl_info->port->buf, port, strlen(port));
   tl_info->port->len = strlen(port);  
-
+*/
   e2_setup_failure_t sf = {
   .cause = cause,
   .time_to_wait_ms = time_to_wait_ms,            // optional

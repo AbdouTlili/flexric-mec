@@ -19,87 +19,59 @@
  *      contact@openairinterface.org
  */
 
-#ifndef E2_AGENT_H
-#define E2_AGENT_H
-
-#define ASN1
-
-#include "rb_tree.h"
-
-#include "ngran_types.h"
-#include "global_consts.h"
-#include "type_defs.h"
-#include "flexric_agent.h"
-
-#include "e2ap_endpoint_agent.h"
-#include "e2ap_encode.h"
-
-#include <stdbool.h>
-//#define _GNU_SOURCE
-
-typedef struct ran_function_container {
-  ran_function_t* r;
-  void *data;
-  service_model_cb_t cbs;
-  rb_tree_t sub_reqs;
-  //rb_tree timers;
-} ran_function_container_t;
-
-typedef struct ran_func_s
-{
-  uint64_t key;
-  ran_function_container_t* rf_container;
-} pair_ran_fun_t;
-
-pair_ran_fun_t* init_pair_fun_reg(uint64_t key, ran_function_t* r, service_model_cb_t cbs, void* rfdata);
-void free_fun_reg(pair_ran_fun_t*);
-
-typedef struct pair_sub_data {
-  uint64_t key;
-  subscription_t* sub;
-} pair_sub_data_t;
-
-pair_sub_data_t* init_pair_sub_data(uint64_t key, subscription_t* sub);
-void free_pair_sub_data(pair_sub_data_t*);
 
 
-struct e2ap_agent_s;
-typedef void (*e2ap_handle_msg_fp_agent)(struct e2ap_agent_s*, ep_id_t ep_id, const e2ap_msg_t* msg);
+#ifndef E2AP_AGENT_H
+#define E2AP_AGENT_H
+
+#include "lib/ap/e2ap_ap.h"                                      // for e2ap...
+#include "lib/ap/e2ap_types/e2_setup_request.h"                  // for e2_s...
+#include "lib/ap/e2ap_types/ric_control_ack.h"                   // for ric_...
+#include "lib/ap/e2ap_types/ric_control_failure.h"               // for ric_...
+#include "lib/ap/e2ap_types/ric_indication.h"                    // for ric_...
+#include "lib/ap/e2ap_types/ric_subscription_delete_failure.h"   // for ric_...
+#include "lib/ap/e2ap_types/ric_subscription_delete_response.h"  // for ric_...
+#include "lib/ap/e2ap_types/ric_subscription_failure.h"          // for ric_...
+#include "lib/ap/e2ap_types/ric_subscription_response.h"         // for ric_...
+#include "lib/ap/type_defs.h"                                    // for e2ap...
+#include "util/byte_array.h"                                     // for byte...
 
 typedef struct e2ap_agent_s 
 {
-  e2ap_enc_t enc;
-  e2ap_ep_ag_t* ep; // multiple controllers, dynamically allocated
-  int num_ep;
-  int cap_ep;
-
-  rb_tree_t fun_registered;
-
-  e2ap_handle_msg_fp_agent handle_msg[26]; // note that not all the slots will be occupied
-
-  global_e2_node_id_t global_e2_node_id;
-
-  int efd; 
-  bool stop_token;
-  bool agent_stopped;
+  e2ap_ap_t base;
 
 } e2ap_agent_t;
 
-e2ap_agent_t* e2ap_create_instance_agent(void);
-void e2ap_event_loop_agent(e2ap_agent_t* ag);
+void e2ap_msg_free_ag(e2ap_agent_t* ag, e2ap_msg_t* msg);
 
-void e2ap_register_sub_req_agent(ran_function_container_t* rfc, ep_id_t ep_id, subscription_t* sub);
-subscription_t* e2ap_get_sub_req_agent(ran_function_container_t* rfc, ep_id_t ep_id, ric_gen_id_t ric_id);
-void e2ap_delete_sub_req_agent(ran_function_container_t* rfc, ep_id_t ep_id, ric_gen_id_t ric_id);
+/////////////
+// Encoding
+//////////////
 
-ran_function_container_t* e2ap_get_ran_fun_agent(e2ap_agent_t* ag, uint16_t ran_func_id);
+byte_array_t e2ap_msg_enc_ag(e2ap_agent_t* ap, const e2ap_msg_t* msg); 
 
-ric_subscription_request_t* deep_copy_sub_req(const ric_subscription_request_t* sr);
+byte_array_t e2ap_enc_setup_request_ag(e2ap_agent_t* ap, e2_setup_request_t* sr);
 
-void free_subscription_request(ric_subscription_request_t* sr);
+byte_array_t e2ap_enc_subscription_response_ag(e2ap_agent_t* ap, const ric_subscription_response_t* sr);
 
-void add_fd_epoll(int efd, int fd);
-void set_fd_non_blocking(int sfd);
+byte_array_t e2ap_enc_subscription_failure_ag(e2ap_agent_t* ap,const ric_subscription_failure_t* sf);
+
+byte_array_t e2ap_enc_indication_ag(e2ap_agent_t* ap, const ric_indication_t* ind);
+
+byte_array_t e2ap_enc_subscription_delete_response_ag(e2ap_agent_t* ap, const ric_subscription_delete_response_t*  sdr);
+
+byte_array_t e2ap_enc_subscription_delete_failure_ag(e2ap_agent_t* ap, const ric_subscription_delete_failure_t*  sdf);
+
+byte_array_t e2ap_enc_control_acknowledge_ag(e2ap_agent_t* ap, const ric_control_acknowledge_t* ca);
+
+byte_array_t e2ap_enc_control_failure_ag(e2ap_agent_t* ap, const ric_control_failure_t* cf);
+
+
+//
+// Decoding
+//
+
+e2ap_msg_t e2ap_msg_dec_ag(e2ap_agent_t* ap, byte_array_t ba); 
 
 #endif
 

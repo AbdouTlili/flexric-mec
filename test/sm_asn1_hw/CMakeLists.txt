@@ -1,8 +1,0 @@
-add_executable(test_e2sm_hw test_e2sm_hw.c)
-target_link_libraries(test_e2sm_hw PRIVATE e2sm_hw_rf e2sm_hw_app e2ap_ds_lib flexric_agent)
-add_dependencies(test test_e2sm_hw)
-
-add_executable(e2sm_hw_agent e2sm_hw_agent.c)
-target_link_libraries(e2sm_hw_agent PRIVATE flexric_agent e2sm_hw_rf)
-add_executable(e2sm_hw_ric e2sm_hw_ric.c)
-target_link_libraries(e2sm_hw_ric PRIVATE e2ap_server e2sm_hw_app)

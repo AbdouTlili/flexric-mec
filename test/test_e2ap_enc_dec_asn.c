@@ -20,12 +20,13 @@
  */
 
 
+
 #include <assert.h>
-#include "ric_subscription_request.h"
 #include "E2AP-PDU.h"
-#include "e2ap_msg_enc_asn.h"
-#include "e2ap_msg_dec_asn.h"
-#include "e2ap_msg_free.h"
+
+#include "../src/lib/ap/enc/e2ap_msg_enc_asn.h"
+#include "../src/lib/ap/dec/e2ap_msg_dec_asn.h"
+#include "../src/lib/ap/free/e2ap_msg_free.h"
 
 void try_encode( E2AP_PDU_t* pdu)
 {
@@ -719,6 +720,8 @@ int main()
   test_service_update_ack();
   test_service_update_failure();
   test_service_query();
+  puts("Sucess running the encoding/decoding test");
+  // ToDO:
 //  test_node_configuration_update();
 //  test_node_configuration_update_ack();
 //  test_node_configuration_update_failure();

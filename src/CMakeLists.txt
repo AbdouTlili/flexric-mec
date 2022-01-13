@@ -1,8 +1,6 @@
 add_subdirectory(agent)
-add_subdirectory(controller)
-add_subdirectory(msg)
-add_subdirectory(msg_dec)
-add_subdirectory(msg_enc)
-add_subdirectory(server)
+add_subdirectory(lib)
+add_subdirectory(ric)
 add_subdirectory(sm)
 add_subdirectory(util)
+

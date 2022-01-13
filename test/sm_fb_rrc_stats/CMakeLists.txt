@@ -1,3 +1,0 @@
-add_executable(test_rrc_stats test_rrc_stats.c)
-target_link_libraries(test_rrc_stats fb_rrc_stats_msgs)
-add_dependencies(test test_rrc_stats)

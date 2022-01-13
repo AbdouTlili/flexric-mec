@@ -1,3 +1,0 @@
-add_executable(test_rslicing test_rslicing.c)
-target_link_libraries(test_rslicing fb_rslicing_msgs)
-add_dependencies(test test_rslicing)
