@@ -24,7 +24,8 @@
 #include <arpa/inet.h>   // for inet_pton
 #include <assert.h>      // for assert
 #include <errno.h>       // for errno
-#include <linux/sctp.h>  // for sctp_event_subscribe, SCTP_AUTOCLOSE, SCTP_E...
+//#include <linux/sctp.h>  // for sctp_event_subscribe, SCTP_AUTOCLOSE, SCTP_E...
+#include <netinet/sctp.h>
 #include <netinet/in.h>  // for sockaddr_in, IPPROTO_SCTP, htons, sockaddr_in6
 #include <stdio.h>       // for printf, NULL, size_t
 #include <stdlib.h>      // for malloc

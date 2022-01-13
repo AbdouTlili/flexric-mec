@@ -24,7 +24,8 @@
 #include "endpoint_agent.h"
 #include <arpa/inet.h>       // for inet_pton
 #include <assert.h>          // for assert
-#include <linux/sctp.h>      // for sctp_event_subscribe, SCTP_EVENTS, SCTP_...
+//#include <linux/sctp.h>      // for sctp_event_subscribe, SCTP_EVENTS, SCTP_...
+#include <netinet/sctp.h>
 #include <netinet/in.h>      // for sockaddr_in, IPPROTO_SCTP, htonl, htons
 #include <stdio.h>           // for NULL
 #include <stdlib.h>          // for malloc
