@@ -77,3 +77,18 @@ target_link_libraries(test_agent
                       -lsctp
                       -ldl)
 
+add_executable(near_ric_sa ric_sa.c )
+target_link_libraries(near_ric_sa
+                      PUBLIC 
+                      ${FlatCC} 
+                      near_ric
+                      #ToDO: get rid of nng dependency
+                      -lnng
+                      -pthread
+                      -lsctp
+                      -ldl)
+
+
+
+
+

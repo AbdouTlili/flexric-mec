@@ -46,8 +46,16 @@ and PDCP data and store it in a log.txt file
 ```bash
 $ make -j 
 $ sudo make install 
-$ ./test/test_near_ric
+$ ./test/test_near_ric # located in the /path/to/flexric/build
 ```
+
+Now you can start running the Standalone Near-RIC using the command
+
+```bash
+$ ./test/near_ric_sa -a 127.0.0.1 # located in the /path/to/flexric/build. Check available IP addresses with the command "ip addr" or "ifconfig". Change the IP address as required.  
+```
+
+To stop the Standalone Near-RIC, just press CTRL+C
 
 
 ## Integration with OpenAirInterface
@@ -61,7 +69,12 @@ $ git am /path/to/flexric/oai/0001-FlexRIC-s-E2-Agent-integration-in-OAI-5G.patc
 $ git am /path/to/flexric/oai/0002-Last-E2-Agent.patch
 
 ```
-Go to executables/nr-softmodem.c and change the Near-RIC IP address 
+Open executables/nr-softmodem.c and change the IP address where the Near-RIC is listening i.e., line 951 
+
+```bash
+const char server_ip_str[] = 127.0.0.1 # Change to the IP address where the Near-RIC is listening
+```
+
 You can now compile OAI
 
 ```bash
@@ -77,7 +90,7 @@ $ cd ../targets/bin/
 $ sudo ./nr-softmodem.Rel15 -O path/to/flexric/oai/gnb.band78.tm1.fr1.106PRB.usrpb210.conf -E  --sa --usrp-tx-thread-config 1 
 ```
 
-You can now start a Near-RIC and see the communication between the E2-Agent and the Near-RIC (e.g., using Wireshark).   
+You can now start the Stand Alone Near-RIC and see the communication between the E2-Agent and the Near-RIC (e.g., using Wireshark).   
 If you want to use the xApps, start a Near-RIC, report the services for the SMs (i.e., using the call report_service_near_ric_api) and start an infinite loop.
 You can then connect to the Near-RIC through the xApps that were provided during the Hackfest 2021.
 

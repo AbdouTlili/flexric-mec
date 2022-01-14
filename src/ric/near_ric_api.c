@@ -74,6 +74,14 @@ void stop_near_ric_api()
   assert(rc  == 0);
 }
 
+
+size_t e2_nodes(void)
+{
+  assert(ric != NULL);
+  return num_conn_e2_nodes(ric); 
+}
+
+
 void report_service_near_ric_api(/*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd )
 {
   assert(ric != NULL);

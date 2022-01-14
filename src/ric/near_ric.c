@@ -377,6 +377,13 @@ ric_subscription_request_t generate_subscription_request(near_ric_t* ric, sm_ric
 }
 
 
+size_t num_conn_e2_nodes(near_ric_t* ric)
+{
+  assert(ric != NULL);
+  return seq_size(&ric->conn_e2_nodes); // e2_node_t 
+}
+
+
 void report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd)
 {
   assert(ric != NULL);

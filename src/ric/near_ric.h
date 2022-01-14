@@ -81,6 +81,10 @@ void free_near_ric(near_ric_t* ric);
 
 
 //////
+
+size_t num_conn_e2_nodes(near_ric_t* ric);
+
+
 void report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd);
 
 void rm_report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd);

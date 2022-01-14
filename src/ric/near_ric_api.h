@@ -23,12 +23,14 @@
 #ifndef NEAR_RIC_SERVER_API
 #define NEAR_RIC_SERVER_API
 
+#include <stddef.h>
 #include <stdint.h>
 
 void init_near_ric_api(const char* addr /*, int port*/ );
 
 void stop_near_ric_api(void);
 
+size_t e2_nodes(void);
 
 // NEAR-RT RIC services
 // 4 basic Service reports defined 
