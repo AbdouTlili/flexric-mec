@@ -25,11 +25,13 @@
 
 #include <assert.h>                                        // for assert
 #include <pthread.h>                                       // for pthread_cr...
+#include <stdlib.h>
 #include <stdio.h>                                         // for NULL
 #include "e2_agent.h"                                      // for e2_free_agent
 #include "lib/ap/e2ap_types/common/e2ap_global_node_id.h"  // for global_e2_...
 #include "lib/ap/e2ap_types/common/e2ap_plmn.h"            // for plmn_t
 #include "util/ngran_types.h"                              // for ngran_gNB
+#include "util/conf_file.h"
 
 
 static
@@ -47,9 +49,7 @@ void* static_start_agent(void* a)
   return NULL;
 }
 
-
-void init_agent_api(const char* server_ip_str, 
-                    int mcc, 
+void init_agent_api(int mcc, 
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,
@@ -57,11 +57,14 @@ void init_agent_api(const char* server_ip_str,
                     )
 {
   assert(agent == NULL);  
-  assert(server_ip_str != NULL);
   assert(mcc > 0);
   assert(mnc > 0);
   assert(mnc_digit_len > 0);
   assert(nb_id > 0);
+
+
+  char* server_ip_str = get_near_ric_ip();
+  printf("[E2 AGENT]: RIC IP Address = %s\n", server_ip_str);
 
   const plmn_t plmn = {.mcc = mcc, .mnc = mnc, .mnc_digit_len = mnc_digit_len};
   const global_e2_node_id_t ge2ni = {.type = ngran_gNB, .plmn = plmn, .nb_id = nb_id };
@@ -72,6 +75,7 @@ void init_agent_api(const char* server_ip_str,
   // Spawn a new thread for the agent
   const int rc = pthread_create(&thrd_agent, NULL, static_start_agent, NULL);
   assert(rc == 0);
+  free(server_ip_str);
 }
 
 void stop_agent_api(void)

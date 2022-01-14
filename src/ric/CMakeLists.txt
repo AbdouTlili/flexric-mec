@@ -27,6 +27,7 @@ set(RIC_SRC
             $<TARGET_OBJECTS:e2ap_ap_obj>
             $<TARGET_OBJECTS:e2ap_ds_obj>
             $<TARGET_OBJECTS:e2ap_alg_obj>
+            $<TARGET_OBJECTS:e2_conf_obj>
             $<TARGET_OBJECTS:e2ap_msg_enc_obj>
             $<TARGET_OBJECTS:e2ap_msg_dec_obj>
             $<TARGET_OBJECTS:e2ap_msg_free_obj>

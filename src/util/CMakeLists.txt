@@ -22,5 +22,10 @@ add_library(e2ap_alg_obj OBJECT
                         $<TARGET_OBJECTS:e2ap_ds_obj>
                         )
 
+add_library(e2_conf_obj OBJECT 
+                        conf_file.c
+                        )
+
+
 
 

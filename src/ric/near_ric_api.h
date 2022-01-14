@@ -26,7 +26,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void init_near_ric_api(const char* addr /*, int port*/ );
+void init_near_ric_api(void /* const char* addr , int port*/ );
 
 void stop_near_ric_api(void);
 

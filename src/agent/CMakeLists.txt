@@ -22,6 +22,7 @@ set(E2_AGENT_SRC
             $<TARGET_OBJECTS:e2ap_ep_obj>
             $<TARGET_OBJECTS:e2ap_ds_obj>
             $<TARGET_OBJECTS:e2ap_alg_obj>
+            $<TARGET_OBJECTS:e2_conf_obj>
             $<TARGET_OBJECTS:pending_events_obj>
             $<TARGET_OBJECTS:e2ap_types_obj>
             $<TARGET_OBJECTS:e2ap_msg_enc_obj>

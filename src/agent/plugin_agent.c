@@ -110,6 +110,8 @@ void* rx_plugin_agent(void* p_v)
     ptr[strlen(ptr)] = '/';
     memcpy(full_path + strlen(full_path), buf, strlen(buf));
 
+     
+
     // Load the plugin in the agent
     load_plugin_ag(p, full_path);
     printf("File received and loaded\n");
@@ -170,7 +172,10 @@ void load_all_pugin_ag(plugin_ag_t* p, const char* dir_path)
     strncat(file_path, dir_path, strlen(dir_path)); 
     strncat(file_path + strlen(dir_path), in_file->d_name, strlen(in_file->d_name)); 
 
-    load_plugin_ag(p, file_path);
+    const char* needle = ".conf";
+    const char* ans = strstr(file_path, needle);
+    if(ans == NULL) // Not a Configuration file
+      load_plugin_ag(p, file_path);
 
     in_file = readdir(fd);
   }

@@ -23,7 +23,6 @@
 #include "plugin_ric.h"
 
 #include "util/alg_ds/alg/alg.h"
-//#include "util/alg_ds/alg/string/search_naive.h"
 #include "util/compare.h"
 
 #include <assert.h>
@@ -98,7 +97,11 @@ void load_all_pugin_ric(plugin_ric_t* p, const char* dir_path)
     assert( sz_dir_path + sz_file_name < 1024 - 1 );
     strncat(file_path + sz_dir_path , in_file->d_name, 1024 - 1 - sz_dir_path); 
 
-    load_plugin_ric(p, file_path);
+    const char* needle = ".conf"; 
+    const char* ans = strstr(file_path, needle);
+    if(ans == NULL) // Not a Configuration file
+      load_plugin_ric(p, file_path);
+
     in_file = readdir(fd);
   }
   closedir(fd);

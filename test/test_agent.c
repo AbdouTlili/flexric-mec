@@ -129,14 +129,13 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
 int main()
 {
   // Init the Agent
-  const char server_ip_str[] = "127.0.0.1";
   const int mcc = 10; 
   const int mnc = 15; 
   const int mnc_digit_len = 2;
   const int nb_id = 42;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
  
-  init_agent_api(server_ip_str, mcc, mnc, mnc_digit_len, nb_id, io );
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io );
 
   sleep(200);
 

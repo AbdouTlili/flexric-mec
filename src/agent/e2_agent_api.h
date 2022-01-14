@@ -27,8 +27,7 @@
 #include "sm/sm_io.h"
 
 
-void init_agent_api(const char* server_ip_str, 
-                    int mcc, 
+void init_agent_api(int mcc, 
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,

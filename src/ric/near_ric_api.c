@@ -21,10 +21,12 @@
 
 
 #include "near_ric_api.h"
+#include "near_ric.h"  // for control_service_near_ric, free_near_ric, init_
+#include "../util/conf_file.h"
 #include <assert.h>    // for assert
 #include <pthread.h>   // for pthread_create, pthread_join, pthread_t
 #include <stddef.h>    // for NULL
-#include "near_ric.h"  // for control_service_near_ric, free_near_ric, init_
+#include <stdio.h>
 
 /*
 #include "near_ric_api.h"
@@ -53,10 +55,12 @@ void* static_start_near_ric(void* a)
   return NULL;
 }
 
-void init_near_ric_api(const char* addr)
+void init_near_ric_api(void)
 {
-  assert(addr != NULL);
   assert(ric == NULL);
+
+  char* addr = get_near_ric_ip();
+  printf("[NEAR RIC]: RIC IP Address = %s\n", addr);
 
   ric = init_near_ric(addr);
   assert(ric != NULL && "Memory exhausted");
@@ -64,6 +68,7 @@ void init_near_ric_api(const char* addr)
   // Spawn a new thread for the ric
   int const rc = pthread_create(&t_near_ric, NULL, static_start_near_ric, ric);
   assert(rc == 0);
+  free(addr);
 }
 
 void stop_near_ric_api()

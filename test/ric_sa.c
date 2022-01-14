@@ -71,61 +71,21 @@ void wait_e2_node()
 {
   while(1){
    sleep(1);
-    if(e2_node_connected() == true)
+    if(e2_node_connected() == true){
+      sleep(1);
       break;
+    }
   }
 }
 
-static
-bool valid_ip(const char* ip)
+
+int main()
 {
-  struct sockaddr_in sa;
-  int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
-  return result != 0;
-}
-
-
-int main(int argc, char *argv[])
-{
-  const char* default_ip = "127.0.0.1";
-
-  char ip_addr[24] = {0};
-
-  int opt = 0;
-  bool cmd_passed = false;
-   while((opt = getopt(argc, argv, ":a:")) != -1){ 
-      switch(opt){
-         case 'a':
-            memcpy(ip_addr, optarg, 24);
-            cmd_passed = true;
-            break;
-         case '?': //used for some unknown options
-            printf("Unknown command option: %c\n", optopt);
-            exit(0);
-            break;
-          default:
-            printf("Unknown command option: %c\n", optopt);
-            exit(0);
-      }
-   }
- 
-  if(cmd_passed == false)
-    memcpy(ip_addr, default_ip, 24);
-
-  if(valid_ip(ip_addr) == false){
-    printf("Invalid IP address provided %s\n", ip_addr);
-    exit(0);
-  }
-
-
-  printf("RIC IP address: %s\n", ip_addr);
-
   // Signal handler
   signal(SIGINT, sig_handler);
 
-
   // Init the RIC
-  init_near_ric_api(ip_addr);
+  init_near_ric_api();
 
   wait_e2_node();
 
