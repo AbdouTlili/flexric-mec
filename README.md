@@ -49,8 +49,8 @@ $ sudo make install
 $ ./test/test_near_ric # located in the /path/to/flexric/build
 ```
 In case that you want to run the E2 Agent and the Near-RIC in different machines, remember that you need to install the SMs and the configuration file at the E2 Agent machine, as well as at the Near-RIC machine.
-Therefore, we recommend that you follow the steps described before in both machines. The IP address to configure can be
-found at /usr/lib/flexric/flexric.conf
+Therefore, we recommend that you follow the steps described before in both machines, including the sudo make install command.
+ The IP address to configure can be found at /usr/lib/flexric/flexric.conf
 
 
 Now you can start running the Standalone Near-RIC using the command
@@ -69,8 +69,7 @@ To facilitate the E2-Agent integration with OAI we provide a patch at the direct
 ```bash
 $ git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git oai
 $ cd oai && git checkout b04731d7565cd91b538eb7cc80f874b4730d54ad 
-$ git am /path/to/flexric/oai/0001-FlexRIC-s-E2-Agent-integration-in-OAI-5G.patch  
-$ git am /path/to/flexric/oai/0002-Last-E2-Agent.patch
+$ git am /path/to/flexric/oai/flexric_oai.patch  
 
 ```
 
@@ -88,8 +87,7 @@ $ sudo ./nr-softmodem.Rel15 -O path/to/flexric/oai/gnb.band78.tm1.fr1.106PRB.usr
 ```
 
 You can now start the Standalone Near-RIC and see the communication between the E2-Agent and the Near-RIC (e.g., using Wireshark).   
-If you want to use the xApps, start a Near-RIC, report the services for the SMs (i.e., using the call report_service_near_ric_api) and start an infinite loop.
-You can then connect to the Near-RIC through the xApps that were provided during the Hackfest 2021.
+You can also now connect to the Near-RIC through the xApps that were provided during the Hackfest Fall 2021.
 
 ## Flatbuffers 
 We also provide a flatbuffers encoding/decoding scheme as alternative to ASN.1. In case that you want to use it,
