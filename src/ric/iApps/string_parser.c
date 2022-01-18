@@ -35,7 +35,7 @@ void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* ou
   assert(out != NULL);
   const size_t max = 512;
   assert(out_len >= max);
-  int rc = snprintf(out, max, "mac_stats "
+  int rc = snprintf(out, max, "mac_stats: "
         "tstamp=%ld,"
         "dl_aggr_tbs=%lu,"
         "ul_aggr_tbs=%lu,"
@@ -88,7 +88,7 @@ void to_string_rlc_rb(rlc_radio_bearer_stats_t* rlc, int64_t tstamp , char* out,
   assert(out_len >= max);
  
   int const rc = snprintf(out, max,
-        "rlc_stats tstamp=%ld,"
+        "rlc_stats: tstamp=%ld,"
         "txpdu_pkts=%u,"
         "txpdu_bytes=%u,"
         "txpdu_wt_ms=%u,"
@@ -169,7 +169,7 @@ void to_string_pdcp_rb(pdcp_radio_bearer_stats_t* pdcp, int64_t tstamp, char* ou
   const size_t max = 512;
   assert(out_len >= max);
  
-  int rc = snprintf(out, out_len,  "pdcp_stats " 
+  int rc = snprintf(out, out_len,  "pdcp_stats: " 
         "tstamp=%ld,"
         "txpdu_pkts=%u,"
         "txpdu_bytes=%u,"
