@@ -244,4 +244,7 @@ int main()
 
   // Stop the RIC
   stop_near_ric_api();
+
+  printf("Test communicating E2-Agent and Near-RIC run SUCCESFULLY\n");
+
 }

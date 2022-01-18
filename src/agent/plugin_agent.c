@@ -226,7 +226,7 @@ void free_plugin_ag(plugin_ag_t* p)
 
   int rc = shutdown(p->sockfd, SHUT_RDWR);
   if(rc != 0){
-    printf("Error while closing the socket %s \n", strerror(errno));
+    printf("Closing the agent socket: %s \n", strerror(errno));
   }
   //assert(rc == 0);
 
