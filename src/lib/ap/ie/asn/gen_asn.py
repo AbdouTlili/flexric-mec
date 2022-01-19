@@ -82,9 +82,17 @@ def gen_asn(pdf_file):
 def main():
     pdf_file = sys.argv[1]
 
+    idx = pdf_file.find('.docx')  
+    if(idx != -1):
+        print('.docx file passed. Converting to pdf...' )
+        cmd_to_pdf = 'lowriter --convert-to pdf ' + pdf_file + ' --outdir /tmp/fr_tmp.pdf' 
+        os.system(cmd_to_pdf)
+        pdf_file = '/tmp/fr_tmp.pdf'
+
+
     idx = pdf_file.find('.pdf')
-    if(idx < 1):
-        print('pdf file passed = ' + pdf_file)
+    if(idx == -1):
+        print('Pdf file passed or converted from .docx = ' + pdf_file)
         print('Invalid pdf file. Pass a .pdf file e.g., python3 gen_asn.py O-RAN.WG3.E2AP-v01.01.pdf')
         return
     

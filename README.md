@@ -10,12 +10,12 @@ to use [this PPA](https://apt.kitware.com/) to install an up-to-date version.
 
 Building instructions: 
 * E2AP messages are protected by the O-RAN license. To acquire them, visit https://www.o-ran.org/specifications and sign the O-RAN ADOPTER LICENSE AGREEMENT. 
-The definitions of the E2AP messages can be found at the O-RAN.WG3.E2AP-v01.01.pdf.
+The definitions of the E2AP messages can be found at the O-RAN.WG3.E2AP-v01.01.pdf or O-RAN.WG3.E2AP-v01.01.docx.
 
 Download the required dependencies 
 
 ```bash
-sudo apt install asn1c libsctp-dev poppler-utils python3.8
+sudo apt install asn1c libsctp-dev poppler-utils python3.8 libreoffice
 ```
 
 Today, the xApp communication is based on the Next Generation of Nanomessages https://github.com/nanomsg/nng. Please go there and install them into your computer.
@@ -31,6 +31,8 @@ To convert the ASN.1 module files into C structs, we provide a python3 script
 ```bash
 $ cd src/lib/ap/ie/asn
 $ python3 gen_asn.py path/to/O-RAN.WG3.E2AP-v01.01.pdf 
+or
+$ python3 gen_asn.py path/to/O-RAN.WG3.E2AP-v01.01.docx 
 ```
 At this point you can go back and compile the project.
 
