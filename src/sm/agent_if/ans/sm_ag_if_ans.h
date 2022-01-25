@@ -28,7 +28,7 @@
 #include "../../mac_sm/ie/mac_data_ie.h"
 #include "../../rlc_sm/ie/rlc_data_ie.h"
 #include "../../pdcp_sm/ie/pdcp_data_ie.h"
-//#include "../../slice_sm/ie/slice_data_ie.h"
+#include "../../slice_sm/ie/slice_data_ie.h"
 
 
 
@@ -46,7 +46,7 @@ typedef struct{
     mac_ctrl_out_t mac;
     rlc_ctrl_out_t rlc;
     pdcp_ctrl_out_t pdcp;
-//    slice_ctrl_out_t slice;
+    slice_ctrl_out_t slice;
   };
   sm_ag_if_ans_e type;
 } sm_ag_if_ans_t;

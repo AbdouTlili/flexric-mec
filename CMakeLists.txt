@@ -161,6 +161,7 @@ ENDIF()
 install(TARGETS mac_sm DESTINATION /usr/lib/flexric)
 install(TARGETS rlc_sm DESTINATION /usr/lib/flexric)
 install(TARGETS pdcp_sm DESTINATION /usr/lib/flexric)
+install(TARGETS slice_sm DESTINATION /usr/lib/flexric)
 
 ###
 # Install the configuration file

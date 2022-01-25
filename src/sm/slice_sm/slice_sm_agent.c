@@ -121,9 +121,18 @@ static
 sm_e2_setup_t on_e2_setup_slice_sm_ag(sm_agent_t* sm_agent)
 {
   assert(sm_agent != NULL);
-  printf("on_e2_setup called \n");
+//  printf("on_e2_setup called \n");
+
+  sm_slice_agent_t* sm = (sm_slice_agent_t*)sm_agent;
 
   sm_e2_setup_t setup = {.len_rfd =0, .ran_fun_def = NULL  }; 
+
+  setup.len_rfd = strlen(sm->base.ran_func_name);
+  setup.ran_fun_def = calloc(1, strlen(sm->base.ran_func_name));
+  assert(setup.ran_fun_def != NULL);
+  memcpy(setup.ran_fun_def, sm->base.ran_func_name, strlen(sm->base.ran_func_name));
+
+//  sm_e2_setup_t setup = {.len_rfd =0, .ran_fun_def = NULL  }; 
   return setup;
 }
 
@@ -163,6 +172,7 @@ sm_agent_t* make_slice_sm_agent(sm_io_ag_t io)
   sm->base.proc.on_e2_setup = on_e2_setup_slice_sm_ag;
   sm->base.handle = NULL;
 
+  *(uint16_t*)(&sm->base.ran_func_id) = SM_SLICE_ID; 
   assert(strlen(SM_SLICE_STR) < sizeof( sm->base.ran_func_name) );
   memcpy(sm->base.ran_func_name, SM_SLICE_STR, strlen(SM_SLICE_STR)); 
 
