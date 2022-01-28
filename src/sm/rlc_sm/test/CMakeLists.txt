@@ -21,7 +21,7 @@ file(GLOB asn_sources "../ie/asn/*.c")
 add_executable(test_rlc_sm main.c 
                       ../../sm_proc_data.c 
                       ../rlc_sm_agent.c 
-                      ../rlc_sm_server.c 
+                      ../rlc_sm_ric.c 
                       ../enc/rlc_enc_plain.c 
                       ../enc/rlc_enc_fb.c 
                       ../enc/rlc_enc_asn.c 

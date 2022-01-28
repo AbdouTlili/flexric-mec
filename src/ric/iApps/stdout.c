@@ -131,7 +131,26 @@ void print_pdcp_stats(pdcp_ind_msg_t const* pdcp)
   }
 }
 
+static
+void print_slice_stats(slice_ind_msg_t const* slice)
+{
+  assert(slice != NULL);
 
+  if(fp == NULL)
+    init_fp(&fp, file_path);
+
+  char stats[512] = {0};
+  to_string_slice(slice, slice->tstamp, stats, 512); 
+
+  int const rc = fputs(stats , fp);
+  // Edit: The C99 standard §7.19.1.3 states:
+  // The macros are [...]
+  // EOF which expands to an integer constant expression, 
+  // with type int and a negative value, that is returned by 
+  // several functions to indicate end-of-ﬁle, that is, no more input from a stream;
+  assert(rc > -1);
+
+}
 
 void notify_stdout_listener(sm_ag_if_rd_t const* data)
 {
@@ -142,6 +161,8 @@ void notify_stdout_listener(sm_ag_if_rd_t const* data)
     print_rlc_stats(&data->rlc_stats.msg);
   else if (data->type == PDCP_STATS_V0)
     print_pdcp_stats(&data->pdcp_stats.msg);
+  else if (data->type == SLICE_STATS_V0)
+    print_slice_stats(&data->slice_stats.msg);
   else
     assert(0!= 0);
 }

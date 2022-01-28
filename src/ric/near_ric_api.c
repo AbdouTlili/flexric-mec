@@ -121,4 +121,3 @@ void load_sm_near_ric_api(const char* file_path)
   return load_sm_near_ric(ric, file_path); 
 }
 
-

@@ -349,7 +349,8 @@ bool eq_slice_ind_msg(slice_ind_msg_t const* m0, slice_ind_msg_t const* m1)
   assert(m1 != NULL);
 
   return eq_slice_conf(&m0->slice_conf, &m1->slice_conf) 
-         && eq_ue_slice_conf(&m0->ue_slice_conf, &m1->ue_slice_conf);
+         && eq_ue_slice_conf(&m0->ue_slice_conf, &m1->ue_slice_conf)
+         && m0->tstamp == m1->tstamp;
 }
 
 
@@ -523,6 +524,7 @@ slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t* src)
 
   out.slice_conf = cp_slice_conf(&src->slice_conf);
   out.ue_slice_conf = cp_ue_slice_conf(&src->ue_slice_conf);
+  out.tstamp = src->tstamp;
 
   assert(eq_slice_ind_msg(src, &out) );
 

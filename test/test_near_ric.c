@@ -20,20 +20,17 @@
  */
 
 
-
 #include "../src/ric/near_ric_api.h"
 #include "../src/agent/e2_agent_api.h"
 
-
 #include <assert.h>
 #include <ctype.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-
 
 static
 int64_t time_now_us(void)
@@ -58,14 +55,197 @@ int64_t time_now_us(void)
   return micros;
 }
 
-void read_RAN(sm_ag_if_rd_t* data)
+
+
+static
+void fill_static_slice(static_slice_t* sta)
 {
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0);
+  assert(sta != NULL);
+
+  sta->pos_high = abs(rand()%25);
+  sta->pos_low = abs(rand()%25);
+}
+
+
+static
+void fill_nvs_slice(nvs_slice_t* nvs)
+{
+  assert(nvs != NULL);
+
+  const uint32_t type = abs(rand() % SLICE_SM_NVS_V0_END);
+
+  if(type == SLICE_SM_NVS_V0_RATE ){
+    nvs->conf = SLICE_SM_NVS_V0_RATE; 
+    nvs->rate.mbps_reference = 0.8; 
+//      10.0*((float)rand()/(float)RAND_MAX); 
+    nvs->rate.mbps_required = 10.0;
+    //*((float)rand()/(float)RAND_MAX); 
+  } else if(type ==SLICE_SM_NVS_V0_CAPACITY ){
+    nvs->conf = SLICE_SM_NVS_V0_CAPACITY; 
+    nvs->capacity.pct_reserved = 15.0;
+    //*((float)rand()/(float)RAND_MAX);
+  } else {
+    assert(0!=0 && "Unknown type");
+  }
+
+}
+
+static
+void fill_scn19_slice(scn19_slice_t* scn19)
+{
+  assert(scn19 != NULL);
+
+  const uint32_t type = abs(rand()% SLICE_SCN19_SM_V0_END);
+
+  if(type == SLICE_SCN19_SM_V0_DYNAMIC ){
+    scn19->conf = SLICE_SCN19_SM_V0_DYNAMIC ;
+    scn19->dynamic.mbps_reference = 10.0 * fabs((float)rand()/(float)RAND_MAX); 
+    scn19->dynamic.mbps_required = 8.0 * fabs((float)rand()/(float)RAND_MAX); 
+  } else if(type == SLICE_SCN19_SM_V0_FIXED ) {
+    scn19->conf = SLICE_SCN19_SM_V0_FIXED; 
+    scn19->fixed.pos_high = abs(rand()%14);
+    scn19->fixed.pos_low = abs(rand()%10);
+  } else if(type ==SLICE_SCN19_SM_V0_ON_DEMAND){
+    scn19->conf = SLICE_SCN19_SM_V0_ON_DEMAND;
+    scn19->on_demand.log_delta_byte = abs(rand()%121);
+    scn19->on_demand.log_delta = 1.0 * fabs((float)rand()/RAND_MAX);
+    scn19->on_demand.tau = abs(rand()%256);
+    scn19->on_demand.pct_reserved = fabs((float)rand()/(float)RAND_MAX);
+  } else {
+    assert(0 != 0 && "Unknown type!!");
+  }
+
+}
+
+static 
+void fill_edf_slice(edf_slice_t* edf)
+{
+  assert(edf != NULL);
+
+  int mod = 32;
+  edf->deadline = abs(rand()%mod);
+  edf->guaranteed_prbs = abs(rand()%mod);
+  edf->max_replenish = abs(rand()%mod);
+
+  edf->len_over = abs(rand()%mod);
+
+  if(edf->len_over > 0){
+    edf->over = calloc(edf->len_over, sizeof(uint32_t));
+    assert(edf->over != NULL && "Memory exhausted");
+  }
+
+  for(uint32_t i = 0; i < edf->len_over; ++i){
+    edf->over[i] = abs(rand()%mod);
+  }
+}
+
+static
+void fill_ul_dl_slice(ul_dl_slice_conf_t* slice)
+{
+  assert(slice != NULL);
+
+  char const* name = "MY SLICE";
+  slice->len_sched_name = strlen(name);
+  slice->sched_name = malloc(strlen(name));
+  assert(slice->sched_name != NULL && "memory exhausted");
+  memcpy(slice->sched_name, name, strlen(name));
+
+  slice->len_slices = 1; 
+  //slice->len_slices = abs(rand()%8);
+
+  if(slice->len_slices > 0){
+    slice->slices = calloc(slice->len_slices, sizeof(slice_t));
+    assert(slice->slices != NULL && "memory exhausted");
+  }
+
+  for(uint32_t i = 0; i < slice->len_slices; ++i){
+    slice->slices[i].id = abs(rand()%1024);
+    slice_t* s = &slice->slices[i];
+
+    const char* label = "This is my label";
+    s->len_label = strlen(label);
+    s->label = malloc(s->len_label);
+    assert(s->label != NULL && "Memory exhausted");
+    memcpy(s->label, label, s->len_label );
+
+    const char* sched_str = "Scheduler string";
+    s->len_sched = strlen(sched_str); 
+    s->sched = malloc(s->len_sched);
+    assert(s->sched != NULL && "Memory exhausted");
+    memcpy(s->sched, sched_str, s->len_sched);
+
+    uint32_t type = abs(rand()% SLICE_ALG_SM_V0_END);
+
+    if(type ==  SLICE_ALG_SM_V0_EDF || type == SLICE_ALG_SM_V0_NONE )
+      type = SLICE_ALG_SM_V0_STATIC; 
+
+ //   type = SLICE_ALG_SM_V0_STATIC; 
+ //   type = SLICE_ALG_SM_V0_SCN19;
+
+    if(type == SLICE_ALG_SM_V0_NONE ){
+      s->params.type =SLICE_ALG_SM_V0_NONE; 
+    } else if (type == SLICE_ALG_SM_V0_STATIC ){
+      s->params.type = SLICE_ALG_SM_V0_STATIC; 
+      fill_static_slice(&s->params.sta);
+    } else if (type == SLICE_ALG_SM_V0_NVS){
+      s->params.type =  SLICE_ALG_SM_V0_NVS; 
+      fill_nvs_slice(&s->params.nvs);
+    } else if (type == SLICE_ALG_SM_V0_SCN19) {
+      s->params.type = SLICE_ALG_SM_V0_SCN19; 
+      fill_scn19_slice(&s->params.scn19);
+    } else if (type == SLICE_ALG_SM_V0_EDF){
+      s->params.type =  SLICE_ALG_SM_V0_EDF; 
+      fill_edf_slice(&s->params.edf);
+    } else {
+      assert(0 != 0 && "Unknown type encountered");
+    }
+  }
+}
+
+static
+void fill_slice_conf(slice_conf_t* conf)
+{
+  assert(conf != NULL);
+
+  fill_ul_dl_slice(&conf->ul);
+  fill_ul_dl_slice(&conf->dl);
+}
+
+static
+void fill_ue_slice_conf(ue_slice_conf_t* conf)
+{
+  assert(conf != NULL);
+  conf->len_ue_slice = abs(rand()%10);
+  if(conf->len_ue_slice > 0){
+    conf->ues = calloc(conf->len_ue_slice, sizeof(ue_slice_assoc_t));
+    assert(conf->ues);
+  }
+
+  for(uint32_t i = 0; i < conf->len_ue_slice; ++i){
+    conf->ues[i].rnti = abs(rand()%1024);  
+    conf->ues[i].dl_id = abs(rand()%16); 
+    conf->ues[i].ul_id = abs(rand()%16); 
+  }
+
+}
+
+static
+void fill_slice_ind_data(slice_ind_data_t* ind_msg)
+{
+  assert(ind_msg != NULL);
 
   srand(time(0));
 
-  if(data->type == MAC_STATS_V0 ){
-    mac_ind_msg_t* ind = &data->mac_stats.msg;
+  fill_slice_conf(&ind_msg->msg.slice_conf);
+  fill_ue_slice_conf(&ind_msg->msg.ue_slice_conf);
+  ind_msg->msg.tstamp = time_now_us();
+}
+
+
+static
+void fill_mac_ind_data(mac_ind_data_t* ind_msg)
+{
+    mac_ind_msg_t* ind = &ind_msg->msg; // data->mac_stats.msg;
     ind->ue_stats = calloc(5, sizeof(mac_ue_stats_impl_t));
     assert(ind->ue_stats != NULL);
 
@@ -92,7 +272,17 @@ void read_RAN(sm_ag_if_rd_t* data)
       ind->ue_stats[i].ul_mcs2 = rand()%5000;
       ind->ue_stats[i].phr  = rand()%5000;
     }
+}
 
+
+void read_RAN(sm_ag_if_rd_t* data)
+{
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
+
+  srand(time(0));
+
+  if(data->type == MAC_STATS_V0 ){
+     fill_mac_ind_data(&data->mac_stats);
   } else if(data->type == RLC_STATS_V0) {
 
     data->rlc_stats.msg.tstamp = time_now_us();
@@ -172,6 +362,9 @@ void read_RAN(sm_ag_if_rd_t* data)
       rb->rbid= abs(rand()%11);
 
     }
+  } else if(data->type == SLICE_STATS_V0 ){
+    
+    fill_slice_ind_data(&data->slice_stats);
 
   } else {
     assert("Invalid data type");
@@ -203,24 +396,20 @@ int main()
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
  
   init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io );
-
-  sleep(2);
+  sleep(1);
 
   // Init the RIC
   init_near_ric_api();
-
-  sleep(2);
+  sleep(1);
 
   const uint16_t MAC_ran_func_id = 142;
   const char* cmd = "5_ms";
   report_service_near_ric_api(MAC_ran_func_id, cmd );
-
-  sleep(3);
+  sleep(2);
 
   const char* cmd2 = "Hello";
   control_service_near_ric_api(MAC_ran_func_id, cmd2 );  
-
-  sleep(1);
+  sleep(2);
 
 //  load_sm_near_ric_api("../test/so/librlc_sm.so");
 
@@ -230,12 +419,16 @@ int main()
 
   const uint16_t PDCP_ran_func_id = 144;
   report_service_near_ric_api(PDCP_ran_func_id, cmd);
+  sleep(2);
 
-  sleep(5);
+  const uint16_t SLICE_ran_func_id = 145;
+  report_service_near_ric_api(SLICE_ran_func_id, cmd);
+  sleep(2);
 
   rm_report_service_near_ric_api(MAC_ran_func_id, cmd);
   rm_report_service_near_ric_api(RLC_ran_func_id, cmd);
   rm_report_service_near_ric_api(PDCP_ran_func_id, cmd);
+  rm_report_service_near_ric_api(SLICE_ran_func_id, cmd);
 
   sleep(1);
 
@@ -245,6 +438,6 @@ int main()
   // Stop the RIC
   stop_near_ric_api();
 
-  printf("Test communicating E2-Agent and Near-RIC run SUCCESFULLY\n");
+  printf("Test communicating E2-Agent and Near-RIC run SUCCESSFULLY\n");
 
 }

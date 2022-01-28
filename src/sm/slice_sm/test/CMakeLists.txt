@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project (SLICE_SM)
 set(CMAKE_BUILD_TYPE Debug)
-set (CMAKE_C_FLAGS "-Wall -Wextra -std=c11 -g -fsanitize=address -fno-omit-frame-pointer") 
+set (CMAKE_C_FLAGS "-Wall -Wextra --std=gnu11 -g -fsanitize=address -fno-omit-frame-pointer") 
 
 
 set(SM_ENCODING "PLAIN" CACHE STRING "The E2AP encoding to use")

@@ -174,8 +174,9 @@ size_t cal_ind_msg_payload(slice_ind_msg_t const* ind_msg)
 
   size_t sz_conf = cal_slice_conf(&ind_msg->slice_conf);
   size_t sz_ues = cal_ue_slice_conf(&ind_msg->ue_slice_conf);
+  size_t sz_tstamp = sizeof(int64_t);
 
-  return sz_conf + sz_ues;
+  return sz_conf + sz_ues + sz_tstamp;
 }
 
 static
@@ -454,6 +455,9 @@ byte_array_t slice_enc_ind_msg_plain(slice_ind_msg_t const* ind_msg)
   size_t pos2 = fill_ue_slice_conf(it, &ind_msg->ue_slice_conf);
 
   it += pos2;
+  // tstamp
+  memcpy(it, &ind_msg->tstamp, sizeof(ind_msg->tstamp));
+  it += sizeof(ind_msg->tstamp);
   assert(it == ba.buf + sz && "Mismatch of data layout");
 
   ba.len = sz;

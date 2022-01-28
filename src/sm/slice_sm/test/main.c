@@ -16,6 +16,30 @@
 static
 slice_ind_data_t cp;
 
+static
+int64_t time_now_us(void)
+{
+  struct timespec tms;
+
+  /* The C11 way */
+  /* if (! timespec_get(&tms, TIME_UTC))  */
+
+  /* POSIX.1-2008 way */
+  if (clock_gettime(CLOCK_REALTIME,&tms)) {
+    return -1;
+  }
+  /* seconds, multiplied with 1 million */
+  int64_t micros = tms.tv_sec * 1000000;
+  /* Add full microseconds */
+  micros += tms.tv_nsec/1000;
+  /* round up if necessary */
+  if (tms.tv_nsec % 1000 >= 500) {
+    ++micros;
+  }
+  return micros;
+}
+
+
 void free_ag_slice(void)
 {
 
@@ -204,6 +228,8 @@ void fill_slice_ind_data(slice_ind_data_t* ind_msg)
   fill_slice_conf(&ind_msg->msg.slice_conf);
   fill_ue_slice_conf(&ind_msg->msg.ue_slice_conf);
 
+  ind_msg->msg.tstamp = time_now_us();
+
   cp.msg = cp_slice_ind_msg(&ind_msg->msg);
 }
 
@@ -232,7 +258,7 @@ void ctrl_slice(slice_ctrl_req_data_t const* ctrl)
 ////
 
 static
-void read_agent(sm_ag_if_rd_t* read)
+void read_RAN(sm_ag_if_rd_t* read)
 {
   assert(read != NULL);
   assert(read->type == SLICE_STATS_V0);
@@ -242,7 +268,7 @@ void read_agent(sm_ag_if_rd_t* read)
 
 
 static 
-sm_ag_if_ans_t write_agent(sm_ag_if_wr_t const* data)
+sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
 {
   assert(data != NULL);
   assert(data->type == SLICE_CTRL_REQ_V0);
@@ -342,7 +368,7 @@ slice_ctrl_req_data_t generate_slice_ctrl()
      fill_slice_conf(&ret.msg.add_mod_slice);
    } else if (type == SLICE_CTRL_SM_V0_DEL){
      fill_slice_del(&ret.msg.del_slice);
-   } else if (type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC ){
+   } else if (type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
      fill_ue_slice_conf(&ret.msg.ue_slice); 
    } else {
       assert(0!=0 && "Unknown type");
@@ -390,7 +416,7 @@ void check_ctrl(sm_agent_t* ag, sm_ric_t* ric)
 
 int main()
 {
-  sm_io_ag_t io_ag = {.read = read_agent, .write = write_agent};  
+  sm_io_ag_t io_ag = {.read = read_RAN, .write = write_RAN};  
   sm_agent_t* sm_ag = make_slice_sm_agent(io_ag);
 
   sm_ric_t* sm_ric = make_slice_sm_ric();
@@ -405,6 +431,7 @@ int main()
 
   free_ag_slice();
 
+  printf("Success\n");
   return EXIT_SUCCESS;
 }
 

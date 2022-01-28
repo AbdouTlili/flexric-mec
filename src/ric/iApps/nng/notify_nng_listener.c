@@ -317,7 +317,7 @@ void init_nng_iapp()
 void notify_nng_listener(sm_ag_if_rd_t const* data)
 {
   assert(data != NULL);
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
 
   pthread_once(&init_nng_once, init_nng_iapp);
 
@@ -353,10 +353,18 @@ void notify_nng_listener(sm_ag_if_rd_t const* data)
       if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
         fatal("nng_send", rv);
       }
-
     } 
+  } else if(data->type == SLICE_STATS_V0){
+    slice_ind_msg_t const* ind = &data->slice_stats.msg;
+
+    char stats[512] = {0};
+    to_string_slice(ind, ind->tstamp, stats, 512);
+      int rv;
+      if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
+        fatal("nng_send", rv);
+      }
   } else {
-    assert(0 != 0 || "invalid data type ");
+    assert(0 != 0 && "invalid data type ");
   }
 
 }

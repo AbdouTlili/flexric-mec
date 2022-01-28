@@ -526,7 +526,6 @@ void control_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*
   rc = pthread_mutex_unlock(&ric->pend_mtx);
   assert(rc == 0); 
 
-
   byte_array_t ba_msg = e2ap_enc_control_request_ric(&ric->ap, &ctrl_req); 
   e2ap_send_bytes_ric(&ric->ep, ba_msg);
 

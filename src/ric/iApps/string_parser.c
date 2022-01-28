@@ -213,3 +213,18 @@ void to_string_pdcp_rb(pdcp_radio_bearer_stats_t* pdcp, int64_t tstamp, char* ou
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
 }
 
+void to_string_slice(slice_ind_msg_t const* slice, int64_t tstamp, char* out, size_t out_len)
+{
+  assert(slice != NULL);
+  assert(out != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+ 
+  int rc = snprintf(out, out_len,  "slice_stats: " 
+        "tstamp=%ld,"
+        "\n"
+        , tstamp
+        );
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+}
+

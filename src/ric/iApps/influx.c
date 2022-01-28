@@ -29,6 +29,7 @@
 #include <stdint.h>                                      // for uint32_t
 #include <stdlib.h>                                      // for exit, EXIT_F...
 #include <string.h>                                      // for strlen, memset
+#include <stdio.h>
 #include <sys/socket.h>                                  // for sendto, MSG_...
 #include "ric/iApps/../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ind_msg_t
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_ind_msg_t
@@ -66,7 +67,7 @@ void init_udp_socket()
 void notify_influx_listener(sm_ag_if_rd_t const* data)
 {
   assert(data != NULL);
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
   pthread_once(&init_socket, init_udp_socket);
 
 //  printf("Influx db data called!!!\n");
@@ -100,8 +101,16 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
 
       to_string_pdcp_rb(rb, pdcp->tstamp, stats, 512);
       int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
-     assert(rc != -1);
+      assert(rc != -1);
     } 
+  } else if(data->type == SLICE_STATS_V0){
+    slice_ind_msg_t const* slice = &data->slice_stats.msg;
+
+    char stats[512] = {0};
+
+    to_string_slice(slice, slice->tstamp, stats, 512);
+    int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+    assert(rc != -1);
   } else {
     assert(0 != 0 || "invalid data type ");
   }

@@ -36,6 +36,7 @@
 const uint16_t MAC_ran_func_id = 142;
 const uint16_t RLC_ran_func_id = 143;
 const uint16_t PDCP_ran_func_id = 144;
+const uint16_t SLICE_ran_func_id = 145; // Not implemented yet
 const char* cmd = "5_ms";
 
 

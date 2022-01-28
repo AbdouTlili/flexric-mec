@@ -119,7 +119,7 @@ void fill_rlc_ind_data(rlc_ind_data_t* ind_data)
 ////
 
 static
-void read_agent(sm_ag_if_rd_t* read)
+void read_RAN(sm_ag_if_rd_t* read)
 {
   assert(read != NULL);
   assert(read->type == RLC_STATS_V0);
@@ -129,7 +129,7 @@ void read_agent(sm_ag_if_rd_t* read)
 
 
 static 
-sm_ag_if_ans_t write_agent(sm_ag_if_wr_t const* data)
+sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
 {
   assert(data != NULL);
   assert(0!=0 && "Not implemented");
@@ -204,7 +204,7 @@ void check_indication(sm_agent_t* ag, sm_ric_t* ric)
 
 int main()
 {
-  sm_io_ag_t io_ag = {.read = read_agent, .write = write_agent};  
+  sm_io_ag_t io_ag = {.read = read_RAN, .write = write_RAN};  
   sm_agent_t* sm_ag = make_rlc_sm_agent(io_ag);
 
   sm_ric_t* sm_ric = make_rlc_sm_ric();
@@ -216,6 +216,7 @@ int main()
   sm_ag->free_sm(sm_ag);
   sm_ric->free_sm(sm_ric);
 
+  printf("Success\n");
   return EXIT_SUCCESS;
 }
 

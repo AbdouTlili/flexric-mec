@@ -47,7 +47,6 @@ void insert_service_near_ric_api(uint16_t sm_id, const char* cmd);
 
 void policy_service_near_ric_api(uint16_t sm_id, const char* cmd);
 
-
 // NEAR-RT RIC support functions:
 // Interface Management (E2 Setup, E2 Reset, 
 // E2 Node Configuration Update, Reporting of 
@@ -56,7 +55,6 @@ void policy_service_near_ric_api(uint16_t sm_id, const char* cmd);
 // initiated procedure to inform Near-RT RIC of
 // changes to list of supported Near-RT RIC 
 // services and mapping of services to functions.
-
 
 // Plug-in functions
 void load_sm_near_ric_api(const char* file_path);
@@ -74,7 +72,6 @@ void unsusbscribe_near_ric( /*global_e2_node_id_t const* id,*/ uint16_t sm_id, s
 // ToDo: Provide connected Agents and their ran functions 
 // (note that the interface should be callable from Python, Go
 // and NodeJS, at least)
-
 
 #endif
 

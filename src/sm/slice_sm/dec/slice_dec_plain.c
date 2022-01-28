@@ -350,6 +350,9 @@ slice_ind_msg_t slice_dec_ind_msg_plain(size_t len, uint8_t const ind_msg[len])
   sz = fill_ue_slice_conf(&ind.ue_slice_conf, it);
   it += sz;
 
+  memcpy(&ind.tstamp, it, sizeof(ind.tstamp));
+  it += sizeof(ind.tstamp);
+
   assert(ind_msg + len == it && "Data layout mismacth");
 
   return ind;

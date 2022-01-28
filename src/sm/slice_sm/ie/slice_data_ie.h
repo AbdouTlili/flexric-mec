@@ -225,6 +225,7 @@ typedef struct{
 typedef struct {
   slice_conf_t slice_conf;
   ue_slice_conf_t ue_slice_conf;
+  int64_t tstamp;
 } slice_ind_msg_t;
 
 void free_slice_ind_msg(slice_ind_msg_t* src); 
