@@ -1,4 +1,4 @@
-From 9461518cf3d0094a5dd88c6ae5a2a156616f54e9 Mon Sep 17 00:00:00 2001
+From 3b3afb48f2b40b16bd0f3e619969eaa4f5e560bc Mon Sep 17 00:00:00 2001
 From: mir <mir@one.openair4G.eur>
 Date: Wed, 22 Dec 2021 10:58:33 +0100
 Subject: [PATCH 1/3] FlexRIC's E2 Agent integration in OAI 5G
@@ -6,39 +6,41 @@ Subject: [PATCH 1/3] FlexRIC's E2 Agent integration in OAI 5G
 ---
  cmake_targets/CMakeLists.txt                  |   5 +-
  executables/agent_if/README.md                |   1 +
- executables/agent_if/ans/sm_ag_if_ans.h       |  58 ++++
+ executables/agent_if/ans/sm_ag_if_ans.h       |  58 +++
  executables/agent_if/e2_agent_api.h           |  17 +
- executables/agent_if/ie/mac_data_ie.h         | 241 +++++++++++++
- executables/agent_if/ie/pdcp_data_ie.h        | 257 ++++++++++++++
- executables/agent_if/ie/rlc_data_ie.h         | 308 +++++++++++++++++
+ executables/agent_if/ie/mac_data_ie.h         | 241 +++++++++++
+ executables/agent_if/ie/pdcp_data_ie.h        | 257 +++++++++++
+ executables/agent_if/ie/rlc_data_ie.h         | 308 +++++++++++++
+ executables/agent_if/ie/slice_data_ie.h       | 406 ++++++++++++++++++
  executables/agent_if/libe2_agent.a            | Bin 0 -> 6353856 bytes
  executables/agent_if/read/README.md           |   2 +
  executables/agent_if/read/sm_ag_if_rd.c       |  54 +++
- executables/agent_if/read/sm_ag_if_rd.h       |  60 ++++
- executables/agent_if/sm_io.h                  |  39 +++
+ executables/agent_if/read/sm_ag_if_rd.h       |  60 +++
+ executables/agent_if/sm_io.h                  |  39 ++
  executables/agent_if/write/sm_ag_if_wr.h      |  54 +++
  executables/agent_if/write/subscribe_timer.h  |  12 +
- executables/nr-softmodem.c                    | 320 ++++++++++++++++++
+ executables/nr-softmodem.c                    | 320 ++++++++++++++
  openair2/LAYER2/NR_MAC_gNB/gNB_scheduler.c    |   5 +
  .../LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c   |  17 +-
  .../LAYER2/NR_MAC_gNB/gNB_scheduler_ulsch.c   |  18 +-
  openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h       |  10 +
- openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c      |  39 +++
+ openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c      |  39 ++
  openair2/LAYER2/nr_pdcp/nr_pdcp_entity.h      |  35 ++
- openair2/LAYER2/nr_pdcp/nr_pdcp_oai_api.c     |  38 +++
+ openair2/LAYER2/nr_pdcp/nr_pdcp_oai_api.c     |  38 ++
  openair2/LAYER2/nr_rlc/nr_rlc_entity.c        |  17 +
- openair2/LAYER2/nr_rlc/nr_rlc_entity.h        |  57 ++++
+ openair2/LAYER2/nr_rlc/nr_rlc_entity.h        |  57 +++
  openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c     |  48 ++-
  openair2/LAYER2/nr_rlc/nr_rlc_entity_tm.c     |  17 +
- openair2/LAYER2/nr_rlc/nr_rlc_entity_um.c     |  43 +++
+ openair2/LAYER2/nr_rlc/nr_rlc_entity_um.c     |  43 ++
  openair2/LAYER2/nr_rlc/nr_rlc_oai_api.c       |  36 ++
- 28 files changed, 1798 insertions(+), 10 deletions(-)
+ 29 files changed, 2204 insertions(+), 10 deletions(-)
  create mode 100644 executables/agent_if/README.md
  create mode 100644 executables/agent_if/ans/sm_ag_if_ans.h
  create mode 100644 executables/agent_if/e2_agent_api.h
  create mode 100644 executables/agent_if/ie/mac_data_ie.h
  create mode 100644 executables/agent_if/ie/pdcp_data_ie.h
  create mode 100644 executables/agent_if/ie/rlc_data_ie.h
+ create mode 100644 executables/agent_if/ie/slice_data_ie.h
  create mode 100644 executables/agent_if/libe2_agent.a
  create mode 100644 executables/agent_if/read/README.md
  create mode 100644 executables/agent_if/read/sm_ag_if_rd.c
@@ -984,6 +986,418 @@ index 0000000000..3c703be088
 +
 +
 +
++
++
++#endif
++
+diff --git a/executables/agent_if/ie/slice_data_ie.h b/executables/agent_if/ie/slice_data_ie.h
+new file mode 100644
+index 0000000000..5828af33c9
+--- /dev/null
++++ b/executables/agent_if/ie/slice_data_ie.h
+@@ -0,0 +1,406 @@
++/*
++ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The OpenAirInterface Software Alliance licenses this file to You under
++ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
++ * except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.openairinterface.org/?page_id=698
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *-------------------------------------------------------------------------------
++ * For more information about the OpenAirInterface (OAI) Software Alliance:
++ *      contact@openairinterface.org
++ */
++
++#ifndef SLICE_DATA_INFORMATION_ELEMENTS_H
++#define SLICE_DATA_INFORMATION_ELEMENTS_H
++
++/*
++ * 9 Information Elements (IE) , RIC Event Trigger Definition, RIC Action Definition, RIC Indication Header, RIC Indication Message, RIC Call Process ID, RIC Control Header, RIC Control Message, RIC Control Outcome and RAN Function Definition defined by ORAN-WG3.E2SM-v01.00.00 at Section 5
++ */
++
++#include <assert.h>
++#include <stdbool.h>
++#include <stdint.h>
++
++
++static_assert(sizeof(float) == 4, "Assumption that float types are 4 bytes long invalid. Check where the float type is used"); 
++
++//////////////////////////////////////
++// RIC Event Trigger Definition
++/////////////////////////////////////
++
++typedef struct {
++  uint32_t ms;
++} slice_event_trigger_t;
++
++void free_slice_event_trigger(slice_event_trigger_t* src); 
++
++slice_event_trigger_t cp_slice_event_trigger( slice_event_trigger_t* src);
++
++bool eq_slice_event_trigger(slice_event_trigger_t* m0, slice_event_trigger_t* m1);
++
++
++
++//////////////////////////////////////
++// RIC Action Definition 
++/////////////////////////////////////
++
++typedef struct {
++
++} slice_action_def_t;
++
++void free_slice_action_def(slice_action_def_t* src); 
++
++slice_action_def_t cp_slice_action_def(slice_action_def_t* src);
++
++bool eq_slice_action_def(slice_event_trigger_t* m0,  slice_event_trigger_t* m1);
++
++
++
++//////////////////////////////////////
++// RIC Indication Header 
++/////////////////////////////////////
++
++typedef struct{
++  uint32_t dummy;  
++} slice_ind_hdr_t;
++
++void free_slice_ind_hdr(slice_ind_hdr_t* src); 
++
++slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t* src);
++
++bool eq_slice_ind_hdr(slice_ind_hdr_t* m0, slice_ind_hdr_t* m1);
++
++
++
++//////////////////////////////////////
++// RIC Indication Message 
++/////////////////////////////////////
++
++
++typedef enum{
++  SLICE_ALG_SM_V0_NONE = 0,
++  SLICE_ALG_SM_V0_STATIC = 1,
++  SLICE_ALG_SM_V0_NVS = 2,
++  SLICE_ALG_SM_V0_SCN19 = 3,
++  SLICE_ALG_SM_V0_EDF = 4,
++
++  SLICE_ALG_SM_V0_END
++} slice_algorithm_e;
++
++
++typedef struct{
++  uint32_t pos_low;
++  uint32_t pos_high;
++} static_slice_t ;
++
++
++typedef enum {
++  SLICE_SM_NVS_V0_RATE,
++  SLICE_SM_NVS_V0_CAPACITY,
++
++  SLICE_SM_NVS_V0_END
++} nvs_slice_conf_e;
++
++
++typedef struct{
++ union{
++  uint8_t mbps_required_byte[4]; 
++  float mbps_required;
++ };
++ union{
++ uint8_t mbps_reference_byte[4];
++ float mbps_reference;
++ };
++} nvs_rate_t ; 
++
++
++typedef struct{
++  union{
++  uint8_t pct_reserved_byte[4];
++  float pct_reserved;
++  };
++} nvs_capacity_t;
++
++typedef struct{
++ nvs_slice_conf_e conf;
++  union{
++  nvs_rate_t rate; 
++  nvs_capacity_t capacity;
++  };
++} nvs_slice_t ;
++
++typedef enum{
++  SLICE_SCN19_SM_V0_DYNAMIC,
++  SLICE_SCN19_SM_V0_FIXED,
++  SLICE_SCN19_SM_V0_ON_DEMAND,
++
++  SLICE_SCN19_SM_V0_END,
++} scn19_slice_conf_e ;
++
++typedef struct{
++  union{
++  uint8_t pct_reserved_byte[4];
++  float pct_reserved;
++  };
++  union{
++  uint8_t log_delta_byte;
++  float log_delta;
++  };
++  uint32_t tau;
++} scn19_on_demand_t ;
++
++typedef struct{
++  scn19_slice_conf_e conf;
++  union{
++    nvs_rate_t dynamic;
++    static_slice_t fixed;
++    scn19_on_demand_t on_demand;
++  };
++} scn19_slice_t;
++
++typedef struct{
++  uint32_t deadline;
++  uint32_t guaranteed_prbs;
++  uint32_t max_replenish;
++  uint32_t len_over;
++  uint32_t* over;
++} edf_slice_t ;
++
++typedef struct{
++  slice_algorithm_e type; 
++  union{
++    static_slice_t sta;
++    nvs_slice_t nvs;
++    scn19_slice_t scn19;
++    edf_slice_t edf;
++  } ;
++} slice_params_t;
++
++typedef struct{
++	uint32_t id;
++
++  uint32_t len_label;
++  char* label;
++
++  uint32_t len_sched;
++  char* sched;
++
++  slice_params_t params;
++} slice_t ;
++
++typedef struct{
++  uint32_t len_slices;
++  slice_t* slices;
++
++  uint32_t len_sched_name;
++  char* sched_name;
++} ul_dl_slice_conf_t ;
++
++typedef struct{
++  ul_dl_slice_conf_t dl;
++  ul_dl_slice_conf_t ul;
++} slice_conf_t ;
++
++typedef struct{
++  uint32_t dl_id;
++  uint32_t ul_id;
++  uint16_t rnti;
++}ue_slice_assoc_t; 
++
++typedef struct{
++  uint32_t len_ue_slice;
++  ue_slice_assoc_t * ues; 
++} ue_slice_conf_t;
++
++
++typedef struct {
++  slice_conf_t slice_conf;
++  ue_slice_conf_t ue_slice_conf;
++  int64_t tstamp;
++} slice_ind_msg_t;
++
++void free_slice_ind_msg(slice_ind_msg_t* src); 
++
++slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t* src);
++
++bool eq_slice_ind_msg(slice_ind_msg_t const* m0, slice_ind_msg_t const* m1);
++
++
++
++//////////////////////////////////////
++// RIC Call Process ID 
++/////////////////////////////////////
++
++typedef struct {
++  uint32_t dummy;
++} slice_call_proc_id_t;
++
++void free_slice_call_proc_id( slice_call_proc_id_t* src); 
++
++slice_call_proc_id_t cp_slice_call_proc_id( slice_call_proc_id_t* src);
++
++bool eq_slice_call_proc_id(slice_call_proc_id_t* m0, slice_call_proc_id_t* m1);
++
++
++
++
++//////////////////////////////////////
++// RIC Control Header 
++/////////////////////////////////////
++
++typedef struct {
++  uint32_t dummy;
++} slice_ctrl_hdr_t;
++
++void free_slice_ctrl_hdr( slice_ctrl_hdr_t* src); 
++
++slice_ctrl_hdr_t cp_slice_ctrl_hdr(slice_ctrl_hdr_t* src);
++
++bool eq_slice_ctrl_hdr(slice_ctrl_hdr_t const* m0, slice_ctrl_hdr_t const* m1);
++
++
++//////////////////////////////////////
++// RIC Control Message 
++/////////////////////////////////////
++
++typedef enum{
++  SLICE_CTRL_SM_V0_ADD,
++  SLICE_CTRL_SM_V0_DEL,
++  SLICE_CTRL_SM_V0_UE_SLICE_ASSOC,
++
++  SLICE_CTRL_SM_V0_END
++} slice_ctrl_msg_e ;
++
++typedef struct{
++ uint32_t len_dl;
++ uint32_t* dl;
++ uint32_t len_ul;
++ uint32_t* ul;
++} del_slice_conf_t; 
++
++typedef struct {
++  slice_ctrl_msg_e type; 
++  union{
++    slice_conf_t add_mod_slice;
++    del_slice_conf_t del_slice;
++    ue_slice_conf_t ue_slice;
++  };
++} slice_ctrl_msg_t;
++
++void free_slice_ctrl_msg( slice_ctrl_msg_t* src); 
++
++slice_ctrl_msg_t cp_slice_ctrl_msg(slice_ctrl_msg_t* src);
++
++bool eq_slice_ctrl_msg(slice_ctrl_msg_t const* m0, slice_ctrl_msg_t const* m1);
++
++
++//////////////////////////////////////
++// RIC Control Outcome 
++/////////////////////////////////////
++
++typedef struct {
++  uint32_t len_diag;
++  char* diagnostic; // human-readable diagnostic for northbound
++} slice_ctrl_out_t;
++
++void free_slice_ctrl_out(slice_ctrl_out_t* src); 
++
++slice_ctrl_out_t cp_slice_ctrl_out(slice_ctrl_out_t* src);
++
++bool eq_slice_ctrl_out(slice_ctrl_out_t* m0, slice_ctrl_out_t* m1);
++
++
++
++//////////////////////////////////////
++// RAN Function Definition 
++/////////////////////////////////////
++
++typedef struct {
++  uint32_t len_supported_alg;
++  slice_algorithm_e* supported_alg;
++} slice_func_def_t;
++
++void free_slice_func_def( slice_func_def_t* src); 
++
++slice_func_def_t cp_slice_func_def(slice_func_def_t* src);
++
++bool eq_slice_func_def(slice_func_def_t* m0, slice_func_def_t* m1);
++
++
++
++void slice_free_ind_msg(slice_ind_msg_t* msg);
++
++void slice_free_ctrl_msg(slice_ctrl_msg_t* msg);
++
++void slice_free_ctrl_out(slice_ctrl_out_t* out);
++
++/////////////////////////////////////////////////
++//////////////////////////////////////////////////
++/////////////////////////////////////////////////
++
++
++/*
++ * O-RAN defined 5 Procedures: RIC Subscription, RIC Indication, RIC Control, E2 Setup and RIC Service Update 
++ * */
++
++
++///////////////
++/// RIC Subscription
++///////////////
++
++typedef struct{
++  slice_event_trigger_t et; 
++  slice_action_def_t* ad;
++} slice_sub_data_t;
++
++///////////////
++// RIC Indication
++///////////////
++
++typedef struct{
++  slice_ind_hdr_t hdr;
++  slice_ind_msg_t msg;
++  slice_call_proc_id_t* proc_id;
++} slice_ind_data_t;
++
++///////////////
++// RIC Control
++///////////////
++
++typedef struct{
++  slice_ctrl_hdr_t hdr;
++  slice_ctrl_msg_t msg;
++} slice_ctrl_req_data_t;
++
++typedef struct{
++  slice_ctrl_out_t* out;
++} slice_ctrl_out_data_t;
++
++///////////////
++// E2 Setup
++///////////////
++
++typedef struct{
++  slice_func_def_t func_def;
++} slice_e2_setup_data_t;
++
++///////////////
++// RIC Service Update
++///////////////
++
++typedef struct{
++  slice_func_def_t func_def;
++} slice_ric_service_update_t;
 +
 +
 +#endif
@@ -33979,7 +34393,7 @@ index 0000000000..1c9a857f69
 +
 diff --git a/executables/agent_if/read/sm_ag_if_rd.h b/executables/agent_if/read/sm_ag_if_rd.h
 new file mode 100644
-index 0000000000..c507ee631a
+index 0000000000..42fd407489
 --- /dev/null
 +++ b/executables/agent_if/read/sm_ag_if_rd.h
 @@ -0,0 +1,60 @@
@@ -34014,7 +34428,7 @@ index 0000000000..c507ee631a
 +#include "../ie/mac_data_ie.h"
 +#include "../ie/rlc_data_ie.h"
 +#include "../ie/pdcp_data_ie.h"
-+//#include "../../slice_sm/ie/slice_data_ie.h"
++#include "../ie/slice_data_ie.h"
 +
 +
 +typedef enum{
@@ -34032,7 +34446,7 @@ index 0000000000..c507ee631a
 +    mac_ind_data_t mac_stats;
 +    rlc_ind_data_t rlc_stats;
 +    pdcp_ind_data_t pdcp_stats;
-+//    slice_ind_data_t slice_stats;
++    slice_ind_data_t slice_stats;
 +  };
 +  sm_ag_if_rd_e type;
 +} sm_ag_if_rd_t;
@@ -35389,10 +35803,10 @@ index 046696d12f..dee13deb03 100644
 +  return ret;
 +}
 -- 
-2.25.1
+2.17.1
 
 
-From 3aeb7758c2d564563cda901155eee49414a2b084 Mon Sep 17 00:00:00 2001
+From e5107969937e8c0fa983b9c3b37fa5e22c4710f4 Mon Sep 17 00:00:00 2001
 From: mir <mir@one.openair4G.eur>
 Date: Thu, 23 Dec 2021 12:17:30 +0100
 Subject: [PATCH 2/3] Last E2 Agent
@@ -41892,10 +42306,10 @@ z?D>*4O}8)-lJ~^Nt=#vL72kvLJp|wB_|Cw0CccN_I}6|0_#TGu;rJeb@2BuR65pfn
 fJsRIn<9iIg$Krb&zMsMOczoy7?0acK*o6ND_A_Ek
 
 -- 
-2.25.1
+2.17.1
 
 
-From 53a996ab0790dba3804c9e50297ac576b6baeb83 Mon Sep 17 00:00:00 2001
+From a39096838ff1a6fc7304b2e9ac7bca1d79a94ee8 Mon Sep 17 00:00:00 2001
 From: Navid Nikaein <navid.nikaein@eurecom.fr>
 Date: Fri, 14 Jan 2022 20:24:40 +0100
 Subject: [PATCH 3/3] Configuration file with IP address added
@@ -62750,5 +63164,5 @@ index e3ef957b3e..9d72d48b24 100644
      wait_nfapi_init("main?");
    }
 -- 
-2.25.1
+2.17.1
 
