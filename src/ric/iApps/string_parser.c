@@ -49,7 +49,7 @@ void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* ou
         "ul_sched_rb=%lu,"
         "pusch_snr=%g,"
         "pucch_snr=%g,"
-        "rnti=%u,"
+        "rnti=%x,"
         "dl_aggr_prb=%u,"
         "ul_aggr_prb=%u,"
         "dl_aggr_sdus=%u,"
