@@ -121,7 +121,7 @@ sm_ag_if_wr_t create_add_slice(void)
   memcpy(sl_ctrl_msg->u.add_mod_slice.dl.sched_name, sched_name, sz);
 
   sl_ctrl_msg->u.add_mod_slice.dl.len_slices = 1;
-  sl_ctrl_msg->u.add_mod_slice.dl.slices = calloc(1, sizeof(slice_t) );
+  sl_ctrl_msg->u.add_mod_slice.dl.slices = calloc(1, sizeof(fr_slice_t) );
   sl_ctrl_msg->u.add_mod_slice.dl.slices[0].id = 37;
   sl_ctrl_msg->u.add_mod_slice.dl.slices[0].params.type = SLICE_ALG_SM_V0_STATIC;
   sl_ctrl_msg->u.add_mod_slice.dl.slices[0].params.u.sta.pos_high = 10;

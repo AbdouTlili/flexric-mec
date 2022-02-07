@@ -127,7 +127,7 @@ size_t cal_params(slice_params_t* par)
 }
 
 static
-size_t cal_slc(size_t len, slice_t slc[len])
+size_t cal_slc(size_t len, fr_slice_t slc[len])
 {
   size_t total = 0;
   for(size_t i = 0; i < len; ++i){
@@ -380,7 +380,7 @@ size_t fill_params(uint8_t* it, slice_params_t* par)
 }
 
 static
-size_t fill_slice(uint8_t* it, slice_t* slc)
+size_t fill_slice(uint8_t* it, fr_slice_t* slc)
 {
   assert(it != NULL);
   assert(slc != NULL);

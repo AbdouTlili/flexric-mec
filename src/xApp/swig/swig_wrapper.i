@@ -93,7 +93,7 @@ namespace std {
 
 
 %array_class(ue_slice_assoc_t, ue_slice_assoc_array);
-%array_class(slice_t, slice_array);
+%array_class(fr_slice_t, slice_array);
 
 
 %include "swig_wrapper.h"

@@ -156,13 +156,13 @@ void fill_ul_dl_slice(ul_dl_slice_conf_t* slice)
   //slice->len_slices = abs(rand()%8);
 
   if(slice->len_slices > 0){
-    slice->slices = calloc(slice->len_slices, sizeof(slice_t));
+    slice->slices = calloc(slice->len_slices, sizeof(fr_slice_t));
     assert(slice->slices != NULL && "memory exhausted");
   }
 
   for(uint32_t i = 0; i < slice->len_slices; ++i){
     slice->slices[i].id = abs(rand()%1024);
-    slice_t* s = &slice->slices[i];
+    fr_slice_t* s = &slice->slices[i];
 
     const char* label = "This is my label";
     s->len_label = strlen(label);

@@ -235,7 +235,7 @@ size_t fill_params(slice_params_t* par, uint8_t const* it)
 }
 
 static inline
-size_t fill_slice(slice_t* slc, uint8_t const* it)
+size_t fill_slice(fr_slice_t* slc, uint8_t const* it)
 {
   assert(slc != NULL);
   assert(it != NULL);
@@ -302,7 +302,7 @@ size_t fill_ul_dl_slice_conf(ul_dl_slice_conf_t* conf, uint8_t const* it)
   sz += sizeof(conf->len_slices);
 
   if(conf->len_slices > 0){
-    conf->slices = calloc(conf->len_slices, sizeof(slice_t));
+    conf->slices = calloc(conf->len_slices, sizeof(fr_slice_t));
     assert(conf->slices != NULL && "Memory exhausted");
   }
 

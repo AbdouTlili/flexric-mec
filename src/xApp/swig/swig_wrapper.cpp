@@ -456,7 +456,7 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
 
       assert( s_conf->dl.len_slices == 2 && "For the test");
       for(size_t i =0; i < s_conf->dl.len_slices; ++i){
-        slice_t* s = &s_conf->dl.slices[i];
+        fr_slice_t * s = &s_conf->dl.slices[i];
         std::cout << "Slice id " << s->id << '\n';
         assert(s->len_label == 0 && "For the test");
         assert(s->label == NULL && "For the test");

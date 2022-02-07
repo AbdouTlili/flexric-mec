@@ -10,7 +10,7 @@ def sig_handler(signum, frame):
 
 
 def create_static_slice(idx, low, high):
-    s = xapp_sdk.slice_t()
+    s = xapp_sdk.fr_slice_t()
 
     s.id = idx
 

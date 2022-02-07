@@ -289,11 +289,11 @@ typedef struct{
   char* sched;
 
   slice_params_t params;
-} slice_t ;
+} fr_slice_t ;
 
 typedef struct{
   uint32_t len_slices;
-  slice_t* slices;
+  fr_slice_t* slices;
 
   uint32_t len_sched_name;
   char* sched_name;

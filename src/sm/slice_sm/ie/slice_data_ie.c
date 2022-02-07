@@ -106,7 +106,7 @@ void free_ul_dl_slice_conf(ul_dl_slice_conf_t* conf)
    
     for(size_t i = 0; i < conf->len_slices; ++i){
 
-      slice_t* slice = &conf->slices[i];
+      fr_slice_t* slice = &conf->slices[i];
       if(slice->len_label > 0){
         assert(slice->label != NULL);
         free(slice->label);
@@ -353,7 +353,7 @@ bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
 }
 
 static
-bool eq_slice(slice_t const* m0, slice_t const* m1)
+bool eq_slice(fr_slice_t const* m0, fr_slice_t const* m1)
 {
   assert(m0 != NULL);
   assert(m1 != NULL);
@@ -514,10 +514,10 @@ slice_params_t cp_slice_params(slice_params_t const* src)
 }
 
 static
-slice_t cpy_slice(slice_t const* src)
+fr_slice_t cpy_slice(fr_slice_t const* src)
 {
   assert(src != NULL);
-  slice_t dst = {0}; 
+  fr_slice_t dst = {0};
 
   dst.id = src->id;
   dst.len_label = src->len_label;
@@ -555,7 +555,7 @@ ul_dl_slice_conf_t cpy_ul_dl_slice_conf(ul_dl_slice_conf_t const* src)
     memcpy(dst.sched_name, src->sched_name, src->len_sched_name);
   }
 
-  dst.slices = calloc(src->len_slices, sizeof(slice_t));
+  dst.slices = calloc(src->len_slices, sizeof(fr_slice_t));
   assert(dst.slices != NULL && "Memory exhausted");
 
   for(size_t i = 0; i < src->len_slices; ++i){
