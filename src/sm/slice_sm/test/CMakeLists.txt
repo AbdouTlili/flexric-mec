@@ -5,9 +5,9 @@ set(CMAKE_BUILD_TYPE Debug)
 set (CMAKE_C_FLAGS "-Wall -Wextra --std=gnu11 -g -fsanitize=address -fno-omit-frame-pointer") 
 
 
-set(SM_ENCODING "PLAIN" CACHE STRING "The E2AP encoding to use")
-set_property(CACHE SM_ENCODING PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
-message(STATUS "Selected SM_ENCODING: ${SM_ENCODING}")
+set(SM_ENCODING_SLICE "PLAIN" CACHE STRING "The E2AP encoding to use")
+set_property(CACHE SM_ENCODING_SLICE PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
+message(STATUS "Selected SM_ENCODING_SLICE: ${SM_ENCODING_SLICE}")
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} )
@@ -34,7 +34,7 @@ add_executable(test_slice_sm main.c
                       ${asn_sources} 
                               )
 
-target_compile_definitions(test_slice_sm PUBLIC ${SM_ENCODING})
+target_compile_definitions(test_slice_sm PUBLIC ${SM_ENCODING_SLICE})
 target_compile_options(test_slice_sm PUBLIC "-DASN_DISABLE_OER_SUPPORT")
 target_link_libraries(test_slice_sm PUBLIC -pthread)
 

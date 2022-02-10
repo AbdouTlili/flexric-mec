@@ -37,7 +37,7 @@ elseif(SM_ENCODING_RLC STREQUAL "ASN" )
   target_compile_options(rlc_sm PRIVATE -Wno-missing-field-initializers -Wno-unused-parameter)
 
 elseif(SM_ENCODING_RLC STREQUAL "FLATBUFFERS" )
-  message(FATAL_ERROR "MAC SM FB not implemented")
+  message(FATAL_ERROR "RLC SM FB not implemented")
   add_library(rlc_sm SHARED
                      ${SM_ENCODING_RLC_SRC}
                       enc/rlc_enc_fb.c 
