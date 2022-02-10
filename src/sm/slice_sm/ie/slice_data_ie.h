@@ -416,7 +416,15 @@ bool eq_slice_ctrl_msg(slice_ctrl_msg_t const* m0, slice_ctrl_msg_t const* m1);
 // RIC Control Outcome 
 /////////////////////////////////////
 
+typedef enum{
+  SLICE_CTRL_OUT_OK,
+  SLICE_CTRL_OUT_ERROR,
+
+  SLICE_ANS_END
+} slice_ctrl_out_e;
+
 typedef struct {
+  slice_ctrl_out_e ans;
   uint32_t len_diag;
   char* diagnostic; // human-readable diagnostic for northbound
 } slice_ctrl_out_t;
