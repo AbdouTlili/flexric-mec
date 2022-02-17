@@ -311,6 +311,23 @@ bool eq_scn19_slice(scn19_slice_t const* m0, scn19_slice_t const* m1)
 }
 
 static
+bool eq_edf_slice(edf_slice_t const* m0, edf_slice_t const* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  for(size_t i = 0; i < m0->len_over; ++i){
+    if(m0->over[i] != m1->over[i])
+      return false;
+  }
+
+  return m0->deadline == m1->deadline
+         && m0->guaranteed_prbs == m1->guaranteed_prbs
+         && m0->max_replenish == m1->max_replenish
+         && m0->len_over == m1->len_over;
+}
+
+static
 bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
 {
   assert(m0 != NULL);
@@ -327,7 +344,7 @@ bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
   } else if(m0->type == SLICE_ALG_SM_V0_SCN19){
     ret = eq_scn19_slice(&m0->u.scn19, &m1->u.scn19);
   } else if(m0->type == SLICE_ALG_SM_V0_EDF){
-    assert("Not implemented");
+    ret = eq_edf_slice(&m0->u.edf, &m1->u.edf);
   } else {
     assert("Unknown type");
   }
@@ -462,7 +479,6 @@ slice_params_t cp_slice_params(slice_params_t const* src)
 
   slice_params_t dst = {0};
 
-  assert(src->type != SLICE_ALG_SM_V0_EDF && "Not supported yet");
   dst.type = src->type;
 
   if(src->type == SLICE_ALG_SM_V0_STATIC  ){
@@ -481,6 +497,13 @@ slice_params_t cp_slice_params(slice_params_t const* src)
     }
   } else if(src->type == SLICE_ALG_SM_V0_SCN19){
       dst.u.scn19 = cp_scn19_slice(&src->u.scn19);
+  } else if(src->type == SLICE_ALG_SM_V0_EDF){
+      dst.u.edf.deadline = src->u.edf.deadline;
+      dst.u.edf.guaranteed_prbs = src->u.edf.guaranteed_prbs;
+      dst.u.edf.max_replenish = src->u.edf.max_replenish;
+      dst.u.edf.len_over = src->u.edf.len_over;
+      for(size_t i = 0; i < src->u.edf.len_over; ++i)
+        dst.u.edf.over[i] = src->u.edf.over[i];
   } else {
     assert(0!=0 && "Not implemented or unknown");
   }
@@ -712,12 +735,18 @@ del_slice_conf_t cp_del_slice(del_slice_conf_t const* src)
     dst.len_dl = src->len_dl;
     dst.dl = calloc(src->len_dl, sizeof(uint32_t));
     assert(dst.dl != NULL && "Memory exhausted");
+    for(size_t i = 0; i < src->len_dl; ++i){
+      dst.dl[i] = src->dl[i];
+    }
   }
 
   if(src->len_ul > 0){
     dst.len_ul = src->len_ul;
     dst.ul = calloc(dst.len_ul, sizeof(uint32_t)); 
     assert(dst.ul != NULL && "Memory exhausted");
+    for(size_t i = 0; i < src->len_ul; ++i){
+      dst.ul[i] = src->ul[i];
+    }
   }
 
   return dst;

@@ -88,6 +88,21 @@ size_t cal_scn19(scn19_slice_t const* scn)
   return sz;
 }
 
+static inline
+size_t cal_edf(edf_slice_t const* edf)
+{
+  assert(edf != NULL);
+
+  size_t sz = sizeof(edf->deadline);
+  sz += sizeof(edf->guaranteed_prbs);
+  sz += sizeof(edf->max_replenish);
+  sz += sizeof(edf->len_over);
+  for(size_t i = 0; i < edf->len_over; ++i){
+    sz += sizeof(edf->over[i]);
+  }
+  return sz;
+}
+
 static
 size_t cal_params(slice_params_t* par)
 {
@@ -100,6 +115,8 @@ size_t cal_params(slice_params_t* par)
     sz += cal_nvs(&par->u.nvs);
   } else if (par->type == SLICE_ALG_SM_V0_SCN19 ){
     sz += cal_scn19(&par->u.scn19);
+  } else if (par->type == SLICE_ALG_SM_V0_EDF ){
+    sz += cal_edf(&par->u.edf);
   } else {
     assert(0 != 0 && "Unknown slicing type");
     // edf_slice_t edf;
@@ -300,6 +317,42 @@ size_t fill_scn19(uint8_t* it, scn19_slice_t* scn)
   return sz;
 }
 
+static inline
+size_t fill_edf(uint8_t* it, edf_slice_t* edf)
+{
+  assert(it != NULL);
+  assert(edf != NULL);
+
+  memcpy(it, &edf->deadline, sizeof(edf->deadline));
+  it += sizeof(edf->deadline);
+  size_t sz = sizeof(edf->deadline);
+
+  memcpy(it, &edf->guaranteed_prbs, sizeof(edf->guaranteed_prbs));
+  it += sizeof(edf->guaranteed_prbs);
+  sz += sizeof(edf->guaranteed_prbs);
+
+  memcpy(it, &edf->max_replenish, sizeof(edf->max_replenish));
+  it += sizeof(edf->max_replenish);
+  sz += sizeof(edf->max_replenish);
+
+  memcpy(it, &edf->len_over, sizeof(edf->len_over));
+  it += sizeof(edf->len_over);
+  sz += sizeof(edf->len_over);
+
+  if(edf->len_over > 0){
+    edf->over = calloc(edf->len_over, sizeof(uint32_t));
+    assert(edf->over != NULL && "Memory exhausted");
+  }
+
+  for(size_t i = 0; i < edf->len_over; ++i){
+    memcpy(it, &edf->over[i], sizeof(uint32_t));
+    it += sizeof(edf->over[i]);
+    sz += sizeof(edf->over[i]);
+  }
+
+  return sz;
+}
+
 static
 size_t fill_params(uint8_t* it, slice_params_t* par)
 {
@@ -318,7 +371,7 @@ size_t fill_params(uint8_t* it, slice_params_t* par)
   } else if(par->type == SLICE_ALG_SM_V0_SCN19  ) {
     sz += fill_scn19(it, &par->u.scn19);
   } else if(par->type == SLICE_ALG_SM_V0_EDF ){
-    assert(0!=0 && "Not implemented");
+    sz += fill_edf(it, &par->u.edf);
   } else {
     assert(0!=0 && "Unknown parameter type");
   }

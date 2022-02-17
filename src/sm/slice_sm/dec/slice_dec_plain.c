@@ -173,6 +173,42 @@ size_t fill_scn19(scn19_slice_t* scn, uint8_t const* it)
 }
 
 
+static
+size_t fill_edf(edf_slice_t* edf, uint8_t const* it)
+{
+  assert(it != NULL);
+  assert(edf != NULL);
+
+  memcpy(&edf->deadline, it, sizeof(edf->deadline));
+  it += sizeof(edf->deadline);
+  size_t sz = sizeof(edf->deadline);
+
+  memcpy(&edf->guaranteed_prbs, it, sizeof(edf->guaranteed_prbs));
+  it += sizeof(edf->guaranteed_prbs);
+  sz += sizeof(edf->guaranteed_prbs);
+
+  memcpy(&edf->max_replenish, it, sizeof(edf->max_replenish));
+  it += sizeof(edf->max_replenish);
+  sz += sizeof(edf->max_replenish);
+
+  memcpy(&edf->len_over, it, sizeof(edf->len_over));
+  it += sizeof(edf->len_over);
+  sz += sizeof(edf->len_over);
+
+  if(edf->len_over > 0){
+    edf->over = calloc(edf->len_over, sizeof(uint32_t));
+    assert(edf->over != NULL && "Memory exhausted");
+  }
+
+  for(size_t i = 0; i < edf->len_over; ++i){
+    memcpy(&edf->over[i], it, sizeof(uint32_t));
+    it += sizeof(edf->over[i]);
+    sz += sizeof(edf->over[i]);
+  }
+
+  return sz;
+}
+
 static inline
 size_t fill_params(slice_params_t* par, uint8_t const* it)
 {
@@ -190,7 +226,7 @@ size_t fill_params(slice_params_t* par, uint8_t const* it)
   } else if(par->type == SLICE_ALG_SM_V0_SCN19  ) {
     sz += fill_scn19(&par->u.scn19, it);
   } else if(par->type == SLICE_ALG_SM_V0_EDF ){
-    assert(0!=0 && "Not implemented");
+    sz += fill_edf(&par->u.edf, it);
   } else {
     assert(0!=0 && "Unknown parameter type");
   }
@@ -213,7 +249,7 @@ size_t fill_slice(slice_t* slc, uint8_t const* it)
   sz += sizeof(slc->len_label);
 
   if(slc->len_label > 0){
-    slc->label = malloc(slc->len_label);
+    slc->label = calloc(1, slc->len_label + 1);
     assert(slc->label && "Memory exhausted");
   }
 
@@ -226,7 +262,7 @@ size_t fill_slice(slice_t* slc, uint8_t const* it)
   sz += sizeof(slc->len_sched);
 
   if(slc->len_sched > 0){
-    slc->sched = malloc(slc->len_sched);
+    slc->sched = calloc(1, slc->len_sched + 1);
     assert(slc->sched != NULL && "Memory exhausted");
   }
 
@@ -253,8 +289,8 @@ size_t fill_ul_dl_slice_conf(ul_dl_slice_conf_t* conf, uint8_t const* it)
   size_t sz = sizeof(conf->len_sched_name);
 
   if(conf->len_sched_name > 0){
-  conf->sched_name = calloc(1, conf->len_sched_name + 1);
-  assert(conf->sched_name != NULL && "Memory exhausted");
+    conf->sched_name = calloc(1, conf->len_sched_name + 1);
+    assert(conf->sched_name != NULL && "Memory exhausted");
   }
 
   memcpy(conf->sched_name, it, conf->len_sched_name);
