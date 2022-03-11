@@ -253,6 +253,8 @@ void fill_mac_ind_data(mac_ind_data_t* ind_msg)
 
     ind->tstamp = time_now_us();
     ind->len_ue_stats = 5;
+    const size_t numDLHarq = 4;
+    const size_t numUlHarq = 4;
     assert(ind->ue_stats != NULL);
     for(int i =0 ; i < 5; ++i){
       ind->ue_stats[i].dl_aggr_tbs = rand()%5000;
@@ -267,12 +269,20 @@ void fill_mac_ind_data(mac_ind_data_t* ind_msg)
       ind->ue_stats[i].dl_aggr_sdus  = rand()%5000;
       ind->ue_stats[i].ul_aggr_sdus  = rand()%5000;
       ind->ue_stats[i].dl_aggr_retx_prb   = rand()%5000;
+      ind->ue_stats[i].ul_aggr_retx_prb   = rand()%5000;
       ind->ue_stats[i].wb_cqi = rand()%5000;
       ind->ue_stats[i].dl_mcs1 = rand()%5000;
       ind->ue_stats[i].ul_mcs1 = rand()%5000;
       ind->ue_stats[i].dl_mcs2 = rand()%5000;
       ind->ue_stats[i].ul_mcs2 = rand()%5000;
       ind->ue_stats[i].phr  = rand()%5000;
+      ind->ue_stats[i].bsr  = rand()%5000;
+      ind->ue_stats[i].dl_num_harq = numUlHarq;
+      for (uint8_t j = 0; j < numDLHarq; j++)
+        ind->ue_stats[i].dl_harq[j] = rand()%5000;
+      ind->ue_stats[i].ul_num_harq = numUlHarq;
+      for (uint8_t j = 0; j < numUlHarq; j++)
+        ind->ue_stats[i].ul_harq[j] = rand()%5000;
     }
 }
 

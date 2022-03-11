@@ -140,6 +140,10 @@ mac_ue_stats_impl_t cp_mac_ue_stats_impl(mac_ue_stats_impl_t const* src)
                               .ul_aggr_tbs = src->ul_aggr_tbs,
                               .dl_aggr_bytes_sdus = src->dl_aggr_bytes_sdus,
                               .ul_aggr_bytes_sdus = src->ul_aggr_bytes_sdus,
+                              .dl_curr_tbs = src->dl_curr_tbs,
+                              .ul_curr_tbs = src->ul_curr_tbs,
+                              .dl_sched_rb = src->dl_sched_rb,
+                              .ul_sched_rb = src->ul_sched_rb,
 
                               .pusch_snr = src->pusch_snr, //: float = -64;
                               .pucch_snr = src->pucch_snr, //: float = -64;
@@ -150,13 +154,31 @@ mac_ue_stats_impl_t cp_mac_ue_stats_impl(mac_ue_stats_impl_t const* src)
                               .dl_aggr_sdus = src->dl_aggr_sdus,
                               .ul_aggr_sdus = src->ul_aggr_sdus,
                               .dl_aggr_retx_prb = src->dl_aggr_retx_prb,
+                              .ul_aggr_retx_prb = src->ul_aggr_retx_prb,
 
                               .wb_cqi = src->wb_cqi, 
                               .dl_mcs1 = src->dl_mcs1,
                               .ul_mcs1 = src->ul_mcs1,
                               .dl_mcs2 = src->dl_mcs2, 
                               .ul_mcs2 = src->ul_mcs2, 
-                              .phr = src->phr 
+                              .phr = src->phr,
+                              .bsr = src->bsr,
+                              .dl_bler = src->dl_bler,
+                              .ul_bler = src->ul_bler,
+                              .dl_num_harq = src->dl_num_harq,
+                              .dl_harq[0] = src->dl_harq[0],
+                              .dl_harq[1] = src->dl_harq[1],
+                              .dl_harq[2] = src->dl_harq[2],
+                              .dl_harq[3] = src->dl_harq[3],
+                              .dl_harq[4] = src->dl_harq[4],
+                              .ul_num_harq = src->ul_num_harq,
+                              .ul_harq[0] = src->ul_harq[0],
+                              .ul_harq[1] = src->ul_harq[1],
+                              .ul_harq[2] = src->ul_harq[2],
+                              .ul_harq[3] = src->ul_harq[3],
+                              .ul_harq[4] = src->ul_harq[4],
+                              .frame = src->frame,
+                              .slot = src->slot
                             }; 
 
   return dst;
@@ -202,18 +224,40 @@ bool eq_mac_ind_msg(mac_ind_msg_t* m0, mac_ind_msg_t* m1)
         ue0->ul_aggr_tbs != ue1->ul_aggr_tbs ||
         ue0->dl_aggr_bytes_sdus != ue1->dl_aggr_bytes_sdus ||
         ue0->ul_aggr_bytes_sdus != ue1->ul_aggr_bytes_sdus ||
+        ue0->dl_curr_tbs != ue1->dl_curr_tbs ||
+        ue0->ul_curr_tbs != ue1->ul_curr_tbs ||
+        ue0->dl_sched_rb != ue1->dl_sched_rb ||
+        ue0->ul_sched_rb != ue1->ul_sched_rb ||
         ue0->rnti != ue1->rnti ||
         ue0->dl_aggr_prb != ue1->dl_aggr_prb ||  
         ue0->ul_aggr_prb != ue1->ul_aggr_prb ||
         ue0->dl_aggr_sdus != ue1-> dl_aggr_sdus ||
         ue0->ul_aggr_sdus != ue1->ul_aggr_sdus ||
         ue0->dl_aggr_retx_prb != ue1->dl_aggr_retx_prb ||
+        ue0->ul_aggr_retx_prb != ue1->ul_aggr_retx_prb ||
         ue0->wb_cqi != ue1->wb_cqi || 
         ue0->dl_mcs1 != ue1->dl_mcs1 ||
         ue0->ul_mcs1 != ue1->ul_mcs1 ||
         ue0->dl_mcs2 != ue1->dl_mcs2 || 
         ue0->ul_mcs2 != ue1->ul_mcs2 || 
         ue0->phr != ue1->phr || 
+        ue0->bsr != ue1->bsr ||
+        ue0->dl_bler != ue1->dl_bler ||
+        ue0->ul_bler != ue1->ul_bler ||
+        ue0->dl_num_harq != ue1->dl_num_harq ||
+        ue0->dl_harq[0] != ue1->dl_harq[0] ||
+        ue0->dl_harq[1] != ue1->dl_harq[1] ||
+        ue0->dl_harq[2] != ue1->dl_harq[2] ||
+        ue0->dl_harq[3] != ue1->dl_harq[3] ||
+        ue0->dl_harq[4] != ue1->dl_harq[4] ||
+        ue0->ul_num_harq != ue1->ul_num_harq ||
+        ue0->ul_harq[0] != ue1->ul_harq[0] ||
+        ue0->ul_harq[1] != ue1->ul_harq[1] ||
+        ue0->ul_harq[2] != ue1->ul_harq[2] ||
+        ue0->ul_harq[3] != ue1->ul_harq[3] ||
+        ue0->ul_harq[4] != ue1->ul_harq[4] ||
+        ue0->frame != ue1->frame ||
+        ue0->slot != ue1->slot ||
         eq_float(ue0->pusch_snr, ue1->pusch_snr, 0.0000001) == false ||
         eq_float(ue0->pucch_snr, ue0->pucch_snr, 0.0000001) == false 
       )

@@ -322,8 +322,8 @@ void notify_nng_listener(sm_ag_if_rd_t const* data)
   if(data->type == MAC_STATS_V0){
     mac_ind_msg_t const* ind =  &data->mac_stats.msg;
     for(uint32_t i = 0; i < ind->len_ue_stats; ++i){
-      char stats[512] = {0};
-      to_string_mac_ue_stats(&ind->ue_stats[i], ind->tstamp, stats, 512);
+      char stats[1024] = {0};
+      to_string_mac_ue_stats(&ind->ue_stats[i], ind->tstamp, stats, 1024);
       int rv = -1;
       if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
         fatal("nng_send", rv);

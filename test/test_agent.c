@@ -43,6 +43,8 @@ void read_RAN(sm_ag_if_rd_t* rd_if)
     mac_ind_msg_t* ind = &rd_if->mac_stats.msg;
     ind->ue_stats = calloc(5, sizeof(mac_ue_stats_impl_t));
     ind->len_ue_stats = 5;
+    const size_t numDLHarq = 4;
+    const size_t numUlHarq = 4;
     assert(ind->ue_stats != NULL);
     for(int i =0 ; i < 5; ++i){
       ind->ue_stats[i].dl_aggr_tbs = rand()%5000;
@@ -57,12 +59,20 @@ void read_RAN(sm_ag_if_rd_t* rd_if)
       ind->ue_stats[i].dl_aggr_sdus  = rand()%5000;
       ind->ue_stats[i].ul_aggr_sdus  = rand()%5000;
       ind->ue_stats[i].dl_aggr_retx_prb   = rand()%5000;
+      ind->ue_stats[i].ul_aggr_retx_prb   = rand()%5000;
       ind->ue_stats[i].wb_cqi = rand()%5000;
       ind->ue_stats[i].dl_mcs1 = rand()%5000;
       ind->ue_stats[i].ul_mcs1 = rand()%5000;
       ind->ue_stats[i].dl_mcs2 = rand()%5000;
       ind->ue_stats[i].ul_mcs2 = rand()%5000;
       ind->ue_stats[i].phr  = rand()%5000;
+      ind->ue_stats[i].bsr  = rand()%5000;
+      ind->ue_stats[i].dl_num_harq = numUlHarq;
+      for (uint8_t j = 0; j < numDLHarq; j++)
+        ind->ue_stats[i].dl_harq[j] = rand()%5000;
+      ind->ue_stats[i].ul_num_harq = numUlHarq;
+      for (uint8_t j = 0; j < numUlHarq; j++)
+        ind->ue_stats[i].ul_harq[j] = rand()%5000;
     }
 
   } else if(rd_if->type == RLC_STATS_V0) {
