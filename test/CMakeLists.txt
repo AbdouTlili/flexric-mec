@@ -59,6 +59,7 @@ target_link_libraries(test_near_ric
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
+                      #/home/mir/workspace/flatcc/lib/libflatccrt_d.a
                       near_ric
                       #ToDO: get rid of nng dependency
                       -lnng
@@ -80,8 +81,8 @@ target_link_libraries(test_agent
 add_executable(near_ric_sa ric_sa.c )
 target_link_libraries(near_ric_sa
                       PUBLIC 
-                      ${FlatCC} 
                       near_ric
+                      ${FlatCC} 
                       #ToDO: get rid of nng dependency
                       -lnng
                       -pthread
