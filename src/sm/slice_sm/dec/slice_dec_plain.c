@@ -80,13 +80,13 @@ size_t fill_rate(nvs_rate_t* nvs, uint8_t const* it)
   assert(it != NULL);
   assert(nvs != NULL);
 
-  memcpy(&nvs->mbps_reference, it, sizeof(nvs->mbps_reference));
-  it += sizeof(nvs->mbps_reference);
-  size_t sz = sizeof(nvs->mbps_reference);
+  memcpy(&nvs->u2.mbps_reference, it, sizeof(nvs->u2.mbps_reference));
+  it += sizeof(nvs->u2.mbps_reference);
+  size_t sz = sizeof(nvs->u2.mbps_reference);
 
-  memcpy(&nvs->mbps_required, it, sizeof(nvs->mbps_required));
-  it += sizeof(nvs->mbps_required);
-  sz += sizeof(nvs->mbps_required);
+  memcpy(&nvs->u1.mbps_required, it, sizeof(nvs->u1.mbps_required));
+  it += sizeof(nvs->u1.mbps_required);
+  sz += sizeof(nvs->u1.mbps_required);
 
   return sz;
 }
@@ -97,9 +97,9 @@ size_t fill_capacity(nvs_capacity_t* nvs, uint8_t const* it)
   assert(it != NULL);
   assert(nvs != NULL);
 
-  memcpy(&nvs->pct_reserved, it, sizeof(nvs->pct_reserved)); 
-  it += sizeof(nvs->pct_reserved);
-  size_t sz = sizeof(nvs->pct_reserved);
+  memcpy(&nvs->u.pct_reserved, it, sizeof(nvs->u.pct_reserved)); 
+  it += sizeof(nvs->u.pct_reserved);
+  size_t sz = sizeof(nvs->u.pct_reserved);
 
   return sz;
 }
@@ -117,9 +117,9 @@ size_t fill_nvs(nvs_slice_t* nvs, uint8_t const* it)
   size_t sz = sizeof(nvs->conf);
 
   if(nvs->conf == SLICE_SM_NVS_V0_RATE ){
-    sz += fill_rate(&nvs->rate, it ); 
+    sz += fill_rate(&nvs->u.rate, it ); 
   } else if(nvs->conf == SLICE_SM_NVS_V0_CAPACITY){
-    sz += fill_capacity(&nvs->capacity, it); 
+    sz += fill_capacity(&nvs->u.capacity, it); 
   } else {
     assert(0!=0 && "Unknown type"); 
   }
@@ -160,11 +160,11 @@ size_t fill_scn19(scn19_slice_t* scn, uint8_t const* it)
   size_t sz = sizeof(scn->conf);
 
   if(scn->conf == SLICE_SCN19_SM_V0_DYNAMIC){
-    sz += fill_rate(&scn->dynamic, it); 
+    sz += fill_rate(&scn->u.dynamic, it); 
   } else if(scn->conf == SLICE_SCN19_SM_V0_FIXED) {
-    sz += fill_static(&scn->fixed, it);
+    sz += fill_static(&scn->u.fixed, it);
   } else if (scn->conf == SLICE_SCN19_SM_V0_ON_DEMAND){
-    sz += fill_on_demand(&scn->on_demand, it);
+    sz += fill_on_demand(&scn->u.on_demand, it);
   } else {
     assert(0!=0 && "Unknown configuration");
   }
@@ -184,11 +184,11 @@ size_t fill_params(slice_params_t* par, uint8_t const* it)
   size_t sz = sizeof(par->type);
 
   if(par->type == SLICE_ALG_SM_V0_STATIC ){
-    sz += fill_static(&par->sta, it);  
+    sz += fill_static(&par->u.sta, it);  
   } else if(par->type == SLICE_ALG_SM_V0_NVS ){
-    sz += fill_nvs(&par->nvs, it);
+    sz += fill_nvs(&par->u.nvs, it);
   } else if(par->type == SLICE_ALG_SM_V0_SCN19  ) {
-    sz += fill_scn19(&par->scn19, it);
+    sz += fill_scn19(&par->u.scn19, it);
   } else if(par->type == SLICE_ALG_SM_V0_EDF ){
     assert(0!=0 && "Not implemented");
   } else {
@@ -426,11 +426,11 @@ slice_ctrl_msg_t slice_dec_ctrl_msg_plain(size_t len, uint8_t const ctrl_msg[len
   size_t sz = sizeof(ctrl.type);
 
   if(ctrl.type == SLICE_CTRL_SM_V0_ADD){
-    sz += fill_slice_conf(&ctrl.add_mod_slice, it); 
+    sz += fill_slice_conf(&ctrl.u.add_mod_slice, it); 
   } else if (ctrl.type == SLICE_CTRL_SM_V0_DEL){
-    sz += fill_del_slice(&ctrl.del_slice, it); 
+    sz += fill_del_slice(&ctrl.u.del_slice, it); 
   } else if(ctrl.type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    sz += fill_ue_slice_conf(&ctrl.ue_slice, it);
+    sz += fill_ue_slice_conf(&ctrl.u.ue_slice, it);
   } else {
     assert(0!=0 && "Unknonw type");
   }

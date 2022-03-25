@@ -76,13 +76,13 @@ void fill_nvs_slice(nvs_slice_t* nvs)
 
   if(type == SLICE_SM_NVS_V0_RATE ){
     nvs->conf = SLICE_SM_NVS_V0_RATE; 
-    nvs->rate.mbps_reference = 0.8; 
+    nvs->u.rate.u2.mbps_reference = 0.8; 
 //      10.0*((float)rand()/(float)RAND_MAX); 
-    nvs->rate.mbps_required = 10.0;
+    nvs->u.rate.u1.mbps_required = 10.0;
     //*((float)rand()/(float)RAND_MAX); 
   } else if(type ==SLICE_SM_NVS_V0_CAPACITY ){
     nvs->conf = SLICE_SM_NVS_V0_CAPACITY; 
-    nvs->capacity.pct_reserved = 15.0;
+    nvs->u.capacity.u.pct_reserved = 15.0;
     //*((float)rand()/(float)RAND_MAX);
   } else {
     assert(0!=0 && "Unknown type");
@@ -95,22 +95,24 @@ void fill_scn19_slice(scn19_slice_t* scn19)
 {
   assert(scn19 != NULL);
 
+
+
   const uint32_t type = abs(rand()% SLICE_SCN19_SM_V0_END);
 
   if(type == SLICE_SCN19_SM_V0_DYNAMIC ){
     scn19->conf = SLICE_SCN19_SM_V0_DYNAMIC ;
-    scn19->dynamic.mbps_reference = 10.0 * fabs((float)rand()/(float)RAND_MAX); 
-    scn19->dynamic.mbps_required = 8.0 * fabs((float)rand()/(float)RAND_MAX); 
+    scn19->u.dynamic.u2.mbps_reference = 10.0 * fabs((float)rand()/(float)RAND_MAX); 
+    scn19->u.dynamic.u1.mbps_required = 8.0 * fabs((float)rand()/(float)RAND_MAX); 
   } else if(type == SLICE_SCN19_SM_V0_FIXED ) {
     scn19->conf = SLICE_SCN19_SM_V0_FIXED; 
-    scn19->fixed.pos_high = abs(rand()%14);
-    scn19->fixed.pos_low = abs(rand()%10);
+    scn19->u.fixed.pos_high = abs(rand()%14);
+    scn19->u.fixed.pos_low = abs(rand()%10);
   } else if(type ==SLICE_SCN19_SM_V0_ON_DEMAND){
     scn19->conf = SLICE_SCN19_SM_V0_ON_DEMAND;
-    scn19->on_demand.log_delta_byte = abs(rand()%121);
-    scn19->on_demand.log_delta = 1.0 * fabs((float)rand()/RAND_MAX);
-    scn19->on_demand.tau = abs(rand()%256);
-    scn19->on_demand.pct_reserved = fabs((float)rand()/(float)RAND_MAX);
+//    scn19->u.on_demand.log_delta_byte = abs(rand()%121);
+    scn19->u.on_demand.log_delta = 1.0 * fabs((float)rand()/RAND_MAX);
+    scn19->u.on_demand.tau = abs(rand()%256);
+    scn19->u.on_demand.pct_reserved = fabs((float)rand()/(float)RAND_MAX);
   } else {
     assert(0 != 0 && "Unknown type!!");
   }
@@ -186,16 +188,16 @@ void fill_ul_dl_slice(ul_dl_slice_conf_t* slice)
       s->params.type =SLICE_ALG_SM_V0_NONE; 
     } else if (type == SLICE_ALG_SM_V0_STATIC ){
       s->params.type = SLICE_ALG_SM_V0_STATIC; 
-      fill_static_slice(&s->params.sta);
+      fill_static_slice(&s->params.u.sta);
     } else if (type == SLICE_ALG_SM_V0_NVS){
       s->params.type =  SLICE_ALG_SM_V0_NVS; 
-      fill_nvs_slice(&s->params.nvs);
+      fill_nvs_slice(&s->params.u.nvs);
     } else if (type == SLICE_ALG_SM_V0_SCN19) {
       s->params.type = SLICE_ALG_SM_V0_SCN19; 
-      fill_scn19_slice(&s->params.scn19);
+      fill_scn19_slice(&s->params.u.scn19);
     } else if (type == SLICE_ALG_SM_V0_EDF){
       s->params.type =  SLICE_ALG_SM_V0_EDF; 
-      fill_edf_slice(&s->params.edf);
+      fill_edf_slice(&s->params.u.edf);
     } else {
       assert(0 != 0 && "Unknown type encountered");
     }

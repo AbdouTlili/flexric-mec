@@ -54,10 +54,10 @@ size_t cal_nvs(nvs_slice_t const* nvs)
 
   size_t sz = sizeof(nvs->conf);
   if(nvs->conf == SLICE_SM_NVS_V0_RATE){
-    sz += sizeof(nvs->rate.mbps_reference);
-    sz += sizeof(nvs->rate.mbps_required);
+    sz += sizeof(nvs->u.rate.u2.mbps_reference);
+    sz += sizeof(nvs->u.rate.u1.mbps_required);
   } else if (nvs->conf == SLICE_SM_NVS_V0_CAPACITY){
-    sz += sizeof(nvs->capacity.pct_reserved);
+    sz += sizeof(nvs->u.capacity.u.pct_reserved);
   } else { 
     assert(0!=0 && "Unknown nvs conf");
   }
@@ -72,15 +72,15 @@ size_t cal_scn19(scn19_slice_t const* scn)
 
   size_t sz = sizeof(scn->conf);
   if(scn->conf == SLICE_SCN19_SM_V0_DYNAMIC){
-    sz += sizeof(scn->dynamic.mbps_reference);
-    sz += sizeof(scn->dynamic.mbps_required);
+    sz += sizeof(scn->u.dynamic.u2.mbps_reference);
+    sz += sizeof(scn->u.dynamic.u1.mbps_required);
   } else if (scn->conf == SLICE_SCN19_SM_V0_FIXED){
-    sz += sizeof(scn->fixed.pos_high);
-    sz += sizeof(scn->fixed.pos_low);
+    sz += sizeof(scn->u.fixed.pos_high);
+    sz += sizeof(scn->u.fixed.pos_low);
   } else if(scn->conf == SLICE_SCN19_SM_V0_ON_DEMAND ) { 
-    sz += sizeof(scn->on_demand.log_delta);
-    sz += sizeof(scn->on_demand.pct_reserved);
-    sz += sizeof(scn->on_demand.tau);
+    sz += sizeof(scn->u.on_demand.log_delta);
+    sz += sizeof(scn->u.on_demand.pct_reserved);
+    sz += sizeof(scn->u.on_demand.tau);
   } else {
     assert(0!=0 && "Unknown nvs conf");
   }
@@ -94,11 +94,11 @@ size_t cal_params(slice_params_t* par)
 
   size_t sz = 0;
   if(par->type == SLICE_ALG_SM_V0_STATIC){
-    sz += cal_static(&par->sta);
+    sz += cal_static(&par->u.sta);
   } else if (par->type == SLICE_ALG_SM_V0_NVS){
-    sz += cal_nvs(&par->nvs);
+    sz += cal_nvs(&par->u.nvs);
   } else if (par->type == SLICE_ALG_SM_V0_SCN19 ){
-    sz += cal_scn19(&par->scn19);
+    sz += cal_scn19(&par->u.scn19);
   } else {
     assert(0 != 0 && "Unknown slicing type");
     // edf_slice_t edf;
@@ -209,13 +209,13 @@ size_t fill_rate(uint8_t* it, nvs_rate_t const* nvs)
   assert(nvs != NULL);
 
 
-  memcpy(it, &nvs->mbps_reference, sizeof(nvs->mbps_reference));
-  it += sizeof(nvs->mbps_reference);
-  size_t sz = sizeof(nvs->mbps_reference);
+  memcpy(it, &nvs->u2.mbps_reference, sizeof(nvs->u2.mbps_reference));
+  it += sizeof(nvs->u2.mbps_reference);
+  size_t sz = sizeof(nvs->u2.mbps_reference);
 
-  memcpy(it, &nvs->mbps_required, sizeof(nvs->mbps_required));
-  it += sizeof(nvs->mbps_required);
-  sz += sizeof(nvs->mbps_required);
+  memcpy(it, &nvs->u1.mbps_required, sizeof(nvs->u1.mbps_required));
+  it += sizeof(nvs->u1.mbps_required);
+  sz += sizeof(nvs->u1.mbps_required);
 
   return sz;
 }
@@ -226,9 +226,9 @@ size_t fill_capacity(uint8_t* it, nvs_capacity_t const* nvs)
   assert(it != NULL);
   assert(nvs != NULL);
   
-  memcpy(it, &nvs->pct_reserved, sizeof(nvs->pct_reserved)); 
-  it += sizeof(nvs->pct_reserved);
-  size_t sz = sizeof(nvs->pct_reserved);
+  memcpy(it, &nvs->u.pct_reserved, sizeof(nvs->u.pct_reserved)); 
+  it += sizeof(nvs->u.pct_reserved);
+  size_t sz = sizeof(nvs->u.pct_reserved);
 
   return sz;
 }
@@ -245,9 +245,9 @@ size_t fill_nvs(uint8_t* it, nvs_slice_t const* nvs)
   size_t sz = sizeof(nvs->conf);
 
   if(nvs->conf == SLICE_SM_NVS_V0_RATE ){
-    sz += fill_rate(it, &nvs->rate); 
+    sz += fill_rate(it, &nvs->u.rate); 
   } else if(nvs->conf == SLICE_SM_NVS_V0_CAPACITY){
-    sz += fill_capacity(it, &nvs->capacity); 
+    sz += fill_capacity(it, &nvs->u.capacity); 
   } else {
     assert(0!=0 && "Unknown type"); 
   }
@@ -287,11 +287,11 @@ size_t fill_scn19(uint8_t* it, scn19_slice_t* scn)
   size_t sz = sizeof(scn->conf);
 
   if(scn->conf == SLICE_SCN19_SM_V0_DYNAMIC){
-    sz += fill_rate(it, &scn->dynamic); 
+    sz += fill_rate(it, &scn->u.dynamic); 
   } else if(scn->conf == SLICE_SCN19_SM_V0_FIXED) {
-    sz += fill_static(it, &scn->fixed);
+    sz += fill_static(it, &scn->u.fixed);
   } else if (scn->conf == SLICE_SCN19_SM_V0_ON_DEMAND){
-    sz += fill_on_demand(it, &scn->on_demand);
+    sz += fill_on_demand(it, &scn->u.on_demand);
   } else {
     assert(0!=0 && "Unknown configuration");
   }
@@ -311,11 +311,11 @@ size_t fill_params(uint8_t* it, slice_params_t* par)
   size_t sz = sizeof(par->type);
 
   if(par->type == SLICE_ALG_SM_V0_STATIC ){
-    sz += fill_static(it, &par->sta);  
+    sz += fill_static(it, &par->u.sta);  
   } else if(par->type == SLICE_ALG_SM_V0_NVS ){
-    sz += fill_nvs(it, &par->nvs);
+    sz += fill_nvs(it, &par->u.nvs);
   } else if(par->type == SLICE_ALG_SM_V0_SCN19  ) {
-    sz += fill_scn19(it, &par->scn19);
+    sz += fill_scn19(it, &par->u.scn19);
   } else if(par->type == SLICE_ALG_SM_V0_EDF ){
     assert(0!=0 && "Not implemented");
   } else {
@@ -509,11 +509,11 @@ size_t cal_ctrl_msg_payload(slice_ctrl_msg_t const* ctrl_msg)
   size_t sz = sizeof(ctrl_msg->type);
 
   if(ctrl_msg->type == SLICE_CTRL_SM_V0_ADD){
-    sz += cal_slice_conf(&ctrl_msg->add_mod_slice);
+    sz += cal_slice_conf(&ctrl_msg->u.add_mod_slice);
   } else if(ctrl_msg->type == SLICE_CTRL_SM_V0_DEL ){
-    sz += cal_del_slice(&ctrl_msg->del_slice);
+    sz += cal_del_slice(&ctrl_msg->u.del_slice);
   } else if(ctrl_msg->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC) {
-    sz += cal_ue_slice_conf(&ctrl_msg->ue_slice);
+    sz += cal_ue_slice_conf(&ctrl_msg->u.ue_slice);
   } else {
     assert(0!=0 && "Unknown type");
   }
@@ -561,11 +561,11 @@ size_t fill_slice_ctrl_msg(uint8_t* it, slice_ctrl_msg_t const* msg )
   size_t sz = sizeof(msg->type);
 
   if(msg->type == SLICE_CTRL_SM_V0_ADD ){
-    sz += fill_slice_conf(it, &msg->add_mod_slice);
+    sz += fill_slice_conf(it, &msg->u.add_mod_slice);
   } else if(msg->type == SLICE_CTRL_SM_V0_DEL  ){
-    sz += fill_del_slice_conf(it, &msg->del_slice);
+    sz += fill_del_slice_conf(it, &msg->u.del_slice);
   } else if(msg->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC ) {
-    sz += fill_ue_slice_conf(it, &msg->ue_slice);
+    sz += fill_ue_slice_conf(it, &msg->u.ue_slice);
   } else {
     assert(0 != 0 && "Unknown type");
   } 

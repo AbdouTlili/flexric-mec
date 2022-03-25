@@ -110,7 +110,7 @@ typedef enum {
   SLICE_SM_NVS_V0_END
 } nvs_slice_conf_e;
 
-
+/*
 typedef struct{
  union{
   uint8_t mbps_required_byte[4]; 
@@ -121,8 +121,26 @@ typedef struct{
  float mbps_reference;
  };
 } nvs_rate_t ; 
+*/
+  typedef union {
+    uint8_t mbps_required_byte[4]; 
+    float mbps_required;
+  } nvs_rate_req_u;
+
+  typedef union {
+    uint8_t mbps_reference_byte[4];
+    float mbps_reference;
+  } nvs_rate_ref_u;
 
 
+  typedef struct{
+    nvs_rate_req_u u1;
+    nvs_rate_ref_u u2;
+  } nvs_rate_t ; 
+
+
+
+/*
 typedef struct{
   union{
   uint8_t pct_reserved_byte[4];
@@ -137,6 +155,30 @@ typedef struct{
   nvs_capacity_t capacity;
   };
 } nvs_slice_t ;
+*/
+
+  typedef union{
+    uint8_t pct_reserved_byte[4];
+    float pct_reserved;
+  } nvs_capacity_u;
+
+  typedef struct{
+    nvs_capacity_u u;
+  } nvs_capacity_t;
+
+  typedef union{
+    nvs_rate_t rate; 
+    nvs_capacity_t capacity;
+  } nvs_slice_u;
+
+
+  typedef struct{
+    nvs_slice_conf_e conf;
+    nvs_slice_u u;
+  } nvs_slice_t ;
+
+
+
 
 typedef enum{
   SLICE_SCN19_SM_V0_DYNAMIC,
@@ -146,6 +188,7 @@ typedef enum{
   SLICE_SCN19_SM_V0_END,
 } scn19_slice_conf_e ;
 
+/*
 typedef struct{
   union{
   uint8_t pct_reserved_byte[4];
@@ -157,7 +200,17 @@ typedef struct{
   };
   uint32_t tau;
 } scn19_on_demand_t ;
+*/
 
+  typedef struct{
+    float pct_reserved;
+    float log_delta;
+    uint32_t tau;
+  } scn19_on_demand_t ;
+
+
+
+/*
 typedef struct{
   scn19_slice_conf_e conf;
   union{
@@ -166,6 +219,23 @@ typedef struct{
     scn19_on_demand_t on_demand;
   };
 } scn19_slice_t;
+*/
+
+  typedef union{
+    nvs_rate_t dynamic;
+    static_slice_t fixed;
+    scn19_on_demand_t on_demand;
+  } scn19_slice_u;
+
+  typedef struct{
+    scn19_slice_conf_e conf;
+    scn19_slice_u u;
+  } scn19_slice_t;
+
+
+
+
+
 
 typedef struct{
   uint32_t deadline;
@@ -175,6 +245,7 @@ typedef struct{
   uint32_t* over;
 } edf_slice_t ;
 
+/*
 typedef struct{
   slice_algorithm_e type; 
   union{
@@ -184,6 +255,25 @@ typedef struct{
     edf_slice_t edf;
   } ;
 } slice_params_t;
+*/
+
+  typedef union{
+    static_slice_t sta;
+    nvs_slice_t nvs;
+    scn19_slice_t scn19;
+    edf_slice_t edf;
+  } slice_params_u;
+
+
+  typedef struct{
+    slice_algorithm_e type; 
+    slice_params_u u;
+  } slice_params_t;
+
+
+
+
+
 
 typedef struct{
 	uint32_t id;
@@ -286,7 +376,7 @@ typedef struct{
  uint32_t len_ul;
  uint32_t* ul;
 } del_slice_conf_t; 
-
+/*
 typedef struct {
   slice_ctrl_msg_e type; 
   union{
@@ -295,6 +385,21 @@ typedef struct {
     ue_slice_conf_t ue_slice;
   };
 } slice_ctrl_msg_t;
+*/
+
+  typedef union{
+    slice_conf_t add_mod_slice;
+    del_slice_conf_t del_slice;
+    ue_slice_conf_t ue_slice;
+  } slice_ctrl_msg_u;
+
+  typedef struct {
+    slice_ctrl_msg_e type; 
+    slice_ctrl_msg_u u;
+  } slice_ctrl_msg_t;
+
+
+
 
 void free_slice_ctrl_msg( slice_ctrl_msg_t* src); 
 

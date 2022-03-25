@@ -19,9 +19,9 @@ void free_slice_param(slice_params_t* param)
   } else if(param->type == SLICE_ALG_SM_V0_SCN19){
    // no memory to be freed 
   } else if(param->type == SLICE_ALG_SM_V0_EDF){
-    if(param->edf.len_over > 0 ){
-      assert(param->edf.over != NULL);
-      free(param->edf.over);
+    if(param->u.edf.len_over > 0 ){
+      assert(param->u.edf.over != NULL);
+      free(param->u.edf.over);
     }
   } else {
     assert("Unknown slice param");
@@ -103,11 +103,11 @@ void slice_free_ctrl_msg(slice_ctrl_msg_t* msg)
   assert(msg != NULL);
 
   if(msg->type == SLICE_CTRL_SM_V0_ADD ){
-    free_slice_conf(&msg->add_mod_slice);
+    free_slice_conf(&msg->u.add_mod_slice);
   } else if(msg->type == SLICE_CTRL_SM_V0_DEL){
-    free_del_slice(&msg->del_slice);
+    free_del_slice(&msg->u.del_slice);
   } else if(msg->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    free_ue_slice_conf(&msg->ue_slice);
+    free_ue_slice_conf(&msg->u.ue_slice);
   } else {
     assert(0 != 0 && "Unknown slice control type");
   }
@@ -157,8 +157,8 @@ bool eq_nvs_rate(nvs_rate_t const* m0, nvs_rate_t const* m1)
   assert(m0 != NULL);
   assert(m1 != NULL);
 
-  return m0->mbps_reference == m1->mbps_reference 
-    && m0->mbps_required == m1->mbps_required;
+  return m0->u2.mbps_reference == m1->u2.mbps_reference 
+    && m0->u1.mbps_required == m1->u1.mbps_required;
 }
 
 
@@ -168,7 +168,7 @@ bool eq_nvs_cap(nvs_capacity_t const* m0, nvs_capacity_t const* m1)
   assert(m0 != NULL);
   assert(m1 != NULL);
 
-  return m0->pct_reserved == m1->pct_reserved;
+  return m0->u.pct_reserved == m1->u.pct_reserved;
 }
 
 static
@@ -182,9 +182,9 @@ bool eq_nvs_slice(nvs_slice_t const* m0, nvs_slice_t const* m1)
 
   bool ret = false;
   if(m0->conf == SLICE_SM_NVS_V0_RATE){
-    ret = eq_nvs_rate(&m0->rate, &m1->rate);
+    ret = eq_nvs_rate(&m0->u.rate, &m1->u.rate);
   } else if (m0->conf == SLICE_SM_NVS_V0_CAPACITY){
-    ret = eq_nvs_cap(&m0->capacity, &m1->capacity);
+    ret = eq_nvs_cap(&m0->u.capacity, &m1->u.capacity);
   } else {
     assert("Unknown type");
   }
@@ -213,19 +213,19 @@ bool eq_scn19_slice(scn19_slice_t const* m0, scn19_slice_t const* m1)
 
   bool ret = false;
   if(m0->conf == SLICE_SCN19_SM_V0_DYNAMIC){
-    ret = eq_nvs_rate(&m0->dynamic, &m1->dynamic); 
+    ret = eq_nvs_rate(&m0->u.dynamic, &m1->u.dynamic); 
 
     if(ret == false)
       printf("Returning false from scn19 dyn\n");
 
   } else if(m0->conf == SLICE_SCN19_SM_V0_FIXED ){
-    ret = eq_static_slice(&m0->fixed, &m1->fixed); 
+    ret = eq_static_slice(&m0->u.fixed, &m1->u.fixed); 
 
     if(ret == false)
       printf("Returning false from scn19 static\n");
 
   } else if (m0->conf == SLICE_SCN19_SM_V0_ON_DEMAND ){
-    ret = eq_scn19_on_demand(&m0->on_demand, &m1->on_demand);
+    ret = eq_scn19_on_demand(&m0->u.on_demand, &m1->u.on_demand);
 
      if(ret == false)
       printf("Returning false from scn19 on demand\n");
@@ -245,11 +245,11 @@ bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
 
   bool ret = false;
   if(m0->type == SLICE_ALG_SM_V0_STATIC){
-    ret = eq_static_slice(&m0->sta, &m1->sta);
+    ret = eq_static_slice(&m0->u.sta, &m1->u.sta);
   } else if(m0->type == SLICE_ALG_SM_V0_NVS){
-    ret = eq_nvs_slice(&m0->nvs, &m1->nvs); 
+    ret = eq_nvs_slice(&m0->u.nvs, &m1->u.nvs); 
   } else if(m0->type == SLICE_ALG_SM_V0_SCN19){
-    ret = eq_scn19_slice(&m0->scn19, &m1->scn19);
+    ret = eq_scn19_slice(&m0->u.scn19, &m1->u.scn19);
   } else if(m0->type == SLICE_ALG_SM_V0_EDF){
     assert("Not implemented");
   } else {
@@ -363,15 +363,15 @@ scn19_slice_t cp_scn19_slice(scn19_slice_t const* src)
 
   dst.conf = src->conf;
   if(dst.conf == SLICE_SCN19_SM_V0_DYNAMIC){
-    dst.dynamic.mbps_reference = src->dynamic.mbps_reference;
-    dst.dynamic.mbps_required = src->dynamic.mbps_required;
+    dst.u.dynamic.u2.mbps_reference = src->u.dynamic.u2.mbps_reference;
+    dst.u.dynamic.u1.mbps_required = src->u.dynamic.u1.mbps_required;
   } else if(dst.conf == SLICE_SCN19_SM_V0_FIXED ) {
-    dst.fixed.pos_high = src->fixed.pos_high;
-    dst.fixed.pos_low = src->fixed.pos_low;
+    dst.u.fixed.pos_high = src->u.fixed.pos_high;
+    dst.u.fixed.pos_low = src->u.fixed.pos_low;
   } else if(dst.conf == SLICE_SCN19_SM_V0_ON_DEMAND ) {
-    dst.on_demand.log_delta = src->on_demand.log_delta; 
-    dst.on_demand.pct_reserved = src->on_demand.pct_reserved; 
-    dst.on_demand.tau = src->on_demand.tau;
+    dst.u.on_demand.log_delta = src->u.on_demand.log_delta; 
+    dst.u.on_demand.pct_reserved = src->u.on_demand.pct_reserved; 
+    dst.u.on_demand.tau = src->u.on_demand.tau;
   } else {
     assert(0!=0 && "Unknown type");
   }
@@ -390,27 +390,24 @@ slice_params_t cp_slice_params(slice_params_t const* src)
   dst.type = src->type;
 
   if(src->type == SLICE_ALG_SM_V0_STATIC  ){
-    dst.sta.pos_high = src->sta.pos_high;
-    dst.sta.pos_low = src->sta.pos_low; 
+    dst.u.sta.pos_high = src->u.sta.pos_high;
+    dst.u.sta.pos_low = src->u.sta.pos_low; 
   } else if(src->type == SLICE_ALG_SM_V0_NVS ){
-    if(src->nvs.conf == SLICE_SM_NVS_V0_RATE){
-      dst.nvs.conf =  SLICE_SM_NVS_V0_RATE;
-      dst.nvs.rate.mbps_reference = src->nvs.rate.mbps_reference;
-      dst.nvs.rate.mbps_required = src->nvs.rate.mbps_required;
-    } else if(src->nvs.conf == SLICE_SM_NVS_V0_CAPACITY){
-      dst.nvs.conf =  SLICE_SM_NVS_V0_CAPACITY;
-      dst.nvs.capacity.pct_reserved = src->nvs.capacity.pct_reserved;
+    if(src->u.nvs.conf == SLICE_SM_NVS_V0_RATE){
+      dst.u.nvs.conf =  SLICE_SM_NVS_V0_RATE;
+      dst.u.nvs.u.rate.u2.mbps_reference = src->u.nvs.u.rate.u2.mbps_reference;
+      dst.u.nvs.u.rate.u1.mbps_required = src->u.nvs.u.rate.u1.mbps_required;
+    } else if(src->u.nvs.conf == SLICE_SM_NVS_V0_CAPACITY){
+      dst.u.nvs.conf =  SLICE_SM_NVS_V0_CAPACITY;
+      dst.u.nvs.u.capacity.u.pct_reserved = src->u.nvs.u.capacity.u.pct_reserved;
     } else {
       assert(0!=0 && "Not implemented or unknown");
     }
   } else if(src->type == SLICE_ALG_SM_V0_SCN19){
-      dst.scn19 = cp_scn19_slice(&src->scn19);
+      dst.u.scn19 = cp_scn19_slice(&src->u.scn19);
   } else {
     assert(0!=0 && "Not implemented or unknown");
   }
-
-//  assert(0!=0 && "Do it properly as the layout does not match" );
-//  memcpy(&dst, m0, sizeof(slice_params_t));
 
   assert(eq_slice_params(&dst, src) == true);
 
@@ -595,11 +592,11 @@ void free_slice_ctrl_msg(slice_ctrl_msg_t* src)
   assert(src != NULL);
 
   if(src->type == SLICE_CTRL_SM_V0_ADD){
-    free_slice_conf(&src->add_mod_slice);
+    free_slice_conf(&src->u.add_mod_slice);
   }else if(src->type == SLICE_CTRL_SM_V0_DEL){
-    free_del_slice_conf(&src->del_slice);
+    free_del_slice_conf(&src->u.del_slice);
   } else if(src->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    free_ue_slice_conf(&src->ue_slice);
+    free_ue_slice_conf(&src->u.ue_slice);
   } else {
     assert(0!=0 && "Unknown type");
   }
@@ -635,11 +632,11 @@ slice_ctrl_msg_t cp_slice_ctrl_msg(slice_ctrl_msg_t* src)
   dst.type = src->type;
 
   if(src->type == SLICE_CTRL_SM_V0_ADD){
-   dst.add_mod_slice = cp_slice_conf(&src->add_mod_slice);
+   dst.u.add_mod_slice = cp_slice_conf(&src->u.add_mod_slice);
   } else if(src->type == SLICE_CTRL_SM_V0_DEL){
-    dst.del_slice = cp_del_slice(&src->del_slice);
+    dst.u.del_slice = cp_del_slice(&src->u.del_slice);
   } else if(src->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    dst.ue_slice = cp_ue_slice_conf(&src->ue_slice);
+    dst.u.ue_slice = cp_ue_slice_conf(&src->u.ue_slice);
   } else {
     assert(0!=0 && "Unknown type");
   }
@@ -675,11 +672,11 @@ bool eq_slice_ctrl_msg(slice_ctrl_msg_t const* m0, slice_ctrl_msg_t const* m1)
 
   bool ans= false;
   if(m0->type == SLICE_CTRL_SM_V0_ADD){
-    ans = eq_slice_conf(&m0->add_mod_slice, &m1->add_mod_slice);    
+    ans = eq_slice_conf(&m0->u.add_mod_slice, &m1->u.add_mod_slice);    
   } else if(m0->type == SLICE_CTRL_SM_V0_DEL){
-    ans = eq_del_slice ( &m0->del_slice, &m1->del_slice); 
+    ans = eq_del_slice ( &m0->u.del_slice, &m1->u.del_slice); 
   } else if(m0->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    ans = eq_ue_slice_conf(&m0->ue_slice, &m1->ue_slice);
+    ans = eq_ue_slice_conf(&m0->u.ue_slice, &m1->u.ue_slice);
   } else {
     assert(0!=0 && "Unknown type");
   }
@@ -728,6 +725,4 @@ bool eq_slice_ctrl_out(slice_ctrl_out_t* m0, slice_ctrl_out_t* m1)
 
   return true;
 }
-
-
 
