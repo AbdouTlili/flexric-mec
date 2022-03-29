@@ -22,11 +22,13 @@
 
 
 #include "string_parser.h"
+#include "string.h"
 #include <assert.h>                                      // for assert
 #include <stdio.h>                                       // for snprintf
 #include "ric/iApps/../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ue_stats...
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_radio_b...
 #include "ric/iApps/../../sm/rlc_sm/ie/rlc_data_ie.h"    // for rlc_radio_be...
+#include "ric/iApps/../../sm/slice_sm/ie/slice_data_ie.h"
 
 
 void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* out, size_t out_len)
@@ -263,12 +265,147 @@ void to_string_slice(slice_ind_msg_t const* slice, int64_t tstamp, char* out, si
   assert(out != NULL);
   const size_t max = 512;
   assert(out_len >= max);
- 
-  int rc = snprintf(out, out_len,  "slice_stats: " 
-        "tstamp=%ld,"
-        "\n"
-        , tstamp
-        );
-  assert(rc < (int)max && "Not enough space in the char array to write all the data");
-}
 
+  char temp[512] = {0};
+  size_t sz = 0;
+
+  if (slice->slice_conf.dl.len_slices == 0) {
+    int rc = snprintf(temp, out_len,  "slice_stats: "
+                      "tstamp=%ld"
+                      ",dl->sched_name=%s"
+                      , tstamp
+                      , slice->slice_conf.dl.sched_name
+                      );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+    memcpy(out, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  for(uint32_t i = 0; i < slice->slice_conf.dl.len_slices; ++i) {
+    fr_slice_t* s = &slice->slice_conf.dl.slices[i];
+
+    if (i == 0) {
+      int rc = snprintf(temp, out_len, "slice_stats: tstamp=%ld,slice_conf,dl,len_slices=%u", tstamp, slice->slice_conf.dl.len_slices);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+      memcpy(out, temp, strlen(temp));
+      sz += strlen(temp);
+    }
+
+    memset(temp, 0, sizeof(temp));
+    // static
+    if (s->params.type == SLICE_ALG_SM_V0_STATIC) {
+      int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,static"
+                        ",sched=%s"
+                        ",pos_high=%u"
+                        ",pos_low=%u",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.sta.pos_high,
+                        s->params.u.sta.pos_low);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    } else if (s->params.type == SLICE_ALG_SM_V0_NVS) {
+      // nvs
+      if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_RATE) {
+         int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,nvs"
+                        ",sched=%s"
+                        ",conf=%d,rate"
+                        ",mbps_required=%.2f"
+                        ",mbps_reference=%.2f",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.nvs.conf,
+                        s->params.u.nvs.u.rate.u1.mbps_required,
+                        s->params.u.nvs.u.rate.u2.mbps_reference);
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      } else if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_CAPACITY) {
+        int rc = snprintf(temp, out_len,
+                          ",slice[%u]"
+                          ",id=%u"
+                          ",label=%s"
+                          ",type=%d,nvs"
+                          ",sched=%s"
+                          ",conf=%d,capacity"
+                          ",pct_reserved=%.2f",
+                          i,
+                          s->id,
+                          s->label,
+                          s->params.type,
+                          s->sched,
+                          s->params.u.nvs.conf,
+                          s->params.u.nvs.u.capacity.u.pct_reserved);
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      }
+    } else if (s->params.type == SLICE_ALG_SM_V0_EDF) {
+      // edf
+      int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,edf"
+                        ",sched=%s"
+                        ",deadline=%u"
+                        ",guaranteed_prbs=%u"
+                        ",max_replenish=%u",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.edf.deadline,
+                        s->params.u.edf.guaranteed_prbs,
+                        s->params.u.edf.max_replenish);
+      // TODO: edf.len_over & edf.over[]
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    }
+    memcpy(out + sz, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  for(uint32_t i = 0; i < slice->ue_slice_conf.len_ue_slice; ++i) {
+    ue_slice_assoc_t * u = &slice->ue_slice_conf.ues[i];
+
+    if (i == 0) {
+      memset(temp, 0, sizeof(temp));
+      int rc = snprintf(temp, out_len, ",ue_slice_conf,len_ue_slice=%u", slice->ue_slice_conf.len_ue_slice);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+      memcpy(out + sz, temp, strlen(temp));
+      sz += strlen(temp);
+    }
+
+    memset(temp, 0, sizeof(temp));
+    int rc = snprintf(temp, out_len,
+                      ",ues[%u]"
+                      ",rnti=%x"
+                      ",dl_id=%d",
+                      i,
+                      u->rnti,
+                      u->dl_id);
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+    memcpy(out + sz, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  char end[] = "\n";
+  memcpy(out + sz, end, strlen(end));
+  sz += strlen(end);
+  out[sz] = '\0';
+  assert(strlen(out) < max && "Not enough space in the char array to write all the data");
+}
