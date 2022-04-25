@@ -31,8 +31,13 @@ add_executable(test_slice_sm main.c
                       ../ie/slice_data_ie.c 
                       ../../../util/alg_ds/alg/defer.c
                       ../../agent_if/read/sm_ag_if_rd.c
+                      # Horrible design. Fix It.
+                      ../../mac_sm/ie/mac_data_ie.c
+                      ../../rlc_sm/ie/rlc_data_ie.c
+                      ../../pdcp_sm/ie/pdcp_data_ie.c
+                      ../../../util/alg_ds/alg/eq_float.c
                       ${asn_sources} 
-                              )
+                      )
 
 target_compile_definitions(test_slice_sm PUBLIC ${SM_ENCODING_SLICE})
 target_compile_options(test_slice_sm PUBLIC "-DASN_DISABLE_OER_SUPPORT")

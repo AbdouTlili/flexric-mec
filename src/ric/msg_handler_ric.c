@@ -28,7 +28,7 @@
 #include "msg_handler_ric.h"
 #include "util/alg_ds/alg/alg.h"
 #include "util/compare.h"
-#include "act_req.h"
+//#include "act_req.h"
 #include "e2ap_ric.h"
 #include "near_ric.h"
 #include "e2_node.h"
@@ -36,7 +36,7 @@
 #include "lib/pending_event_ric.h"
 #include "lib/ap/free/e2ap_msg_free.h"
 #include "iApps/subscription_ric.h"
-
+#include "iApp/e42_iapp_api.h"
 
 static inline
 bool check_valid_msg_type(e2_msg_type_t msg_type)
@@ -137,6 +137,8 @@ e2ap_msg_t e2ap_msg_handle_ric(near_ric_t* ric, const e2ap_msg_t* msg)
   assert(msg != NULL);
   const e2_msg_type_t msg_type = msg->type;
   assert(check_valid_msg_type(msg_type) == true);
+
+
   assert(ric->handle_msg[ msg_type ] != NULL);
   return ric->handle_msg[msg_type](ric, msg);
 }
@@ -154,7 +156,7 @@ e2ap_msg_t e2ap_msg_handle_ric(near_ric_t* ric, const e2ap_msg_t* msg)
 
   ric_subscription_response_t const* resp = &msg->u_msgs.ric_sub_resp;
 
-  pending_event_ric_t ev = {.ev = SUBSCRIPTION_REQUEST_EVENT, .id = resp->ric_id }; 
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_REQUEST_PENDING_EVENT, .id = resp->ric_id }; 
   stop_pending_event(ric, &ev);
 
   assert(resp->len_na == 0 && "No other case implemented");
@@ -162,14 +164,17 @@ e2ap_msg_t e2ap_msg_handle_ric(near_ric_t* ric, const e2ap_msg_t* msg)
   assert(resp->admitted[0].ric_act_id == 0 && "No other case implemented");
 
   // Active Request
-  act_req_t req = {.id = resp->ric_id};
+//  act_req_t req = {.id = resp->ric_id};
 
-  int rc_mtx = pthread_mutex_lock(&ric->act_req_mtx);
-  assert(rc_mtx == 0);
-  seq_push_back(&ric->act_req, &req, sizeof(req) );
-  rc_mtx = pthread_mutex_unlock(&ric->act_req_mtx);
-  assert(rc_mtx == 0);
+//  int rc_mtx = pthread_mutex_lock(&ric->act_req_mtx);
+//  assert(rc_mtx == 0);
+//  seq_push_back(&ric->act_req, &req, sizeof(req) );
+//  rc_mtx = pthread_mutex_unlock(&ric->act_req_mtx);
+//  assert(rc_mtx == 0);
 
+#ifndef TEST_AGENT_RIC  
+  notify_msg_iapp_api(msg);
+#endif
 
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;
@@ -196,9 +201,12 @@ e2ap_msg_t e2ap_msg_handle_ric(near_ric_t* ric, const e2ap_msg_t* msg)
   
   ric_subscription_delete_response_t const* resp = &msg->u_msgs.ric_sub_del_resp;
 
-  pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_EVENT, .id = resp->ric_id }; 
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT, .id = resp->ric_id }; 
   stop_pending_event(ric, &ev);
 
+#ifndef TEST_AGENT_RIC  
+  notify_msg_iapp_api(msg);
+#endif
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;
 }
@@ -268,7 +276,15 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_t* d)
   assert(d.type == MAC_STATS_V0 || d.type == RLC_STATS_V0 || d.type == PDCP_STATS_V0 || d.type == SLICE_STATS_V0 );
 
   publish_ind_msg(ric, ran_func_id, &d);
- 
+
+  if(d.type ==  MAC_STATS_V0 )
+    ((e2ap_msg_t*)msg)->tstamp = d.mac_stats.msg.tstamp;
+
+  // Notify the iApp
+#ifndef TEST_AGENT_RIC  
+  notify_msg_iapp_api(msg);
+#endif
+
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE };
   return ans;
 }
@@ -283,11 +299,14 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_t* d)
   ric_control_acknowledge_t const* ack = &msg->u_msgs.ric_ctrl_ack;
   assert( ack->status == RIC_CONTROL_STATUS_SUCCESS && "Only success supported ") ;
 
-  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_EVENT, .id = ack->ric_id }; 
+  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_PENDING_EVENT, .id = ack->ric_id }; 
   stop_pending_event(ric, &ev);
 
-
   printf("[NEAR-RIC]: CONTROL ACKNOWLEDGE received\n");
+
+#ifndef TEST_AGENT_RIC  
+  notify_msg_iapp_api(msg);
+#endif
 
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;
@@ -334,6 +353,10 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_t* d)
 
   const plmn_t* plmn = &req->id.plmn;
   printf("[E2AP] Received SETUP-REQUEST from PLMN %3d.%*d Node ID %d\n", plmn->mcc, plmn->mnc_digit_len, plmn->mnc, req->id.nb_id);
+
+  // Add the E2 Node into the iApp
+  add_e2_node_iapp_api((global_e2_node_id_t*)&req->id, req->len_rf, req->ran_func_item);
+
 
   e2ap_msg_t ans = {.type = E2_SETUP_RESPONSE };
   ans.u_msgs.e2_stp_resp = generate_setup_response(ric, req); 

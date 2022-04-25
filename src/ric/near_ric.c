@@ -21,9 +21,25 @@
 
 
 #include "near_ric.h"
+//#include "act_req.h"
 #include "e2_node.h"
+#include "iApp/e42_iapp_api.h"
+
 #include "msg_handler_ric.h"
-#include "act_req.h"
+
+#include "iApps/redis.h"
+#include "iApps/stdout.h"
+#include "iApps/influx.h"
+//#include "iApps/nng/notify_nng_listener.h"
+#include "iApps/subscription_ric.h"
+#include "lib/ap/free/e2ap_msg_free.h"
+#include "lib/pending_event_ric.h"
+#include "sm/sm_ric.h" 
+#include "util/alg_ds/ds/assoc_container/assoc_generic.h"
+#include "util/alg_ds/alg/alg.h"
+#include "util/alg_ds/ds/lock_guard/lock_guard.h"
+#include "util/compare.h"
+
 
 #include <assert.h>
 #include <dlfcn.h>
@@ -31,21 +47,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "iApps/redis.h"
-#include "iApps/stdout.h"
-#include "iApps/influx.h"
-#include "iApps/nng/notify_nng_listener.h"
-#include "iApps/subscription_ric.h"
-
-#include "sm/sm_ric.h" 
-
-#include "util/alg_ds/ds/assoc_container/assoc_generic.h"
-#include "util/alg_ds/alg/alg.h"
-#include "util/compare.h"
-
-#include "lib/ap/free/e2ap_msg_free.h"
-#include "lib/pending_event_ric.h"
 
 
 static inline
@@ -141,17 +142,17 @@ void load_default_pub_sub_ric(near_ric_t* ric)
     subs_ric_t influx_listener = {.name = "influx listener", .fp = notify_influx_listener };
     register_listeners_for_ran_func_id(ric, ran_func_id, influx_listener);
 
-    subs_ric_t nng_listener = {.name = "nanomsg listener", .fp = notify_nng_listener };
-    register_listeners_for_ran_func_id(ric, ran_func_id, nng_listener);
+//    subs_ric_t nng_listener = {.name = "nanomsg listener", .fp = notify_nng_listener };
+//    register_listeners_for_ran_func_id(ric, ran_func_id, nng_listener);
 
     it = assoc_next(&ric->plugin.sm_ds, it);
   }
 }
 
 static
-void init_handle_msg_ric(e2ap_handle_msg_fp_ric (*handle_msg)[26])
+void init_handle_msg_ric(e2ap_handle_msg_fp_ric (*handle_msg)[30])
 {
-  memset((*handle_msg), 0, sizeof(e2ap_handle_msg_fp_ric)*26);
+  memset((*handle_msg), 0, sizeof(e2ap_handle_msg_fp_ric)*30);
   (*handle_msg)[RIC_SUBSCRIPTION_RESPONSE] =  e2ap_handle_subscription_response_ric;
   (*handle_msg)[RIC_SUBSCRIPTION_FAILURE] =  e2ap_handle_subscription_failure_ric;
   (*handle_msg)[RIC_SUBSCRIPTION_DELETE_RESPONSE] =  e2ap_handle_subscription_delete_response_ric;
@@ -186,12 +187,20 @@ void init_e2_nodes_ric(near_ric_t* ric)
   seq_init(&ric->conn_e2_nodes, sizeof(e2_node_t));
 }
 
-static inline
+/*static inline
 void init_active_request(near_ric_t* ric)
 {
   assert(ric != NULL);
   seq_init(&ric->act_req, sizeof( act_req_t ) );
+
+  pthread_mutexattr_t attr = {0};
+#ifdef DEBUG
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK); 
+#endif
+  int rc = pthread_mutex_init(&ric->act_req_mtx, &attr);
+  assert(rc == 0);
 }
+*/
 
 static inline
 void init_pending_events(near_ric_t* ric)
@@ -200,6 +209,14 @@ void init_pending_events(near_ric_t* ric)
   size_t const fd_sz = sizeof(int);
   size_t const event_sz = sizeof( pending_event_ric_t );
   bi_map_init(&ric->pending, fd_sz, event_sz, cmp_fd, cmp_pending_event_ric, free_fd, free_pending_ev_ric );
+
+  pthread_mutexattr_t attr = {0};
+#ifdef DEBUG
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK); 
+#endif
+ 
+  int rc = pthread_mutex_init(&ric->pend_mtx, &attr);
+  assert(rc == 0);
 }
 
 near_ric_t* init_near_ric(const char* addr)
@@ -219,7 +236,7 @@ near_ric_t* init_near_ric(const char* addr)
 
   init_handle_msg_ric(&ric->handle_msg);
 
-  init_plugin_ric(&ric->plugin, "/usr/lib/flexric/");
+  init_plugin_ric(&ric->plugin, SERVICE_MODEL_DIR_PATH );
 
   init_pub_sub_ds_ric(ric); 
 
@@ -227,21 +244,16 @@ near_ric_t* init_near_ric(const char* addr)
 
   init_e2_nodes_ric(ric);
 
-  init_active_request(ric);
-
-
-  pthread_mutexattr_t attr = {0};
-  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK); 
-
-  int rc = pthread_mutex_init(&ric->act_req_mtx, &attr);
-  assert(rc == 0);
+  //init_active_request(ric);
 
   init_pending_events(ric);
 
-  rc = pthread_mutex_init(&ric->pend_mtx, &attr);
-  assert(rc == 0);
+  near_ric_if_t ric_if = {.type = ric};
+  init_iapp_api(addr, ric_if);
 
-  ric->req_id = 0;
+  //init_map_e2_node_sad(&ric->e2_node_sock);
+
+  ric->req_id = 1021; // 0 could be a sign of a bug
   ric->stop_token = false;
   ric->server_stopped = false;
 
@@ -256,7 +268,7 @@ bool net_pkt(const near_ric_t* ric, int fd)
   return fd == ric->ep.base.fd;
 }
 
-static
+static inline
 void consume_fd(int fd)
 {
   assert(fd > 0);
@@ -264,6 +276,48 @@ void consume_fd(int fd)
   ssize_t const bytes = read(fd,&read_buf, sizeof(read_buf));
   assert(bytes == sizeof(read_buf));
 }
+
+static inline
+bool eq_sock_addr(void const* m0_v, void const* m1_v)
+{
+  assert(m0_v != NULL);
+  assert(m1_v != NULL);
+
+  struct sockaddr_in* m0 = (struct sockaddr_in*)m0_v;
+  struct sockaddr_in* m1 = (struct sockaddr_in*)m1_v;
+
+  if(m0->sin_family != m1->sin_family)
+    return false;
+
+  if(m0->sin_addr.s_addr != m1->sin_addr.s_addr)
+    return false;
+
+  if(m0->sin_port != m1->sin_port)
+    return false;
+  
+  return true;
+}
+
+static inline
+bool addr_registered_or_first_msg(e2ap_msg_t* msg, seq_arr_t* arr, sctp_msg_t const* rcv)
+{
+  assert(msg != NULL);
+  assert(arr != NULL);
+  assert(rcv != NULL);
+
+  void* it = seq_front(arr);
+  void* end = seq_end(arr);
+  it = find_if(arr, it, end, (struct sockaddr_in*) &rcv->info.addr, eq_sock_addr );
+
+  if(msg->type == E2_SETUP_REQUEST){
+    assert(it == end && "Socket address already registered!");
+    seq_push_back(arr, (struct sockaddr_in*)&rcv->info.addr, sizeof(rcv->info.addr));
+    return true;
+  }
+  assert(it != end && "Socket address not registered and msg is not E2_SETUP_REQUEST");
+  return it != end;
+}
+
 
 static
 void e2_event_loop_ric(near_ric_t* ric)
@@ -274,19 +328,29 @@ void e2_event_loop_ric(near_ric_t* ric)
     if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
 
     if(net_pkt(ric, fd) == true){
-      byte_array_t ba = e2ap_recv_msg_ric(&ric->ep);
-      defer({free_byte_array(ba); } );
+      sctp_msg_t rcv = e2ap_recv_msg_ric(&ric->ep);
+      defer({free_sctp_msg(&rcv);});
 
-      e2ap_msg_t msg = e2ap_msg_dec_ric(&ric->ap, ba); 
+      e2ap_msg_t msg = e2ap_msg_dec_ric(&ric->ap, rcv.ba); 
       defer({e2ap_msg_free_ric(&ric->ap, &msg); } );
+
+      if(msg.type == E2_SETUP_REQUEST){
+        global_e2_node_id_t* id = &msg.u_msgs.e2_stp_req.id;
+        printf("Received message with id = %d, port = %d \n", id->nb_id, rcv.info.addr.sin_port);
+        e2ap_reg_sock_addr_ric(&ric->ep, id, &rcv.info);
+      }
 
       e2ap_msg_t ans = e2ap_msg_handle_ric(ric, &msg);
       defer({ e2ap_msg_free_ric(&ric->ap, &ans);} );
             
-      if(ans.type != NONE_E2_MSG_TYPE ){
-        byte_array_t ba_ans = e2ap_msg_enc_ric(&ric->ap, &ans); 
-        defer({free_byte_array(ba_ans); } );
-        e2ap_send_bytes_ric(&ric->ep, ba_ans);
+      if(ans.type != NONE_E2_MSG_TYPE){
+
+        sctp_msg_t sctp_msg = { .info = rcv.info }; 
+
+        sctp_msg.ba = e2ap_msg_enc_ric(&ric->ap, &ans); 
+        defer({free_sctp_msg(&sctp_msg); } );
+
+        e2ap_send_sctp_msg_ric(&ric->ep, &sctp_msg);
       }
 
     } else {
@@ -304,7 +368,6 @@ void start_near_ric(near_ric_t* ric)
   assert(ric != NULL);
   e2_event_loop_ric(ric);
 }
-
 
 static
 void static_free_e2_node(void* it )
@@ -330,15 +393,18 @@ void free_near_ric(near_ric_t* ric)
   assoc_free(&ric->pub_sub); 
   seq_free(&ric->conn_e2_nodes, static_free_e2_node );
 
-  int rc = pthread_mutex_destroy(&ric->act_req_mtx);
-  assert(rc == 0);
+//  int rc = pthread_mutex_destroy(&ric->act_req_mtx);
+//  assert(rc == 0);
 
-  seq_free(&ric->act_req, NULL);
+//  seq_free(&ric->act_req, NULL);
 
-  rc = pthread_mutex_destroy(&ric->pend_mtx);
+  int rc = pthread_mutex_destroy(&ric->pend_mtx);
   assert(rc == 0);
 
   bi_map_free(&ric->pending);
+
+  stop_iapp_api();
+
 
   free(ric);
 }
@@ -376,15 +442,34 @@ ric_subscription_request_t generate_subscription_request(near_ric_t* ric, sm_ric
   return sr;
 }
 
-
+/*
 size_t num_conn_e2_nodes(near_ric_t* ric)
 {
   assert(ric != NULL);
   return seq_size(&ric->conn_e2_nodes); // e2_node_t 
 }
+*/
+
+seq_arr_t conn_e2_nodes(near_ric_t* ric)
+{
+  assert(ric != NULL);
+
+  seq_arr_t arr = {0};
+  seq_init(&arr, sizeof(e2_node_t));
+
+  void* it = seq_front(&ric->conn_e2_nodes);
+  void* end = seq_end(&ric->conn_e2_nodes);
+  while(it != end){
+    e2_node_t* n = (e2_node_t*)it;   
+    seq_push_back(&arr, n, sizeof(e2_node_t));
+    it = seq_next(&ric->conn_e2_nodes, it);
+  }
+
+  return arr;
+}
 
 
-void report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd)
+void report_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd)
 {
   assert(ric != NULL);
   assert(ran_func_id != 0 && "Reserved SM ID value");
@@ -395,26 +480,31 @@ void report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/
 
   // A pending event is created along with a timer of 3000 ms,
   // after which an event will be generated
-  pending_event_ric_t ev = {.ev = SUBSCRIPTION_REQUEST_EVENT, .id = sr.ric_id };
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_REQUEST_PENDING_EVENT, .id = sr.ric_id };
 
   long const wait_ms = 3000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
   //printf("RIC: fd_timer with value created == %d\n", fd_timer);
 
-
-  int rc = pthread_mutex_lock(&ric->pend_mtx);
-  assert(rc == 0);
-  bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
-  rc = pthread_mutex_unlock(&ric->pend_mtx);
-  assert(rc == 0);
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
 
   byte_array_t ba_msg = e2ap_enc_subscription_request_ric(&ric->ap, &sr); 
-  e2ap_send_bytes_ric(&ric->ep, ba_msg);
+
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+
+  printf("[NEAR-RIC]: Report Service Asked from nb_id = %d \n", id->nb_id);
+  assert(0!=0 && "Here we are");
+
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
    
   e2ap_free_subscription_request_ric(&ric->ap, &sr);
   free_byte_array(ba_msg);
 }
 
+/*
 static inline
 bool ran_func_id_active(const void* value, const void* it)
 {
@@ -424,52 +514,59 @@ bool ran_func_id_active(const void* value, const void* it)
   act_req_t* act = (act_req_t*)it;
   return act->id.ran_func_id == *ran_func_id;
 }
+*/
 
+/*
 static inline
 ric_subscription_delete_request_t generate_subscription_delete_request(near_ric_t* ric, act_req_t* act)
 {
   assert(ric != NULL);
   assert(act != NULL);
-  ric_subscription_delete_request_t sd = {. ric_id = act->id };
+  ric_subscription_delete_request_t sd = {.ric_id = act->id };
   return sd;
 }
+*/
 
-void rm_report_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd)
+void rm_report_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd)
 {
   assert(ric != NULL);
   assert(ran_func_id > 0);
+  assert(id != NULL);
   assert(cmd != NULL);
 
-  int rc_mtx = pthread_mutex_lock(&ric->act_req_mtx);
-  assert(rc_mtx == 0);
-  void* start_it = seq_front(&ric->act_req);
-  void* end_it = seq_end(&ric->act_req);
-  void* it = find_if(&ric->act_req, start_it, end_it, &ran_func_id, ran_func_id_active);
-  rc_mtx = pthread_mutex_unlock(&ric->act_req_mtx);
-  assert(rc_mtx == 0);
+  assert(0!=0 && "We never came here");
+/*
+  ric_subscription_delete_request_t sd = {0}; 
+  {
+    lock_guard(&ric->act_req_mtx);
+    void* start_it = seq_front(&ric->act_req);
+    void* end_it = seq_end(&ric->act_req);
+    void* it = find_if(&ric->act_req, start_it, end_it, &ran_func_id, ran_func_id_active);
+    assert(it != end_it && "Requested RAN function not actived");
+    sd = generate_subscription_delete_request(ric, it);  
+  }
 
-  assert(it != end_it && "Requested RAN function not actived");
 
-  ric_subscription_delete_request_t sd = generate_subscription_delete_request(ric, it);  
-  
  // A pending event is created along with a timer of 1000 ms,
   // after which an event will be generated
-  pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_EVENT, .id = sd.ric_id };
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT, .id = sd.ric_id };
 
   long const wait_ms = 1000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
   //printf("RIC: fd_timer with value created == %d\n", fd_timer);
 
-  int rc = pthread_mutex_lock(&ric->pend_mtx);
-  assert(rc == 0);
-  bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
-  rc = pthread_mutex_unlock(&ric->pend_mtx);
-  assert(rc == 0);
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
 
-   byte_array_t ba_msg = e2ap_enc_subscription_delete_request_ric(&ric->ap, &sd); 
-  e2ap_send_bytes_ric(&ric->ep, ba_msg);
+  byte_array_t ba_msg = e2ap_enc_subscription_delete_request_ric(&ric->ap, &sd); 
 
-   free_byte_array(ba_msg);
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
+
+  free_byte_array(ba_msg);
+  */
 }
 
 static
@@ -497,7 +594,7 @@ ric_control_request_t generate_control_request(near_ric_t* ric, sm_ric_t* sm, sm
   return ctrl_req;
 }
 
-void control_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd)
+void control_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd)
 {
   assert(ric != NULL);
   assert(ran_func_id > 0);
@@ -514,20 +611,21 @@ void control_service_near_ric(near_ric_t* ric, /*global_e2_node_id_t const* id,*
 
   // A pending event is created along with a timer of 1000 ms,
   // after which an event will be generated
-  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_EVENT, .id = ctrl_req.ric_id };
+  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_PENDING_EVENT, .id = ctrl_req.ric_id };
 
   long const wait_ms = 2000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
   //printf("RIC: Control fd_timer for control with value created == %d\n", fd_timer);
 
-  int rc = pthread_mutex_lock(&ric->pend_mtx);
-  assert(rc == 0); 
-  bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
-  rc = pthread_mutex_unlock(&ric->pend_mtx);
-  assert(rc == 0); 
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
 
   byte_array_t ba_msg = e2ap_enc_control_request_ric(&ric->ap, &ctrl_req); 
-  e2ap_send_bytes_ric(&ric->ep, ba_msg);
+
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
 
   printf("[NEAR-RIC]: CONTROL SERVICE sent\n");
 
@@ -554,5 +652,123 @@ void load_sm_near_ric(near_ric_t* ric, const char* file_name)
   load_plugin_ric(&ric->plugin, full_path);
 
   tx_plugin_ric(&ric->plugin, strlen(full_path), full_path); 
+}
+
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+
+void start_near_ric_iapp(near_ric_t* ric)
+{
+  assert(ric != NULL);
+//  assert(0!=0 && "not implemented");
+}
+
+void stop_near_ric_iapp()
+{
+  //assert(ric != NULL);
+//  assert(0!=0 && "not implemented");
+}
+
+uint16_t fwd_ric_subscription_request(near_ric_t* ric, global_e2_node_id_t const* id, ric_subscription_request_t const* sr, void (*f)(e2ap_msg_t const* msg))
+{
+  assert(ric != NULL);
+  assert(sr != NULL);
+  assert(f != NULL);
+  uint16_t const ric_req_id = ric->req_id++;
+
+  *(uint16_t*)&sr->ric_id.ric_req_id = ric_req_id;
+
+
+  // A pending event is created along with a timer of 3000 ms,
+  // after which an event will be generated
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_REQUEST_PENDING_EVENT, .id = sr->ric_id };
+
+  long const wait_ms = 3000;
+  int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
+
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
+
+  byte_array_t ba_msg = e2ap_enc_subscription_request_ric(&ric->ap, sr); 
+  defer({ free_byte_array(ba_msg); });
+
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+
+//  printf("[NEAR-RIC]: NB ID = %d \n ", id->nb_id );
+//  printf("[NEAR-RIC]: sockaddr_in port = %d \n", to.sin_port );
+  
+
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
+   
+  return ric_req_id;
+}
+
+void fwd_ric_subscription_request_delete(near_ric_t* ric, global_e2_node_id_t const* id, ric_subscription_delete_request_t const* sdr, void (*f)(e2ap_msg_t const* msg))
+{
+  assert(ric != NULL);
+  assert(sdr != NULL);
+  assert(f != NULL);
+
+  // A pending event is created along with a timer of 1000 ms,
+  // after which an event will be generated
+  pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT, .id = sdr->ric_id };
+
+  long const wait_ms = 1000;
+  int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
+  //printf("RIC: fd_timer with value created == %d\n", fd_timer);
+
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
+
+
+  byte_array_t ba_msg = e2ap_enc_subscription_delete_request_ric(&ric->ap, sdr); 
+  defer({ free_byte_array(ba_msg); }  );
+
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
+
+  printf("[NEAR-RIC]: SUBSCRIPTION DELETE REQUEST tx \n" );
+}
+
+uint16_t fwd_ric_control_request(near_ric_t* ric, global_e2_node_id_t const* id, ric_control_request_t const* cr,  void (*f)(e2ap_msg_t const* msg))
+{
+  assert(ric != NULL);
+  assert(cr != NULL);
+  assert(f != NULL);
+
+  uint16_t const ric_req_id = ric->req_id++;
+  *(uint16_t*)&cr->ric_id.ric_req_id = ric_req_id;
+
+  // A pending event is created along with a timer of 1000 ms,
+  // after which an event will be generated
+  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_PENDING_EVENT, .id = cr->ric_id };
+
+  long const wait_ms = 2000;
+  int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
+  {
+    lock_guard(&ric->pend_mtx);
+    bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
+  }
+
+  byte_array_t ba_msg = e2ap_enc_control_request_ric(&ric->ap, cr); 
+  defer({ free_byte_array(ba_msg); } );
+
+//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
+
+  e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
+
+  printf("[NEAR-RIC]: CONTROL SERVICE sent\n");
+
+  //e2ap_free_control_request_ric(&ric->ap, &ctrl_req);
+  
+  return ric_req_id; 
 }
 

@@ -20,8 +20,10 @@
  */
 
 
-
 #include "ric_indication.h"
+
+#include <assert.h>
+#include <string.h>
 
 static
 bool eq_sn(uint16_t* m0, uint16_t* m1)
@@ -66,5 +68,24 @@ bool eq_ric_indication(const ric_indication_t* m0, const ric_indication_t* m1)
     return false;
 
   return true;
+}
+
+ric_indication_t mv_ric_indication(ric_indication_t* src)
+{
+  assert(src != NULL);
+
+  ric_indication_t dst = {0};
+
+  dst.ric_id = src->ric_id;
+  dst.action_id = src->action_id;
+  dst.sn = src->sn; // optional
+  dst.type = src->type;
+  dst.hdr = src->hdr;
+  dst.msg = src->msg;
+  dst.call_process_id = src->call_process_id; // optional
+
+  memset(src, 0, sizeof(ric_indication_t) );
+
+  return dst;
 }
 

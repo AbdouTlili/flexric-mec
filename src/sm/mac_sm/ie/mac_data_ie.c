@@ -100,7 +100,7 @@ void free_mac_ind_hdr(mac_ind_hdr_t* src)
   (void)src;
 }
 
-mac_ind_hdr_t cp_mac_ind_hdr(mac_ind_hdr_t* src)
+mac_ind_hdr_t cp_mac_ind_hdr(mac_ind_hdr_t const* src)
 {
   assert(src != NULL);
   mac_ind_hdr_t dst = {0}; 
@@ -132,23 +132,57 @@ void free_mac_ind_msg(mac_ind_msg_t* src)
   }
 }
 
-mac_ind_msg_t cp_mac_ind_msg( mac_ind_msg_t* src)
+mac_ue_stats_impl_t cp_mac_ue_stats_impl(mac_ue_stats_impl_t const* src)
 {
   assert(src != NULL);
 
-  mac_ind_msg_t ret = {0};
+  mac_ue_stats_impl_t dst = { .dl_aggr_tbs = src->dl_aggr_tbs,
+                              .ul_aggr_tbs = src->ul_aggr_tbs,
+                              .dl_aggr_bytes_sdus = src->dl_aggr_bytes_sdus,
+                              .ul_aggr_bytes_sdus = src->ul_aggr_bytes_sdus,
 
-  ret.len_ue_stats = src->len_ue_stats;
-  if(ret.len_ue_stats > 0){
-    ret.ue_stats = calloc(ret.len_ue_stats, sizeof( mac_ue_stats_impl_t) );
-    assert(ret.ue_stats != NULL);
+                              .pusch_snr = src->pusch_snr, //: float = -64;
+                              .pucch_snr = src->pucch_snr, //: float = -64;
+
+                              .rnti = src->rnti,
+                              .dl_aggr_prb = src->dl_aggr_prb, 
+                              .ul_aggr_prb = src->ul_aggr_prb,
+                              .dl_aggr_sdus = src->dl_aggr_sdus,
+                              .ul_aggr_sdus = src->ul_aggr_sdus,
+                              .dl_aggr_retx_prb = src->dl_aggr_retx_prb,
+
+                              .wb_cqi = src->wb_cqi, 
+                              .dl_mcs1 = src->dl_mcs1,
+                              .ul_mcs1 = src->ul_mcs1,
+                              .dl_mcs2 = src->dl_mcs2, 
+                              .ul_mcs2 = src->ul_mcs2, 
+                              .phr = src->phr 
+                            }; 
+
+  return dst;
+}
+
+mac_ind_msg_t cp_mac_ind_msg( mac_ind_msg_t const* src)
+{
+  assert(src != NULL);
+
+  mac_ind_msg_t dst = {0};
+
+  dst.len_ue_stats = src->len_ue_stats;
+  if(dst.len_ue_stats > 0){
+    dst.ue_stats = calloc(dst.len_ue_stats, sizeof( mac_ue_stats_impl_t) );
+    assert(dst.ue_stats != NULL && "Memory exhausted");
   }
 
-  memcpy(ret.ue_stats, src->ue_stats, sizeof( mac_ue_stats_impl_t )*ret.len_ue_stats);
+  for(size_t i = 0; i < dst.len_ue_stats; ++i){
+    dst.ue_stats[i] = cp_mac_ue_stats_impl(&src->ue_stats[i]); 
+  }
 
-  ret.tstamp = src->tstamp; 
+  //memcpy(ret.ue_stats, src->ue_stats, sizeof( mac_ue_stats_impl_t )*ret.len_ue_stats);
 
-  return ret;
+  dst.tstamp = src->tstamp; 
+
+  return dst;
 }
 
 bool eq_mac_ind_msg(mac_ind_msg_t* m0, mac_ind_msg_t* m1)
@@ -344,6 +378,34 @@ bool eq_mac_func_def(mac_func_def_t* m0, mac_func_def_t* m1)
 
   assert(0!=0 && "Not implemented" ); 
   return true;
+}
+
+///////////////
+// RIC Indication
+///////////////
+
+mac_ind_data_t cp_mac_ind_data( mac_ind_data_t const* src)
+{
+  assert(src != NULL);
+  mac_ind_data_t dst = {0};
+  dst.hdr = cp_mac_ind_hdr(&src->hdr);
+  dst.msg = cp_mac_ind_msg(&src->msg);
+  
+  if(src->proc_id != NULL){
+    dst.proc_id = malloc(sizeof(mac_call_proc_id_t)); 
+    assert(dst.proc_id != NULL && "Memory exhausted");
+    *dst.proc_id = cp_mac_call_proc_id(src->proc_id);
+  }
+
+  return dst;
+}
+
+void free_mac_ind_data(mac_ind_data_t* ind)
+{
+  assert(ind != NULL);
+  free_mac_ind_hdr(&ind->hdr);
+  free_mac_ind_msg(&ind->msg);
+  free_mac_call_proc_id(ind->proc_id);
 }
 
 

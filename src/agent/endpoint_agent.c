@@ -56,7 +56,7 @@ void init_sctp_conn_client(e2ap_ep_ag_t* ep, const char* addr, int port)
   const int no_delay = 1;
   setsockopt(sock_fd, IPPROTO_SCTP, SCTP_NODELAY, &no_delay, sizeof(no_delay));
 
-  ep->base.to = servaddr;
+  ep->to = servaddr;
   *(int*)(&ep->base.port) = port; 
   *(int*)(&ep->base.fd) = sock_fd;
   strncpy((char*)(&ep->base.addr), addr, 16);
@@ -71,25 +71,44 @@ void e2ap_init_ep_agent(e2ap_ep_ag_t* ep, const char* addr, int port)
   init_sctp_conn_client(ep, addr, port);
 }
 
+static
+bool eq_sockaddr(struct sockaddr_in* m0, struct sockaddr_in* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  if(m0->sin_addr.s_addr != m1->sin_addr.s_addr)
+    return false;
+
+  if(m0->sin_port != m1->sin_port)
+    return false;
+
+  if(m0->sin_family != m1->sin_family)
+    return false;
+
+  return true;
+}
+
 byte_array_t e2ap_recv_msg_agent(e2ap_ep_ag_t* ep)
 {
   assert(ep != NULL);
 
- // BYTE_ARRAY_STACK(ba, 2048);
-  byte_array_t ba = {.len = 2048, .buf= malloc(2048)};
-  assert(ba.buf != NULL && "Memory exhausted");
-  e2ap_recv_bytes(&ep->base, &ba);
-  return ba;
-//  e2ap_msg_t msg = e2ap_msg_dec(&enc->type, ba);
-  //printf("Message received in the agent\n");
-//  return msg;
+ sctp_msg_t sctp_msg = e2ap_recv_sctp_msg(&ep->base);//, &ba);
+ assert(eq_sockaddr(&sctp_msg.info.addr, &ep->to) == true && "Missmatch in received socket. More than one RIC connected??");
+
+ return sctp_msg.ba;
 }
 
 void e2ap_send_bytes_agent(e2ap_ep_ag_t* ep, byte_array_t ba)
 {
   assert(ep != NULL);
   assert(ba.buf && ba.len > 0);
-  e2ap_send_bytes(&ep->base, ba);
+
+  sctp_msg_t msg = { .info.addr = ep->to,
+                     .info.sri = ep->sri,
+                     .ba = ba};
+
+  e2ap_send_sctp_msg(&ep->base, &msg);
 }
 
 void e2ap_free_ep_agent(e2ap_ep_ag_t* ep)

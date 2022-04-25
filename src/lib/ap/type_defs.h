@@ -59,6 +59,12 @@
 #include "lib/ap/e2ap_types/e2_node_connection_update_ack.h"
 #include "lib/ap/e2ap_types/e2_node_connection_update_failure.h"
 
+#include "lib/ap/e2ap_types/e42_setup_request.h"
+#include "lib/ap/e2ap_types/e42_setup_response.h"
+#include "lib/ap/e2ap_types/e42_ric_subscription_request.h"
+#include "lib/ap/e2ap_types/e42_ric_subscription_delete_request.h"
+#include "lib/ap/e2ap_types/e42_ric_control_request.h"
+
 //////////////////////////////////////////////////
 
 typedef enum {
@@ -88,8 +94,15 @@ typedef enum {
   E2_CONNECTION_UPDATE = 23,
   E2_CONNECTION_UPDATE_ACKNOWLEDGE = 24,
   E2_CONNECTION_UPDATE_FAILURE = 25,
+
+  E42_SETUP_REQUEST = 26,
+  E42_SETUP_RESPONSE = 27,
+  E42_RIC_SUBSCRIPTION_REQUEST = 28,
+  E42_RIC_SUBSCRIPTION_DELETE_REQUEST = 29,
+  E42_RIC_CONTROL_REQUEST = 30,
+
   // Last type to indicate no message
-  NONE_E2_MSG_TYPE = 26,
+  NONE_E2_MSG_TYPE = 31,
 } e2_msg_type_t;
 
 typedef struct e2ap_msg_s {
@@ -121,7 +134,14 @@ typedef struct e2ap_msg_s {
     e2_node_connection_update_t e2_conn_updt;
     e2_node_connection_update_ack_t  e2_conn_updt_ack;
     e2_node_connection_update_failure_t e2_conn_updt_fail;
+
+    e42_setup_request_t e42_stp_req;
+    e42_setup_response_t e42_stp_resp;
+    e42_ric_subscription_request_t e42_ric_sub_req;
+    e42_ric_subscription_delete_request_t e42_ric_sub_del_req;
+    e42_ric_control_request_t e42_ric_ctrl_req;
   } u_msgs;
+  int64_t tstamp; // for debugginf purposes;
 } e2ap_msg_t;
 
 #endif // E2AP_TYPE_DEFS_H 

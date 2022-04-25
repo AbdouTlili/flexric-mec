@@ -307,8 +307,6 @@ void init_nng_iapp()
 
   init_pub_server(url_pub);
 
-
-
   // at exit clean the resources taken
   atexit(stop_nng_listener);
 }

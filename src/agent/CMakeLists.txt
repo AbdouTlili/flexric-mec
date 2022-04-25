@@ -37,12 +37,18 @@ if(E2AP_ENCODING STREQUAL "ASN")
             $<TARGET_OBJECTS:e2ap_ie_obj>
             $<TARGET_OBJECTS:e2ap_asn1_obj>
             )
+
+
+
 elseif(E2AP_ENCODING STREQUAL "FLATBUFFERS")
           add_library(e2_agent ${E2_AGENT_BLD_LIB} #STATIC or SHARED
             ${E2_AGENT_SRC}
            )
 
           #bundle_static_library(e2_agent libflatccrt_d.a)
+
+
+
 else()
   message(FATAL_ERROR "Error, while compiling the agent" )
 endif()
@@ -53,6 +59,15 @@ if(INCL_WHAT_YOU_USE)
   set_property(TARGET e2_agent  PROPERTY C_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+if(${BUILDING_LIBRARY} STREQUAL "DYNAMIC" )
+  target_link_libraries(e2_agent  
+                       PUBLIC  
+                       -pthread 
+                       -lsctp 
+                       -ldl 
+                       ) 
+
+endif()
 
 target_compile_definitions(e2_agent PRIVATE ${E2AP_ENCODING})
 

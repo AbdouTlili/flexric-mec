@@ -1,5 +1,6 @@
 #include "conf_file.h"
 
+#include <assert.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -47,7 +48,14 @@ char* get_near_ric_ip(void)
   size_t len = 0;
   ssize_t read;
 
-  FILE * fp = fopen("/usr/lib/flexric/flexric.conf", "r");
+  char filename[256] = {0};
+  const char* dir = SERVICE_MODEL_DIR_PATH;
+
+  int const n = snprintf(filename, 255, "%sflexric.conf", dir );
+  assert(n < 255 && "Overflow in the path");
+
+
+  FILE * fp = fopen(filename, "r");
   if (fp == NULL){
     printf("/usr/lib/flexric/flexric.conf not found. Did you forget to sudo make install?");
     exit(EXIT_FAILURE);

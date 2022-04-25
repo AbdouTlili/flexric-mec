@@ -158,6 +158,13 @@ set(ASN_MODULE_SRCS
     per_decoder.c
     per_encoder.c
     per_opentype.c
+    E42setupRequest.c
+    E42setupResponse.c
+    E42RICsubscriptionRequest.c
+    E42RICsubscriptionDeleteRequest.c
+    E42RICcontrolRequest.c
+    XAPP-ID.c
+    E2nodeConnected-List.c
 )
 
 set(ASN_MODULE_HDRS

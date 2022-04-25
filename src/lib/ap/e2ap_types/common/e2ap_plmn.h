@@ -23,8 +23,15 @@
 #ifndef E2AP_PLMN_H
 #define E2AP_PLMN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdbool.h>
 #include <stdint.h>
+
+
 
 typedef struct {
   uint16_t mcc;
@@ -33,6 +40,15 @@ typedef struct {
 } plmn_t;
 
 bool eq_plmn(const plmn_t* m0, const plmn_t* m1);
+
+plmn_t cp_plmn(const plmn_t* src);
+
+int cmp_plmn(const plmn_t* m0, const plmn_t* m1);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
 

@@ -19,9 +19,9 @@
  *      contact@openairinterface.org
  */
 
-
-
 #include "e2ap_ep.h"
+#include "../../util/alg_ds/ds/lock_guard/lock_guard.h"
+
 #include <pthread.h>
 
 void e2ap_ep_init(e2ap_ep_t* ep)
@@ -37,35 +37,39 @@ void e2ap_ep_free(e2ap_ep_t* ep)
   assert(rc == 0);
 }
 
-
-void e2ap_send_bytes(const e2ap_ep_t* ep, byte_array_t ba)
+void e2ap_send_sctp_msg(const e2ap_ep_t* ep, sctp_msg_t* msg)
 {
   assert(ep != NULL);
-  assert(ba.buf && ba.len > 0);
+  assert(msg->ba.buf && msg->ba.len > 0);
 
-  int rc_mtx = pthread_mutex_lock(&((e2ap_ep_t*)ep)->mtx);
-  assert(rc_mtx == 0);
-  const int rc = sctp_sendmsg(ep->fd, (void*)ba.buf, ba.len, (struct sockaddr *)&ep->to, sizeof(ep->to), ep->sri.sinfo_ppid, ep->sri.sinfo_flags, ep->sri.sinfo_stream, 0, 0) ;
-  rc_mtx = pthread_mutex_unlock(&((e2ap_ep_t*)ep)->mtx);
-  assert(rc_mtx == 0);
+  struct sockaddr_in const* addr = &msg->info.addr; 
+  struct sctp_sndrcvinfo const* sri = &msg->info.sri;
+  byte_array_t const ba = msg->ba;
+
+  lock_guard(&((e2ap_ep_t*)ep)->mtx);
+
+  const int rc = sctp_sendmsg(ep->fd, (void*)ba.buf, ba.len, (struct sockaddr *)addr, sizeof(*addr), sri->sinfo_ppid, sri->sinfo_flags, sri->sinfo_stream, 0, 0) ;
   assert(rc != 0);
 }
 
-void e2ap_recv_bytes(e2ap_ep_t* ep, byte_array_t* ba)
+sctp_msg_t e2ap_recv_sctp_msg(e2ap_ep_t* ep)
 {
   assert(ep != NULL);
 
-  socklen_t len = sizeof(ep->to);
+  sctp_msg_t from = {0}; 
+  from.ba.len = 2048;
+  from.ba.buf = malloc(2048);
+  assert(from.ba.buf != NULL && "Memory exhausted");
 
-  int rc_mtx = pthread_mutex_lock(&((e2ap_ep_t*)ep)->mtx);
-  assert(rc_mtx == 0);
-  const int rc = sctp_recvmsg(ep->fd, ba->buf, ba->len, (struct sockaddr*)&ep->to, &len, &ep->sri, &ep->msg_flags);
-  rc_mtx = pthread_mutex_unlock(&((e2ap_ep_t*)ep)->mtx);
-  assert(rc_mtx == 0);
+  socklen_t len = sizeof(from.info.addr);
+  int msg_flags = 0;
 
-  assert(rc > -1);
-  assert(rc != 0);
-  //printf("Received data: %s from client and number of bytes = %d\n", ba->buf, rc);
-  //fflush(stdout);
-  ba->len = rc; // set actually received number of bytes
+  lock_guard(&((e2ap_ep_t*)ep)->mtx);
+  int const rc = sctp_recvmsg(ep->fd, from.ba.buf, from.ba.len, (struct sockaddr*)&from.info.addr, &len, &from.info.sri, &msg_flags);
+  assert(rc > -1 && rc != 0);
+  assert((msg_flags == MSG_NOTIFICATION  || msg_flags == MSG_EOR) && "Error, horror"); // Notification or end of record
+
+  from.ba.len = rc; // set actually received number of bytes
+  return from;
 }
+

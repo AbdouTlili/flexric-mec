@@ -1,6 +1,7 @@
 
 add_subdirectory(ap)
 add_subdirectory(ep)
+add_subdirectory(msg_hand)
 
 add_library(pending_events_obj OBJECT 
                                 pending_events.c 

@@ -212,8 +212,10 @@ size_t fill_slice(slice_t* slc, uint8_t const* it)
   it += sizeof(slc->len_label);
   sz += sizeof(slc->len_label);
 
-  slc->label = malloc(slc->len_label);
-  assert(slc->label && "Memory exhausted");
+  if(slc->len_label > 0){
+    slc->label = malloc(slc->len_label);
+    assert(slc->label && "Memory exhausted");
+  }
 
   memcpy(slc->label, it, slc->len_label);
   it += slc->len_label;
@@ -223,8 +225,10 @@ size_t fill_slice(slice_t* slc, uint8_t const* it)
   it += sizeof(slc->len_sched);
   sz += sizeof(slc->len_sched);
 
-  slc->sched = malloc(slc->len_sched);
-  assert(slc->sched != NULL && "Memory exhausted");
+  if(slc->len_sched > 0){
+    slc->sched = malloc(slc->len_sched);
+    assert(slc->sched != NULL && "Memory exhausted");
+  }
 
   memcpy(slc->sched, it, slc->len_sched);
   it += slc->len_sched;
@@ -243,13 +247,15 @@ size_t fill_ul_dl_slice_conf(ul_dl_slice_conf_t* conf, uint8_t const* it)
 
   memcpy(&conf->len_sched_name, it, sizeof(conf->len_sched_name));
 
-  assert(conf->len_sched_name == 8);
+  //assert(conf->len_sched_name == 8);
 
   it += sizeof(conf->len_sched_name);
   size_t sz = sizeof(conf->len_sched_name);
 
-  conf->sched_name = malloc( conf->len_sched_name);
+  if(conf->len_sched_name > 0){
+  conf->sched_name = calloc(1, conf->len_sched_name + 1);
   assert(conf->sched_name != NULL && "Memory exhausted");
+  }
 
   memcpy(conf->sched_name, it, conf->len_sched_name);
   it += conf->len_sched_name;

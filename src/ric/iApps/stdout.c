@@ -22,20 +22,24 @@
 
 
 #include "stdout.h"
-#include <assert.h>                                      // for assert
-#include <stdint.h>                                      // for uint32_t
-#include <stdio.h>                                       // for NULL, fputs
-#include <stdlib.h>                                      // for atexit
 #include "ric/iApps/../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ind_msg_t
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_ind_msg_t
 #include "ric/iApps/../../sm/rlc_sm/ie/rlc_data_ie.h"    // for rlc_ind_msg_t
 #include "string_parser.h"                               // for to_string_ma..
 
+#include "../../util/time_now_us.h"
+
+#include <assert.h>                                      // for assert
+#include <stdint.h>                                      // for uint32_t
+#include <stdio.h>                                       // for NULL, fputs
+#include <stdlib.h>                                      // for atexit
+#include <time.h>
 
 static
 FILE *fp = NULL;
 
 const char* file_path = "log.txt";
+
 
 static
 void close_fp(void)
@@ -70,6 +74,8 @@ void print_mac_stats(mac_ind_msg_t const* msg )
   if(fp == NULL)
     init_fp(&fp, file_path);
 
+  int64_t now = time_now_us();
+  printf("Time diff at iApp = %ld \n", now - msg->tstamp);
 
   for(uint32_t i = 0; i < msg->len_ue_stats; ++i){
     char stats[1024] = {0};

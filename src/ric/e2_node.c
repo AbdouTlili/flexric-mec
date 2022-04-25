@@ -40,7 +40,29 @@ void init_e2_node(e2_node_t* n, global_e2_node_id_t const* id, size_t len_acc, a
 void free_e2_node(e2_node_t* n)
 {
   assert(n!= NULL);
-  free(n->accepted);
+
+  if(n->len_acc > 0)
+    free(n->accepted);
 }
 
+e2_node_t cp_e2_node(e2_node_t const* src)
+{
+  assert(src != NULL);
+  e2_node_t dst = {0}; 
+
+  dst.id = cp_global_e2_node_id(&src->id);
+
+  dst.len_acc = src->len_acc;
+
+  if(src->len_acc > 0){
+    dst.accepted = calloc(src->len_acc, sizeof(accepted_ran_function_t));
+    assert(dst.accepted != NULL && "Memory exhausted");
+  }
+
+  for(size_t i = 0; i < src->len_acc; ++i){
+    dst.accepted[i] = src->accepted[i]; 
+  }
+
+  return dst;
+}
 

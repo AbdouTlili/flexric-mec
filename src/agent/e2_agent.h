@@ -50,7 +50,7 @@ typedef struct e2_agent_s
   e2ap_ep_ag_t ep; 
   e2ap_agent_t ap;
   asio_agent_t io;
-  handle_msg_fp_agent handle_msg[26]; // note that not all the slots will be occupied
+  handle_msg_fp_agent handle_msg[30]; // 26 E2AP + 4 E42AP note that not all the slots will be occupied
 
   // Registered SMs
   plugin_ag_t plugin;

@@ -49,6 +49,14 @@ void free_ran_function(ran_function_t* src)
   }
 }
 
+void free_ran_function_wrapper(void* a)
+{
+   assert(a != NULL);
+ 
+   ran_function_t* b = (ran_function_t*)a;
+   free_ran_function(b);
+}
+
 bool eq_ran_function(const ran_function_t* m0, const ran_function_t* m1)
 {
   if(m0 == m1) return true;
@@ -70,3 +78,31 @@ bool eq_ran_function(const ran_function_t* m0, const ran_function_t* m1)
 
   return true;
 }
+
+bool eq_ran_function_wrapper(void const* a_v, void const* b_v)
+{
+  assert(a_v != NULL);
+  assert(b_v != NULL);
+
+  ran_function_t* a = (ran_function_t*)a_v;
+  ran_function_t* b = (ran_function_t*)b_v;
+
+  return eq_ran_function(a,b);
+}
+
+int cmp_ran_function(const ran_function_t* m0, const ran_function_t* m1) 
+{
+  if(m0 == m1) 
+    return 0;
+
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+  
+  if(m0->id < m1->id)
+    return -1; 
+  else if(m0->id == m1->id)
+    return 0;
+
+  return 1;
+}
+

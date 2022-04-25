@@ -24,6 +24,7 @@
 #include "plugin_agent.h"
 
 #include "util/alg_ds/alg/alg.h"
+#include "util/alg_ds/ds/lock_guard/lock_guard.h"
 //#include "util/alg_ds/alg/string/search_naive.h"
 #include "util/compare.h"
 
@@ -210,7 +211,7 @@ void init_plugin_ag(plugin_ag_t* p, const char* dir_path, sm_io_ag_t io)
 
   load_all_pugin_ag(p, dir_path);
 
-  pthread_create(&p->thread_rx, NULL, rx_plugin_agent, p);
+//  pthread_create(&p->thread_rx, NULL, rx_plugin_agent, p);
 }
 
 void free_plugin_ag(plugin_ag_t* p)
@@ -224,17 +225,13 @@ void free_plugin_ag(plugin_ag_t* p)
   // Thread management
   p->flag_shutdown = true;
 
-  int rc = shutdown(p->sockfd, SHUT_RDWR);
-  if(rc != 0){
-    printf("Closing the agent socket: %s \n", strerror(errno));
-  }
+  //int rc = shutdown(p->sockfd, SHUT_RDWR);
+  //if(rc != 0){
+  //  printf("Closing the agent socket: %s \n", strerror(errno));
+  //}
   //assert(rc == 0);
-
-  rc = pthread_join(p->thread_rx, NULL);
-  assert(rc == 0);
-  //
-  
-
+//  rc = pthread_join(p->thread_rx, NULL);
+//  assert(rc == 0);
 }
 
 static inline
@@ -289,11 +286,10 @@ void load_plugin_ag(plugin_ag_t* p, const char* path)
   assert(sm != NULL);
   const uint16_t ran_func_id = sm->ran_func_id;
 
-  int rc = pthread_mutex_lock(&p->sm_ds_mtx);
-  assert(rc == 0);
-  assoc_insert(&p->sm_ds, &ran_func_id, sizeof(ran_func_id), sm);
-  rc = pthread_mutex_unlock(&p->sm_ds_mtx);
-  assert(rc == 0);
+  {
+    lock_guard(&p->sm_ds_mtx);
+    assoc_insert(&p->sm_ds, &ran_func_id, sizeof(ran_func_id), sm);
+  }
 
 //  printf("AGENT: Accepting SM ID = %d with def = %s \n", sm->ran_func_id, sm->ran_func_name);
 }
@@ -310,8 +306,7 @@ sm_agent_t* sm_plugin_ag(plugin_ag_t* p, uint16_t key)
   assert(p != NULL);
   assert(key > 0 && "Reserved value");
 
-  int rc = pthread_mutex_lock(&p->sm_ds_mtx);
-  assert(rc == 0);
+  lock_guard(&p->sm_ds_mtx);
 
   void* start_it = assoc_front(&p->sm_ds);
   void* end_it = assoc_end(&p->sm_ds);
@@ -319,9 +314,6 @@ sm_agent_t* sm_plugin_ag(plugin_ag_t* p, uint16_t key)
   assert(it != end_it && "RAN function ID not found in the RAN"); 
 
   sm_agent_t* sm = assoc_value(&p->sm_ds, it);
-
-  rc = pthread_mutex_unlock(&p->sm_ds_mtx);
-  assert(rc == 0);
 
   assert(sm->ran_func_id == key);
   return sm;
@@ -331,13 +323,9 @@ size_t size_plugin_ag(plugin_ag_t* p)
 {
   assert(p != NULL);
 
-  int rc = pthread_mutex_lock(&p->sm_ds_mtx);
-  assert(rc == 0);
+  lock_guard(&p->sm_ds_mtx);
 
   size_t s = assoc_size(&p->sm_ds); 
-
-  rc = pthread_mutex_unlock(&p->sm_ds_mtx);
-  assert(rc == 0);
 
   return s;
 }

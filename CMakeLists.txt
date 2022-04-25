@@ -28,6 +28,30 @@ set_property(CACHE BUILDING_LIBRARY PROPERTY STRINGS "STATIC" "DYNAMIC")
 message(STATUS "Selected LIBRARY TYPE: ${BUILDING_LIBRARY}")
 
 
+########
+### xApp 
+########
+
+set(XAPP_DB "SQLITE3_XAPP" CACHE STRING "xApp DB")
+set_property(CACHE XAPP_DB PROPERTY STRINGS "SQLITE3_XAPP" "NONE_XAPP")
+message(STATUS "Selected xApp DB : ${XAPP_DB}")
+
+set(XAPP_DB_DIR "/tmp/" CACHE STRING "The xApp DB write directory")
+if(NOT XAPP_DB_DIR  MATCHES "/$")
+  message(FATAL_ERROR "xApp directory path needs to terminate in one / char")
+endif() 
+
+if(NOT EXISTS ${XAPP_DB_DIR})
+  message(FATAL_ERROR "Selected XAPP_DB_DIR does not exist. Please create it or change path")
+endif()
+
+message(STATUS "Selected xApp dir : ${XAPP_DB_DIR}")
+
+
+########
+### SANITIZER 
+########
+
 set(SANITIZER "NONE" CACHE STRING "Sanitizers")
 set_property(CACHE SANITIZER PROPERTY STRINGS "NONE" "ADDRESS" "THREAD")
 message(STATUS "Selected SANITIZER TYPE: ${SANITIZER}")
@@ -37,7 +61,7 @@ if(SANITIZER STREQUAL "ADDRESS")
    add_link_options("-fsanitize=address")
 elseif(SANITIZER STREQUAL "THREAD")
   add_compile_options("-fsanitize=thread;-g;")
-  add_link_options("$-fsanitize=thread")
+  add_link_options("-fsanitize=thread")
 endif()
 
 option(CODE_COVERAGE "Code coverage" OFF)
@@ -56,16 +80,19 @@ if( CODE_PROFILER )
 endif()
 
 option(INCL_WHAT_YOU_USE "Include what you use tool: iwyu" OFF)
-if( INCL_WHAT_YOU_USE  )
+if(INCL_WHAT_YOU_USE)
   message(STATUS "IWYU: Include what you use ON")
+endif()
+
+option(IAPP_EMULATOR "iApp emulator" OFF)
+if(IAPP_EMULATOR)
+  message(STATUS "iApp emulator ON")
 endif()
 
 
 
-
-
 if(BUILDING_LIBRARY STREQUAL "STATIC")
-  add_compile_options("-W;-Wall;-Wextra;-g")
+  add_compile_options("-W;-Wall;-Wextra;-g;-fopt-info")
 elseif(BUILDING_LIBRARY STREQUAL "DYNAMIC")
   # -fPIC flag
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -83,6 +110,15 @@ message(STATUS "Selected E2AP_ENCODING: ${E2AP_ENCODING}")
 #######
 ## Service Models 
 #######
+
+# Default shared objects location
+set(SM_DIR_PATH "/usr/lib/flexric/" CACHE STRING "The SM directory")
+if(NOT SM_DIR_PATH MATCHES "/$")
+  message(FATAL_ERROR "Service Models directory path needs to terminate in one / char")
+endif() 
+message(STATUS "Service Models directory path : ${SM_DIR_PATH}")
+
+add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}")
 
 # MAC Service Model
 set(SM_ENCODING_MAC "PLAIN" CACHE STRING "The MAC SM encoding to use")
@@ -141,14 +177,15 @@ ENDIF()
 ###
 # Install the Service models
 ###
-install(TARGETS mac_sm DESTINATION /usr/lib/flexric)
-install(TARGETS rlc_sm DESTINATION /usr/lib/flexric)
-install(TARGETS pdcp_sm DESTINATION /usr/lib/flexric)
-install(TARGETS slice_sm DESTINATION /usr/lib/flexric)
+
+install(TARGETS mac_sm DESTINATION ${SM_DIR_PATH} )
+install(TARGETS rlc_sm DESTINATION ${SM_DIR_PATH} )
+install(TARGETS pdcp_sm DESTINATION ${SM_DIR_PATH} )
+install(TARGETS slice_sm DESTINATION ${SM_DIR_PATH})
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION /usr/lib/flexric)
+install(FILES flexric.conf DESTINATION  ${SM_DIR_PATH})
 

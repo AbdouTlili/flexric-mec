@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 byte_array_t slice_enc_event_trigger_plain(slice_event_trigger_t const* event_trigger)
 {
@@ -366,6 +367,9 @@ size_t fill_ul_dl_slice_conf(uint8_t* it, ul_dl_slice_conf_t const* conf)
   memcpy(it, &conf->len_sched_name, sizeof(conf->len_sched_name)); 
   it += sizeof(conf->len_sched_name);
   size_t sz = sizeof(conf->len_sched_name);
+
+  //printf(" conf->len_sched_name = %d\n", conf->len_sched_name );
+  //fflush(stdout);
 
   memcpy(it, conf->sched_name, conf->len_sched_name);
   it += conf->len_sched_name;

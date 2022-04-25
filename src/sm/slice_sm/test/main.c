@@ -366,10 +366,13 @@ slice_ctrl_req_data_t generate_slice_ctrl()
 
    if(type == SLICE_CTRL_SM_V0_ADD){
      fill_slice_conf(&ret.msg.u.add_mod_slice);
+     printf("SLICE_CTRL_SM_V0_ADD \n");
    } else if (type == SLICE_CTRL_SM_V0_DEL){
      fill_slice_del(&ret.msg.u.del_slice);
+     printf("SLICE_CTRL_SM_V0_DEL \n");
    } else if (type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
      fill_ue_slice_conf(&ret.msg.u.ue_slice); 
+     printf("SLICE_CTRL_SM_V0_MOD \n");
    } else {
       assert(0!=0 && "Unknown type");
    }

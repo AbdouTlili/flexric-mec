@@ -22,6 +22,9 @@
 
 #include "ric_subscription_response.h"
 
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 bool eq_ric_subscritption_response(const ric_subscription_response_t* m0, const ric_subscription_response_t* m1)
 {
@@ -50,4 +53,51 @@ bool eq_ric_subscritption_response(const ric_subscription_response_t* m0, const 
 
   return true;
 }
+
+ric_subscription_response_t cp_ric_subscription_respponse(ric_subscription_response_t const* src)
+{
+  assert(src != NULL);
+  
+  ric_subscription_response_t dst  = {0}; 
+
+  dst.ric_id = src->ric_id;
+
+  dst.len_admitted = src->len_admitted;
+
+  if(dst.len_admitted > 0){ 
+    dst.admitted = calloc(dst.len_admitted, sizeof(ric_action_admitted_t) );
+    assert(dst.admitted != NULL && "Memory exhausted" );
+  }
+
+  for(size_t i = 0; i < dst.len_admitted; ++i){
+    dst.admitted[i] = cp_ric_action_admitted(&src->admitted[i]);
+  }
+
+  dst.len_na = src->len_na; 
+  if(dst.len_na > 0){ 
+    dst.not_admitted = calloc(dst.len_na, sizeof( ric_action_not_admitted_t ) );
+    assert(dst.not_admitted != NULL && "Memory exhausted" );
+  }
+
+  for(size_t i = 0; i < dst.len_na; ++i){
+    dst.not_admitted[i] = cp_ric_action_not_admitted(&src->not_admitted[i]); 
+  }
+
+  return dst;
+}
+
+ric_subscription_response_t mv_ric_subscription_respponse(ric_subscription_response_t const* src)
+{
+  ric_subscription_response_t dst = {0}; 
+  dst.admitted = src->admitted;
+  dst.len_admitted = src->len_admitted;
+  dst.len_na =src->len_na;
+  dst.not_admitted = src->not_admitted;
+  dst.ric_id = src->ric_id; 
+
+  // move ownership to the dst msg. Forgive my sinns 
+  memset((ric_subscription_response_t*) src, 0, sizeof(ric_subscription_response_t ) );
+  return dst;
+}
+
 

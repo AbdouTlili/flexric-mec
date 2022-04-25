@@ -13,6 +13,14 @@ set(e2ap_src_types
   e2_setup_request.c 
   e2_setup_response.c 
   e2_setup_failure.c 
+
+  e42_setup_request.c 
+  e42_setup_response.c 
+  e42_ric_control_request.c 
+  e2_node_connected.c
+  e42_ric_subscription_request.c
+  e42_ric_subscription_delete_request.c
+
   e2ap_reset_request.c 
   e2ap_reset_response.c 
   ric_service_update.c 

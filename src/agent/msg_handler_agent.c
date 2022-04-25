@@ -61,9 +61,9 @@ void stop_ind_event(e2_agent_t* ag, ric_gen_id_t id)
   free(fd);
 }
 
-void init_handle_msg_agent(handle_msg_fp_agent (*handle_msg)[26])
+void init_handle_msg_agent(handle_msg_fp_agent (*handle_msg)[30])
 {
-  memset((*handle_msg), 0, sizeof(handle_msg_fp_agent)*26);
+  memset((*handle_msg), 0, sizeof(handle_msg_fp_agent)*30);
 
   (*handle_msg)[RIC_SUBSCRIPTION_REQUEST] = e2ap_handle_subscription_request_agent;
   (*handle_msg)[RIC_SUBSCRIPTION_DELETE_REQUEST] =  e2ap_handle_subscription_delete_request_agent;
@@ -89,21 +89,6 @@ e2ap_msg_t e2ap_msg_handle_agent(e2_agent_t* ag, const e2ap_msg_t* msg)
   assert(ag->handle_msg[ msg_type ] != NULL);
   return ag->handle_msg[msg_type](ag, msg); 
 }
-
-/*
-static inline
-sm_agent_t* get_sm(e2_agent_t* ag, uint16_t ran_func_id)
-{
-  void* start_it = assoc_front(&ag->sm_ds);
-  void* end_it = assoc_end(&ag->sm_ds);
-  void* it = find_if(&ag->sm_ds, start_it, end_it, &ran_func_id, eq_ran_func_id); 
-  assert(it != end_it && "RAN function ID not found in the RAN"); 
-
-  sm_agent_t* sm = assoc_value(&ag->sm_ds, it);
-  assert(sm->ran_func_id == ran_func_id);
-  return sm;
-}
-*/
 
 static inline
 bool supported_ric_subscription_request(ric_subscription_request_t const* sr)
@@ -168,6 +153,8 @@ e2ap_msg_t e2ap_handle_subscription_request_agent(e2_agent_t* ag, const e2ap_msg
   ev.sm = sm;
   bi_map_insert(&ag->ind_event, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev));
 
+  printf("[E2-AGENT]: RIC_SUBSCRIPTION_REQUEST rx\n");
+
   uint8_t const ric_act_id = sr->action[0].id;
   e2ap_msg_t ans = {.type = RIC_SUBSCRIPTION_RESPONSE, 
                     .u_msgs.ric_sub_resp = generate_subscription_response(&sr->ric_id, ric_act_id) };
@@ -223,7 +210,6 @@ byte_array_t* ba_from_ctrl_out(sm_ctrl_out_data_t const* data)
 
  return ba; 
 }
-
 
 // The purpose of the RIC Control procedure is to initiate or resume a specific functionality in the E2 Node.
 e2ap_msg_t e2ap_handle_control_request_agent(e2_agent_t* ag, const e2ap_msg_t* msg)

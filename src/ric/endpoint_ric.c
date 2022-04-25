@@ -74,6 +74,9 @@ int init_sctp_conn_server(const char* addr, int port)
   const int close_time = 120;
   setsockopt(server_fd, IPPROTO_SCTP, SCTP_AUTOCLOSE, &close_time, sizeof(close_time));
 
+  const int no_delay = 1;
+  setsockopt(server_fd, IPPROTO_SCTP, SCTP_NODELAY, &no_delay, sizeof(no_delay));
+
   rc = listen(server_fd, SERVER_LISTEN_QUEUE_SIZE);
   assert(rc != -1);
   assert(errno == 0);
@@ -92,31 +95,57 @@ void e2ap_init_ep_ric(e2ap_ep_ric_t* ep, const char* addr, int port)
   *(int*)(&ep->base.fd) = init_sctp_conn_server(addr, port);
   *(int*)(&ep->base.port) = port;
   strncpy((char*)(&ep->base.addr), addr, 16);
+
+  init_map_e2_node_sad(&ep->e2_nodes);
+
   printf("[NEAR-RIC]: Initializing \n"); //server fd = %d\n", ep->base.fd);
-}
-
-byte_array_t e2ap_recv_msg_ric(e2ap_ep_ric_t* ep)
-{
-  assert(ep != NULL);
-
-  // iff performance needed, pass the argument by reference. Pls, measure before doing it 
-  byte_array_t ba = {.buf = malloc(2048) , .len =2048  };
-  e2ap_recv_bytes(&ep->base, &ba);
-//  printf("Number of bytes read = %lu \n", ba.len);
-  return ba;
-}
-
-void e2ap_send_bytes_ric(const e2ap_ep_ric_t* ep, byte_array_t ba)
-{
-  assert(ba.buf && ba.len > 0);
-  assert(ep != NULL);
-  e2ap_send_bytes(&ep->base, ba);
-  //printf("Server data send through sctp = %ld\n", ba.len);
 }
 
 void e2ap_free_ep_ric(e2ap_ep_ric_t* ep)
 {
   assert(ep != NULL);
+
   e2ap_ep_free(&ep->base);
+
+  free_map_e2_node_sad(&ep->e2_nodes);
+}
+
+sctp_msg_t e2ap_recv_msg_ric(e2ap_ep_ric_t* ep)
+{
+  assert(ep != NULL);
+
+  sctp_msg_t rcv = e2ap_recv_sctp_msg(&ep->base);// , &ba);
+  return rcv;
+}
+
+void e2ap_send_bytes_ric(const e2ap_ep_ric_t* ep, global_e2_node_id_t const* id , byte_array_t ba)
+{
+  assert(ba.buf && ba.len > 0);
+  assert(ep != NULL);
+
+  sctp_info_t s = find_map_e2_node_sad(( map_e2_node_sockaddr_t*)&ep->e2_nodes, id);
+
+  sctp_msg_t msg = {.ba = ba,
+                    .info = s};
+
+  e2ap_send_sctp_msg(&ep->base, &msg); // s.addr, &s.sri, ba);
+}
+
+
+void e2ap_send_sctp_msg_ric(const  e2ap_ep_ric_t* ep, sctp_msg_t* msg)
+{
+  assert(ep != NULL);
+  assert(msg != NULL);
+
+  e2ap_send_sctp_msg(&ep->base, msg); // s.addr, &s.sri, ba);
+}
+
+void e2ap_reg_sock_addr_ric(e2ap_ep_ric_t* ep, global_e2_node_id_t* id, sctp_info_t* s )
+{
+  assert(ep != NULL);
+  assert(id != NULL);
+  assert(s != NULL);
+
+  add_map_e2_node_sad(&ep->e2_nodes,id, s );
 }
 

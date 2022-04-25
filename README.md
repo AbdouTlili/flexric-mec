@@ -1,6 +1,14 @@
+# Warning!!! 
+This a develop branch, and thus not a stable branch.
+Use it knowing its limitations.
+
+
 # FlexRIC: The O-RAN Alliance compliant E2-Agent and Near-RIC 
 
 This repository contains an O-RAN Alliance (https://www.o-ran.org/) compliant E2-Agent as well as a Near-RIC 
+
+
+
 
 ## General instructions
 

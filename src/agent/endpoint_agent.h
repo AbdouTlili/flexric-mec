@@ -19,8 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
-
 #ifndef ENDPOINT_AGENT
 #define ENDPOINT_AGENT
 
@@ -30,6 +28,12 @@
 typedef struct e2ap_ep_ag
 {
   e2ap_ep_t base;
+
+  // Only one connection supported 
+  struct sockaddr_in to; 
+  struct sctp_sndrcvinfo sri;
+  int msg_flags;
+
 } e2ap_ep_ag_t;
 
 

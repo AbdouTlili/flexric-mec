@@ -22,6 +22,7 @@
 
 #include "ric_action_admitted.h"
 
+#include <assert.h>
 #include <stddef.h>
 
 bool eq_ric_action_admitted(const ric_action_admitted_t* m0, const ric_action_admitted_t* m1)
@@ -35,5 +36,12 @@ bool eq_ric_action_admitted(const ric_action_admitted_t* m0, const ric_action_ad
     return false;
 
   return true;
+}
+
+ric_action_admitted_t cp_ric_action_admitted(ric_action_admitted_t const* src)
+{
+   assert(src != NULL);
+   ric_action_admitted_t dst = {.ric_act_id = src->ric_act_id};
+   return dst;
 }
 

@@ -33,23 +33,6 @@
  * function signatures only depend on our own types defined in type_defs.h */
 
 struct E2AP_PDU;
-//struct RANfunction_Item;
-//struct RANfunctionID_Item;
-//struct RICaction_ToBeSetup_Item;
-//struct RANfunctionIDcause_Item;
-//struct RICsubsequentAction;
-//struct Cause;
-//struct CriticalityDiagnostics;
-//struct E2nodeComponentConfigUpdate_Item;
-//struct E2nodeComponentConfigUpdateAck_Item;
-//struct E2connectionUpdate_Item;
-//struct E2nodeComponentConfigUpdateAck_Item;
-//struct TNLinformation;
-//struct RANfunctionIDcause_Item_t;
-//struct E2nodeComponentConfigUpdate_Item;
-//struct E2connectionUpdate_Item;
-//struct E2connectionSetupFailed_Item;
-
 
 byte_array_t e2ap_enc_asn_pdu_ba(struct E2AP_PDU* pdu);
 
@@ -191,5 +174,36 @@ struct E2AP_PDU* e2ap_enc_node_connection_update_ack_asn_pdu(const e2_node_conne
 byte_array_t e2ap_enc_node_connection_update_failure_asn(const e2_node_connection_update_failure_t*);
 byte_array_t e2ap_enc_node_connection_update_failure_asn_msg(const e2ap_msg_t* msg); 
 struct E2AP_PDU* e2ap_enc_node_connection_update_failure_asn_pdu(const e2_node_connection_update_failure_t*);
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_subscription_request_asn(const e42_ric_subscription_request_t* sr);
+byte_array_t e2ap_enc_e42_subscription_request_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_subscription_request_asn_pdu(const e42_ric_subscription_request_t* sr); 
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_setup_request_asn(const e42_setup_request_t* sr);
+byte_array_t e2ap_enc_e42_setup_request_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_setup_request_asn_pdu(const e42_setup_request_t* sr);
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_setup_response_asn(const e42_setup_response_t* sr);
+byte_array_t e2ap_enc_e42_setup_response_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_setup_response_asn_pdu(const e42_setup_response_t* sr);
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_subscription_request_asn(const e42_ric_subscription_request_t* sr);
+byte_array_t e2ap_enc_e42_subscription_request_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_subscription_request_asn_pdu(const e42_ric_subscription_request_t* e42_sr);
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_subscription_delete_request_asn(const e42_ric_subscription_delete_request_t* sr);
+byte_array_t e2ap_enc_e42_subscription_delete_request_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_subscription_delete_request_asn_pdu(const e42_ric_subscription_delete_request_t* e42_sr);
+
+// xApp -> iApp
+byte_array_t e2ap_enc_e42_control_request_asn(const e42_ric_control_request_t* ric_req);
+byte_array_t e2ap_enc_e42_control_request_asn_msg(const e2ap_msg_t* msg);
+struct E2AP_PDU* e2ap_enc_e42_control_request_asn_pdu(const e42_ric_control_request_t* ric_req);
+
 
 #endif

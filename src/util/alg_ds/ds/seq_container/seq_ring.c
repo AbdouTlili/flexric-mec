@@ -23,7 +23,7 @@ size_t seq_ring_size(seq_ring_t* r)
 static 
 bool full(seq_ring_t* r)
 {
-  return seq_ring_size(r) == r->cap;
+  return seq_ring_size(r) == r->cap-1;
 }
 
 static
@@ -49,7 +49,7 @@ void enlarge_buffer(seq_ring_t* r)
   free(r->array);
   r->array = tmp_buffer;
   r->tail = 0;
-  r->head = r->cap/2;
+  r->head = r->cap/2-1;
 }
 
 void seq_ring_init(seq_ring_t* r, size_t elt_size)

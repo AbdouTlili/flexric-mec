@@ -19,21 +19,15 @@
  *      contact@openairinterface.org
  */
 
-
-
 #ifndef MSG_HANDLER_AGENT
 #define MSG_HANDLER_AGENT
 
 #include "e2_agent.h"
 #include "lib/ap/type_defs.h"
 
-
-
-
-void init_handle_msg_agent(handle_msg_fp_agent (*handle_msg)[26]);
+void init_handle_msg_agent(handle_msg_fp_agent (*handle_msg)[30]);
 
 e2ap_msg_t e2ap_msg_handle_agent(e2_agent_t* agent, const e2ap_msg_t* msg);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // O-RAN E2APv01.01: Messages for Global Procedures ///////////////////////////////////////////////

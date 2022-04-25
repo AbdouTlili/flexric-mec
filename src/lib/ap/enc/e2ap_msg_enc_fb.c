@@ -746,3 +746,48 @@ byte_array_t e2ap_enc_setup_failure_msg(const e2ap_msg_t* msg)
   return ba;
 }
 
+byte_array_t e2ap_enc_e42_setup_request_fb(const e42_setup_request* sr) 
+{
+    assert(0 != 0 && "Not implemented");
+    byte_array_t ba = {0};
+    return ba; 
+}
+  
+byte_array_t e2ap_enc_e42_setup_request_msg(const  e2ap_msg_t* msg)
+{
+    assert(msg != NULL);
+    assert(msg->type == E42_SETUP_REQUEST);
+    byte_array_t ba = e2ap_enc_e42_setup_request_fb(&msg->u_msgs.e42_setup_request);
+    return ba;
+}
+   
+byte_array_t e2ap_enc_e42_subscription_request_fb(const e42_setup_request_t* sr)
+{
+    assert(0 != 0 && "Not implemented");
+    byte_array_t ba = {0};
+    return ba;
+}
+  
+byte_array_t e2ap_enc_e42_subscription_request_msg(const  e2ap_msg_t* msg)
+{
+    assert(msg != NULL);
+    assert(msg->type == E42_RIC_SUBSCRIPTION_REQUEST);
+    byte_array_t ba = e2ap_enc_e42_subscription_request_fb(&msg->u_msgs.e42_ric_sub_r  eq);  
+    return ba;
+}
+  
+byte_array_t e2ap_enc_e42_control_request_fb(const e42_ric_control_request_t* cr)
+{
+    assert(0 != 0 && "Not implemented");
+    byte_array_t ba = {0};
+    return ba;
+}
+  
+byte_array_t e2ap_enc_e42_control_request_msg(const  e2ap_msg_t* msg)
+{
+    assert(msg != NULL);
+    assert(msg->type == E42_RIC_CONTROL_REQUEST);
+    byte_array_t ba = e2ap_enc_e42_control_request_fb(&msg->u_msgs.e42_ric_ctrl_req);
+    return ba;
+}
+

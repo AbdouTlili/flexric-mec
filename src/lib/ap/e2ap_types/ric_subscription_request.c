@@ -21,7 +21,7 @@
 
 
 #include "ric_subscription_request.h"
-
+#include <assert.h>
 
 bool eq_ric_subscritption_request(const ric_subscription_request_t* m0, const ric_subscription_request_t* m1)
 {
@@ -48,4 +48,14 @@ bool eq_ric_subscritption_request(const ric_subscription_request_t* m0, const ri
 
   return true;
 }
+
+ric_subscription_request_t mv_ric_subscription_request( ric_subscription_request_t* sr)
+{
+  assert(sr != NULL);
+  ric_subscription_request_t ans = *sr;
+  memset(sr, 0, sizeof(ric_subscription_request_t) );
+
+  return ans;
+}
+
 

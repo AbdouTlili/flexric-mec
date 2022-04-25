@@ -56,11 +56,11 @@ byte_array_t e2ap_msg_enc_ric(e2ap_ric_t* ap, e2ap_msg_t* msg);
 
 byte_array_t e2ap_enc_setup_response_ric(e2ap_ric_t* ap, e2_setup_response_t* sr);
 
-byte_array_t e2ap_enc_subscription_request_ric(e2ap_ric_t* ap, ric_subscription_request_t* sr);
+byte_array_t e2ap_enc_subscription_request_ric(e2ap_ric_t* ap, ric_subscription_request_t const* sr);
 
-byte_array_t e2ap_enc_subscription_delete_request_ric(e2ap_ric_t* ap, ric_subscription_delete_request_t* sd);
+byte_array_t e2ap_enc_subscription_delete_request_ric(e2ap_ric_t* ap, ric_subscription_delete_request_t const* sd);
 
-byte_array_t e2ap_enc_control_request_ric(e2ap_ric_t* ap, ric_control_request_t* ctrl_req);
+byte_array_t e2ap_enc_control_request_ric(e2ap_ric_t* ap, ric_control_request_t const* ctrl_req);
 
 //////////////
 // Decoding
