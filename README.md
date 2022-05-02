@@ -23,7 +23,7 @@ The definitions of the E2AP messages can be found at the O-RAN.WG3.E2AP-v01.01.p
 Download the required dependencies 
 
 ```bash
-sudo apt install asn1c libsctp-dev poppler-utils python3.8 libreoffice
+sudo apt install asn1c libsctp-dev poppler-utils python3.8 libreoffice cmake-curses-gui
 ```
 
 Today, the xApp communication is based on the Next Generation of Nanomessages https://github.com/nanomsg/nng. Please go there and install them into your computer.
