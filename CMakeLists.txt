@@ -180,15 +180,15 @@ ENDIF()
 # Install the Service models
 ###
 
-message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}/flexric")
 
-install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
