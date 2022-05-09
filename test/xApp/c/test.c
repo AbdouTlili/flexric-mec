@@ -99,10 +99,17 @@ sm_ag_if_wr_t create_assoc_slice(void)
   return ctrl_msg;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+ args_t args;
+  // Parse arguments
+  if(parse_args(argc, argv, &args) > 0) {
+    print_usage(argv[0]);
+    exit(1);
+  }
+
   //Init the xApp
-  init_xapp_api("127.0.0.1");
+  init_xapp_api(args);
   sleep(1);
 
   e2_node_arr_t nodes = e2_nodes_xapp_api();
