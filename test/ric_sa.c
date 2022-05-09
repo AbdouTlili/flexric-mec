@@ -39,7 +39,6 @@ const uint16_t PDCP_ran_func_id = 144;
 const uint16_t SLICE_ran_func_id = 145; // Not implemented yet
 const char* cmd = "5_ms";
 
-
 static inline
 bool e2_node_connected()
 {
@@ -78,15 +77,22 @@ void wait_e2_node()
     }
   }
 }
-
-
-int main()
+      
+int main(int argc, char *argv[])
 {
+  
+  args_t args;
+  // Parse arguments
+  if(parse_args(argc, argv, &args) > 0) {
+    print_usage(argv[0]);
+    exit(1);
+  }
+  
   // Signal handler
   signal(SIGINT, sig_handler);
 
   // Init the RIC
-  init_near_ric_api();
+  init_near_ric_api(args);
 
   wait_e2_node();
 

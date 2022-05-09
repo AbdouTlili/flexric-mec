@@ -22,7 +22,7 @@
 
 #include "e42_xapp_api.h"
 #include "e42_xapp.h"
-
+#include "../util/conf_file.h"
 #include "../lib/ap/e2ap_types/common/e2ap_global_node_id.h"
 #include "../util/alg_ds/alg/defer.h"
 #include "../util/alg_ds/alg/alg.h"
@@ -47,11 +47,12 @@ void* static_start_xapp(void* a)
   return NULL;
 }
 
-void init_xapp_api(const char* addr)
+void init_xapp_api(args_t args)
 {
+  char* addr = get_near_ric_ip(args);
   assert(xapp == NULL && "The  init_xapp_api function can only be called once");
   printf("[xApp]: IP Address = %s\n", addr);
-  xapp = init_e42_xapp(addr);
+  xapp = init_e42_xapp(addr, args);
 
   // Spawn a new thread for the xapp
   const int rc = pthread_create(&thrd_xapp, NULL, static_start_xapp, NULL);

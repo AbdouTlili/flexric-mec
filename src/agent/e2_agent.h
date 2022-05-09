@@ -27,6 +27,7 @@
 #include "util/alg_ds/ds/assoc_container/assoc_generic.h"
 #include "util/alg_ds/ds/assoc_container/bimap.h"
 
+#include "util/conf_file.h"
 #include "util/ngran_types.h"
 
 #include "lib/ap/global_consts.h"
@@ -67,7 +68,7 @@ typedef struct e2_agent_s
   atomic_bool agent_stopped;
 } e2_agent_t;
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io);
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, args_t args);
 
 // Blocking call
 void e2_start_agent(e2_agent_t* ag);

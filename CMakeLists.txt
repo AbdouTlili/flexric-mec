@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
+
 project(flexric VERSION 0.0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
@@ -112,13 +113,14 @@ message(STATUS "Selected E2AP_ENCODING: ${E2AP_ENCODING}")
 #######
 
 # Default shared objects location
-set(SM_DIR_PATH "/usr/lib/flexric/" CACHE STRING "The SM directory")
-if(NOT SM_DIR_PATH MATCHES "/$")
-  message(FATAL_ERROR "Service Models directory path needs to terminate in one / char")
-endif() 
-message(STATUS "Service Models directory path : ${SM_DIR_PATH}")
+#set(SM_DIR_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "The SM directory")
+#if(NOT SM_DIR_PATH MATCHES "/")
+#  message(FATAL_ERROR "Service Models directory path needs to terminate in one / char ${CMAKE_INSTALL_PREFIX}")
+  #set(SM_DIR_PATH "/usr/lib/flexric/" CACHE STRING "The SM directory")
+#endif() 
+#message(STATUS "Service Models directory path : ${SM_DIR_PATH}/")
 
-add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}")
+add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}/")
 
 # MAC Service Model
 set(SM_ENCODING_MAC "PLAIN" CACHE STRING "The MAC SM encoding to use")
@@ -178,14 +180,15 @@ ENDIF()
 # Install the Service models
 ###
 
-install(TARGETS mac_sm DESTINATION ${SM_DIR_PATH} )
-install(TARGETS rlc_sm DESTINATION ${SM_DIR_PATH} )
-install(TARGETS pdcp_sm DESTINATION ${SM_DIR_PATH} )
-install(TARGETS slice_sm DESTINATION ${SM_DIR_PATH})
+message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}")
+
+install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION  ${SM_DIR_PATH})
-
+install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX})

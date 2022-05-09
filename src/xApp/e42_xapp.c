@@ -129,7 +129,7 @@ sm_ag_if_ans_t write_xapp(sm_ag_if_wr_t const* data)
   return ans; 
 }
 
-e42_xapp_t* init_e42_xapp(const char* addr)
+e42_xapp_t* init_e42_xapp(const char* addr, args_t args)
 {
   assert(addr != NULL);
 
@@ -151,8 +151,8 @@ e42_xapp_t* init_e42_xapp(const char* addr)
   init_handle_msg_xapp(&xapp->handle_msg);
 
   sm_io_ag_t io = {.read = read_xapp, .write = write_xapp };
-  init_plugin_ag(&xapp->plugin_ag, SERVICE_MODEL_DIR_PATH, io);
-  init_plugin_ric(&xapp->plugin_ric, SERVICE_MODEL_DIR_PATH);
+  init_plugin_ag(&xapp->plugin_ag, args.libs_dir, io);
+  init_plugin_ric(&xapp->plugin_ric, args.libs_dir);
 
   init_reg_e2_node(&xapp->e2_nodes); 
 

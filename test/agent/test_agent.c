@@ -96,7 +96,7 @@ void sig_handler(int sig_num)
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
 
   // Signal handler
@@ -122,8 +122,13 @@ int main()
 #endif
 
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
- 
-  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io );
+  args_t args;
+  // Parse arguments
+  if(parse_args(argc, argv, &args) > 0) {
+    print_usage(argv[0]);
+    exit(1);
+  }
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io,args);
 
   while(1){
     sleep(42);

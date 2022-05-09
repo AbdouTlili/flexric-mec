@@ -40,7 +40,7 @@ e2_setup_request_t generate_setup_request(e2_agent_t* ag)
   assert(ag != NULL);
 
   const size_t len_rf = assoc_size(&ag->plugin.sm_ds);
-  assert(len_rf > 0 && "No RAN function/service model registered. Check if the Service Models are at the /usr/lib/flexric/ path or the selected new path");
+  assert(len_rf > 0 && "No RAN function/service model registered. Check if the Service Models are located at shared library paths, default location is /usr/local/flexric/");
 
   ran_function_t* ran_func = calloc(len_rf, sizeof(*ran_func));
   assert(ran_func != NULL);
@@ -302,7 +302,7 @@ void e2_event_loop_agent(e2_agent_t* ag)
   ag->agent_stopped = true;
 }
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io)
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, args_t args)
 {
   assert(addr != NULL);
   assert(port > 0 && port < 65535);
@@ -322,7 +322,7 @@ e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid
 
   init_handle_msg_agent(&ag->handle_msg);
 
-  init_plugin_ag(&ag->plugin, SERVICE_MODEL_DIR_PATH , io);
+  init_plugin_ag(&ag->plugin, args.libs_dir, io);
 
   init_pending_events(ag);
 

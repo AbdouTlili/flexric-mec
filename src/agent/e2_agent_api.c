@@ -53,7 +53,8 @@ void init_agent_api(int mcc,
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,
-                    sm_io_ag_t io
+                    sm_io_ag_t io,
+		    args_t args
                     )
 {
   assert(agent == NULL);  
@@ -63,14 +64,14 @@ void init_agent_api(int mcc,
   assert(nb_id > 0);
 
 
-  char* server_ip_str = get_near_ric_ip();
+  char* server_ip_str = get_near_ric_ip(args);
   printf("[E2 AGENT]: RIC IP Address = %s\n", server_ip_str);
 
   const plmn_t plmn = {.mcc = mcc, .mnc = mnc, .mnc_digit_len = mnc_digit_len};
   const global_e2_node_id_t ge2ni = {.type = ngran_gNB, .plmn = plmn, .nb_id = nb_id };
   const int e2ap_server_port = 36421;
 
-  agent = e2_init_agent(server_ip_str, e2ap_server_port, ge2ni, io);
+  agent = e2_init_agent(server_ip_str, e2ap_server_port, ge2ni, io, args);
 
   // Spawn a new thread for the agent
   const int rc = pthread_create(&thrd_agent, NULL, static_start_agent, NULL);

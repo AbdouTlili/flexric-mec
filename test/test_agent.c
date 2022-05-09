@@ -126,7 +126,7 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
   return ans;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
   // Init the Agent
   const int mcc = 10; 
@@ -134,8 +134,14 @@ int main()
   const int mnc_digit_len = 2;
   const int nb_id = 42;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
- 
-  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io );
+  args_t args;
+
+  // Parse arguments
+  if(parse_args(argc, argv, &args) > 0) {
+    print_usage(argv[0]);
+    exit(1);
+  }
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io, args );
 
   sleep(200);
 

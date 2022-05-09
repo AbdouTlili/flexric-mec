@@ -34,10 +34,10 @@ extern "C" {
 #include "../lib/msg_hand/e2_node_arr.h"
 #include "../sm/agent_if/write/sm_ag_if_wr.h"
 #include "../sm/agent_if/read/sm_ag_if_rd.h"
+#include "../util/conf_file.h"
 
 
-
-void init_xapp_api(const char* addr);
+void init_xapp_api(args_t);
   
 bool try_stop_xapp_api(void);     
 

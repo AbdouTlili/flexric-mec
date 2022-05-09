@@ -55,14 +55,16 @@ void* static_start_near_ric(void* a)
   return NULL;
 }
 
-void init_near_ric_api(void)
+
+
+void init_near_ric_api(args_t args)
 {
   assert(ric == NULL);
 
-  char* addr = get_near_ric_ip();
+  char* addr = get_near_ric_ip(args);
   printf("[NEAR RIC]: RIC IP Address = %s\n", addr);
 
-  ric = init_near_ric(addr);
+  ric = init_near_ric(addr, args);
   assert(ric != NULL && "Memory exhausted");
 
   // Spawn a new thread for the ric

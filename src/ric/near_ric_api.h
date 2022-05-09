@@ -29,6 +29,7 @@ extern "C" {
 
 #include "../lib/ap/e2ap_types/common/e2ap_global_node_id.h"
 #include "../ric/e2_node.h"
+#include "../util/conf_file.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -40,7 +41,7 @@ typedef struct{
 
 void free_e2_nodes_api( e2_nodes_api_t* src);
 
-void init_near_ric_api(void /* const char* addr , int port*/ );
+void init_near_ric_api(args_t);
 
 void stop_near_ric_api(void);
 

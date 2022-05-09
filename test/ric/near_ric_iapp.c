@@ -69,13 +69,20 @@ void sig_handler(int sig_num)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
   // Signal handler
   signal(SIGINT, sig_handler);
 
+  args_t args;
+  // Parse arguments
+  if(parse_args(argc, argv, &args) > 0) {
+    print_usage(argv[0]);
+    exit(1);
+  }
+  
   // Init the RIC
-  init_near_ric_api();
+  init_near_ric_api(args);
 
 //  wait_e2_node();
 

@@ -24,7 +24,7 @@
 
 #include "util/alg_ds/alg/alg.h"
 #include "util/compare.h"
-
+#include "util/conf_file.h"
 #include <assert.h>
 
 #include <arpa/inet.h>
@@ -99,7 +99,7 @@ void load_all_pugin_ric(plugin_ric_t* p, const char* dir_path)
 
     const char* needle = ".conf"; 
     const char* ans = strstr(file_path, needle);
-    if(ans == NULL) // Not a Configuration file
+    if(ans == NULL && is_regular_file(file_path)) // Not a Configuration file
       load_plugin_ric(p, file_path);
 
     in_file = readdir(fd);

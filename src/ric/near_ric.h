@@ -29,6 +29,7 @@
 #include "util/alg_ds/ds/seq_container/seq_generic.h"
 #include "util/alg_ds/ds/assoc_container/assoc_generic.h"
 #include "util/alg_ds/ds/assoc_container/bimap.h"
+#include "util/conf_file.h"
 #include "sm/sm_ric.h"
 #include "plugin_ric.h"
 #include "map_e2_node_sockaddr.h"
@@ -74,7 +75,7 @@ typedef struct near_ric_s
   atomic_bool stop_token;
 } near_ric_t;
 
-near_ric_t* init_near_ric(const char* addr);
+near_ric_t* init_near_ric(const char* addr, args_t args);
 
 // Blocking call
 void start_near_ric(near_ric_t* ric);
