@@ -133,8 +133,7 @@ bool valid_sm_id(global_e2_node_id_t* id, uint32_t sm_id)
   assert(id != NULL);
 
   // Only for testing purposes
-  assert(sm_id == 142 ||
-          sm_id == 143);
+  assert(sm_id == 142 || sm_id == 143 || sm_id == 144 || sm_id == 145);
 
   return true;
 }
