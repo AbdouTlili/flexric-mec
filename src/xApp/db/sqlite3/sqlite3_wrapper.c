@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "string.h"
 
 static
 void create_table(sqlite3* db, char* sql)
@@ -179,9 +180,57 @@ void create_pdcp_bearer_table(sqlite3* db)
   create_table(db, sql_pdcp);
 }
 
+static
+void create_slice_table(sqlite3* db)
+{
+  assert(db != NULL);
+
+  // ToDo: PRIMARY KEY UNIQUE
+  char* sql_slice = "DROP TABLE IF EXISTS SLICE;"
+                    "CREATE TABLE SLICE("\
+                    "tstamp INT CHECK(tstamp > 0),"\
+                    "ngran_node INT CHECK(ngran_node >= 0 AND ngran_node < 9),"\
+                    "mcc INT,"\
+                    "mnc INT,"\
+                    "mnc_digit_len INT,"\
+                    "nb_id INT,"\
+                    "len_slices INT CHECK(len_slices  >= 0 AND len_slices < 4),"\
+                    "sched_name TEXT,"\
+                    "id INT CHECK(id >=0 AND id < 4294967296),"\
+                    "label TEXT,"\
+                    "type TEXT,"\
+                    "type_conf TEXT,"\
+                    "sched TEXT,"\
+                    "type_param0 REAL CHECK(type_param0 == NULL OR (type_param0 >= 0 AND type_param0 < 4294967296)),"\
+                    "type_param1 REAL CHECK(type_param1 == NULL OR (type_param1 >= 0 AND type_param1 < 4294967296)),"\
+                    "type_param2 REAL CHECK(type_param2 == NULL OR (type_param2 >= 0 AND type_param2 < 4294967296))"
+                    ");";
+  create_table(db, sql_slice);
+}
 
 static
-void insert_db(sqlite3* db, char* sql)
+void create_ue_slice_table(sqlite3* db)
+{
+  assert(db != NULL);
+
+  // ToDo: PRIMARY KEY UNIQUE
+  char* sql_ue_slice = "DROP TABLE IF EXISTS UE_SLICE;"
+                    "CREATE TABLE UE_SLICE("\
+                    "tstamp INT CHECK(tstamp > 0),"\
+                    "ngran_node INT CHECK(ngran_node >= 0 AND ngran_node < 9),"\
+                    "mcc INT,"\
+                    "mnc INT,"\
+                    "mnc_digit_len INT,"\
+                    "nb_id INT,"\
+                    "len_ue_slice INT CHECK(len_ue_slice  >= 0 AND len_ue_slice  < 4294967296),"\
+                    "rnti INT CHECK(rnti == -1 OR (rnti >= 0 AND rnti < 65535)),"\
+                    "dl_id INT CHECK(dl_id == -1 OR (dl_id >= 0 AND dl_id < 4294967296))"
+                    ");";
+  create_table(db, sql_ue_slice);
+}
+
+static
+void insert_db(sqlite3* db, char const* sql)
 {
   assert(db != NULL);
   assert(sql != NULL);
@@ -460,6 +509,211 @@ int to_sql_string_pdcp_rb(global_e2_node_id_t const* id, pdcp_radio_bearer_stats
 }
 
 static
+int to_sql_string_ue_slice_rb(global_e2_node_id_t const* id, ue_slice_conf_t const* ues, ue_slice_assoc_t const* u, int64_t tstamp, char* out, size_t out_len)
+{
+  assert(ues != NULL);
+  assert(out != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+
+  int rc = 0;
+  if (u == NULL) {
+    rc = snprintf(out, out_len,
+                  "INSERT INTO UE_SLICE VALUES("
+                  "%ld,"   // tstamp
+                  "%d,"    // ngran_node
+                  "%d,"    // mcc
+                  "%d,"    // mnc
+                  "%d,"    // mnc_digit_len
+                  "%d,"    // nb_id
+                  "%d,"    // dl->len_ue_slices
+                  "%d,"    // ues[i]->rnti
+                  "%d"     // ues[i]->dl_id
+                  ");"
+                  , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , ues->len_ue_slice, -1, -1);
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    return rc;
+  }
+
+  rc = snprintf(out, out_len,
+                "INSERT INTO UE_SLICE VALUES("
+                "%ld,"   // tstamp
+                "%d,"    // ngran_node
+                "%d,"    // mcc
+                "%d,"    // mnc
+                "%d,"    // mnc_digit_len
+                "%d,"    // nb_id
+                "%d,"    // dl->len_ue_slices
+                "%d,"    // ues[i]->rnti
+                "%d"     // ues[i]->dl_id
+                ");"
+                , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                , ues->len_ue_slice, u->rnti, u->dl_id);
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  return rc;
+}
+
+static
+int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t const* slices, fr_slice_t const* s, int64_t tstamp, char* out, size_t out_len)
+{
+  assert(slices != NULL);
+  assert(out != NULL);
+  const size_t max = 1024;
+  assert(out_len >= max);
+
+  char sched_name[50];
+  sched_name[0] = '\0';
+  strncat(sched_name, slices->sched_name, slices->len_sched_name);
+
+  int rc = 0;
+  if (s == NULL) {
+    rc = snprintf(out, out_len,
+                  "INSERT INTO SLICE VALUES("
+                  "%ld,"   // tstamp
+                  "%d,"    // ngran_node
+                  "%d,"    // mcc
+                  "%d,"    // mnc
+                  "%d,"    // mnc_digit_len
+                  "%d,"    // nb_id
+                  "%d,"    // dl->len_slices
+                  "'%s',"  // dl->sched_name
+                  "%u,"    // dl->slice[i].id
+                  "'%s',"  // dl->slice[i].label
+                  "'%s',"  // dl->slice[i]->params.type
+                  "'%s',"  // dl->slice[i]->params.u.nvs.conf
+                  "'%s',"  // dl->slice[i].sched
+                  "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u1.mbps_required/nvs.u.capacity.u.pct_reserved/edf.deadline
+                  "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u2.mbps_reference/edf.guaranteed_prbs
+                  "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
+                  ");"
+                  , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , 0, sched_name, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00);
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    return rc;
+  }
+
+  char label[50];
+  label[0] = '\0';
+  strncat(label, s->label, s->len_label);
+  char params_type[10];
+  params_type[0] = '\0';
+  char params_type_conf[10];
+  params_type_conf[0] = '\0';
+  char sched[50];
+  sched[0] = '\0';
+  strncat(sched, s->sched, s->len_sched);
+  if (s->params.type == SLICE_ALG_SM_V0_STATIC) {
+    strncat(params_type, "STATIC", strlen("STATIC"));
+    rc = snprintf(out, out_len,
+                  "INSERT INTO SLICE VALUES("
+                  "%ld,"   // tstamp
+                  "%d,"    // ngran_node
+                  "%d,"    // mcc
+                  "%d,"    // mnc
+                  "%d,"    // mnc_digit_len
+                  "%d,"    // nb_id
+                  "%d,"    // dl->len_slices
+                  "'%s',"  // dl->sched_name
+                  "%u,"    // dl->slice[i].id
+                  "'%s',"  // dl->slice[i].label
+                  "'%s',"  // dl->slice[i]->params.type
+                  "'%s',"  // dl->slice[i]->params.u.nvs.conf
+                  "'%s',"  // dl->slice[i].sched
+                  "%d,"    // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u1.mbps_required/nvs.u.capacity.u.pct_reserved/edf.deadline
+                  "%d,"    // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u2.mbps_reference/edf.guaranteed_prbs
+                  "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
+                  ");"
+                  , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , slices->len_slices, NULL
+                  , s->id, label, params_type, NULL, sched
+                  , s->params.u.sta.pos_low, s->params.u.sta.pos_high, 0.00);
+  } else if (s->params.type == SLICE_ALG_SM_V0_NVS) {
+    strncat(params_type, "NVS", strlen("NVS"));
+    if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_RATE) {
+      strncat(params_type_conf, "RATE", strlen("RATE"));
+      rc = snprintf(out, out_len,
+                    "INSERT INTO SLICE VALUES("
+                    "%ld,"   // tstamp
+                    "%d,"    // ngran_node
+                    "%d,"    // mcc
+                    "%d,"    // mnc
+                    "%d,"    // mnc_digit_len
+                    "%d,"    // nb_id
+                    "%d,"    // dl->len_slices
+                    "'%s',"  // dl->sched_name
+                    "%u,"    // dl->slice[i].id
+                    "'%s',"  // dl->slice[i].label
+                    "'%s',"  // dl->slice[i]->params.type
+                    "'%s',"  // dl->slice[i]->params.u.nvs.conf
+                    "'%s',"  // dl->slice[i].sched
+                    "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u1.mbps_required/nvs.u.capacity.u.pct_reserved/edf.deadline
+                    "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u2.mbps_reference/edf.guaranteed_prbs
+                    "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
+                    ");"
+                    , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                    , slices->len_slices, NULL
+                    , s->id, label, params_type, params_type_conf, sched
+                    , s->params.u.nvs.u.rate.u1.mbps_required, s->params.u.nvs.u.rate.u2.mbps_reference, 0.00);
+      } else if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_CAPACITY) {
+        strncat(params_type_conf, "CAPACITY", strlen("CAPACITY"));
+        rc = snprintf(out, out_len,
+                      "INSERT INTO SLICE VALUES("
+                      "%ld,"   // tstamp
+                      "%d,"    // ngran_node
+                      "%d,"    // mcc
+                      "%d,"    // mnc
+                      "%d,"    // mnc_digit_len
+                      "%d,"    // nb_id
+                      "%d,"    // dl->len_slices
+                      "'%s',"  // dl->sched_name
+                      "%u,"    // dl->slice[i].id
+                      "'%s',"  // dl->slice[i].label
+                      "'%s',"  // dl->slice[i]->params.type
+                      "'%s',"  // dl->slice[i]->params.u.nvs.conf
+                      "'%s',"  // dl->slice[i].sched
+                      "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u1.mbps_required/nvs.u.capacity.u.pct_reserved/edf.deadline
+                      "%.2f,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u2.mbps_reference/edf.guaranteed_prbs
+                      "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
+                      ");"
+                      , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                      , slices->len_slices, NULL
+                      , s->id, label, params_type, params_type_conf, sched
+                      , s->params.u.nvs.u.capacity.u.pct_reserved, 0.00, 0.00);
+      }
+  } else if (s->params.type == SLICE_ALG_SM_V0_EDF) {
+    strncat(params_type, "EDF", strlen("EDF"));
+    rc = snprintf(out, out_len,
+                  "INSERT INTO SLICE VALUES("
+                  "%ld,"   // tstamp
+                  "%d,"    // ngran_node
+                  "%d,"    // mcc
+                  "%d,"    // mnc
+                  "%d,"    // mnc_digit_len
+                  "%d,"    // nb_id
+                  "%d,"    // dl->len_slices
+                  "'%s',"  // dl->sched_name
+                  "%u,"    // dl->slice[i].id
+                  "'%s',"  // dl->slice[i].label
+                  "'%s',"  // dl->slice[i]->params.type
+                  "'%s',"  // dl->slice[i]->params.u.nvs.conf
+                  "'%s',"  // dl->slice[i].sched
+                  "%d,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u1.mbps_required/nvs.u.capacity.u.pct_reserved/edf.deadline
+                  "%d,"  // dl->slice[i]->params.u.sta.pos_high/nvs.u.rate.u2.mbps_reference/edf.guaranteed_prbs
+                  "%d"  // dl->slice[i]->params.u.edf.max_replenish
+                  ");"
+                  , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , slices->len_slices, NULL
+                  , s->id, label, params_type, NULL, sched
+                  , s->params.u.edf.deadline
+                  , s->params.u.edf.guaranteed_prbs
+                  , s->params.u.edf.max_replenish);
+  }
+  assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  return rc;
+}
+
+static
 void write_mac_stats(sqlite3* db, global_e2_node_id_t const* id, mac_ind_data_t const* ind )
 {
   assert(db != NULL);
@@ -514,6 +768,61 @@ void write_pdcp_stats(sqlite3* db, global_e2_node_id_t const* id, pdcp_ind_data_
   insert_db(db, buffer);
 }
 
+static
+void write_slice_conf_stats(sqlite3* db, global_e2_node_id_t const* id, int64_t tstamp, slice_conf_t const* slice_conf)
+{
+  char buffer[4096] = {0};
+  int pos = 0;
+
+  ul_dl_slice_conf_t const* dlslices = &slice_conf->dl;
+  if (dlslices->len_slices > 0) {
+    for(size_t i = 0; i < dlslices->len_slices; ++i) {
+      fr_slice_t const* s = &dlslices->slices[i];
+      pos += to_sql_string_slice_rb(id, dlslices, s, tstamp, buffer + pos, 4096 - pos);
+    }
+  } else {
+    pos += to_sql_string_slice_rb(id, dlslices, NULL, tstamp, buffer + pos, 4096 - pos);
+  }
+
+  // TODO: Process uplink slice stats
+
+  insert_db(db, buffer);
+}
+
+static
+void write_ue_slice_conf_stats(sqlite3* db, global_e2_node_id_t const* id, int64_t tstamp, ue_slice_conf_t const* ue_slice_conf)
+{
+  char buffer[4096] = {0};
+  int pos = 0;
+
+  if (ue_slice_conf->len_ue_slice > 0) {
+    for(uint32_t j = 0; j < ue_slice_conf->len_ue_slice; ++j) {
+      ue_slice_assoc_t *u = &ue_slice_conf->ues[j];
+      pos += to_sql_string_ue_slice_rb(id, ue_slice_conf, u, tstamp, buffer + pos, 2048 - pos);
+    }
+  } else {
+    pos += to_sql_string_ue_slice_rb(id, ue_slice_conf, NULL, tstamp, buffer + pos, 2048 - pos);
+  }
+
+  insert_db(db, buffer);
+}
+
+static
+void write_slice_stats(sqlite3* db, global_e2_node_id_t const* id, slice_ind_data_t const* ind)
+{
+  assert(db != NULL);
+  assert(ind != NULL);
+
+  slice_ind_msg_t const* ind_msg_slice = &ind->msg;
+
+  char buffer[4096] = {0};
+  int pos = 0;
+
+  write_slice_conf_stats(db, id, ind_msg_slice->tstamp, &ind_msg_slice->slice_conf);
+  write_ue_slice_conf_stats(db, id, ind_msg_slice->tstamp, &ind_msg_slice->ue_slice_conf);
+
+}
+
 void init_db_sqlite3(sqlite3** db, char const* db_filename)
 {
   assert(db != NULL);
@@ -547,6 +856,12 @@ void init_db_sqlite3(sqlite3** db, char const* db_filename)
   // PDCP
   //////
   create_pdcp_bearer_table(*db);
+
+  //////
+  // SLICE
+  //////
+  create_slice_table(*db);
+  create_ue_slice_table(*db);
 }
 
 void close_db_sqlite3(sqlite3* db)
@@ -560,7 +875,7 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
 {
   assert(db != NULL);
   assert(rd != NULL);
-  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0);
+  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0);
 
   if(rd->type == MAC_STATS_V0){
     write_mac_stats(db, id, &rd->mac_stats);
@@ -568,6 +883,8 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
     write_rlc_stats(db, id, &rd->rlc_stats);
   } else if( rd->type == PDCP_STATS_V0) {
     write_pdcp_stats(db, id, &rd->pdcp_stats);
+  } else if (rd->type == SLICE_STATS_V0) {
+    write_slice_stats(db, id, &rd->slice_stats);
   } else {
     assert(0!=0 && "Unknown statistics type received ");
   }

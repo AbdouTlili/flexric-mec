@@ -904,16 +904,26 @@ void free_slice_ind_data(slice_ind_data_t* ind)
 {
   assert(ind != NULL);
 
-  assert(0!=0 && "not implemented");
+  free_slice_ind_hdr(&ind->hdr);
+  free_slice_ind_msg(&ind->msg);
+  free_slice_call_proc_id(ind->proc_id);
 }
 
 slice_ind_data_t cp_slice_ind_data(slice_ind_data_t const* src)
 {
   assert(src != NULL);
 
-  assert(0!=0 && "not implemented");
 
-  slice_ind_data_t ans = {0};
-  return ans;
+  slice_ind_data_t dst = {0};
+  dst.hdr = cp_slice_ind_hdr(&src->hdr);
+  dst.msg = cp_slice_ind_msg(&src->msg);
+
+  if(src->proc_id != NULL){
+    dst.proc_id = malloc(sizeof(slice_call_proc_id_t));
+    assert(dst.proc_id != NULL && "Memory exhausted");
+    *dst.proc_id = cp_slice_call_proc_id(src->proc_id);
+  }
+
+  return dst;
 }
 
