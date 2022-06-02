@@ -98,6 +98,7 @@ e2_setup_response_t generate_setup_response(near_ric_t* ric, const e2_setup_requ
 
       assert(0!=0 && "Unknown RAN function ID from the agent received");
     }
+    fflush(stdout);
   }
 
   e2_setup_response_t sr = {
