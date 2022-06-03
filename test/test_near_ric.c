@@ -383,6 +383,70 @@ void read_RAN(sm_ag_if_rd_t* data)
   }
 }
 
+static
+void fill_del_slice(del_slice_conf_t* conf)
+{
+  assert(conf != NULL);
+
+  uint32_t const len_dl = rand()%5;
+  conf->len_dl = len_dl;
+  if(conf->len_dl > 0)
+    conf->dl = calloc(len_dl, sizeof(uint32_t));
+
+  uint32_t const len_ul = rand()%5;
+  conf->len_ul = len_ul;
+  if(conf->len_ul > 0)
+    conf->ul = calloc(len_ul, sizeof(uint32_t));
+}
+
+static
+sm_ag_if_wr_t fill_slice_sm_ctrl_req(uint16_t ran_func_id, slice_ctrl_msg_e type)
+{
+  assert(ran_func_id == 145);
+
+  sm_ag_if_wr_t wr = {0};
+  wr.type = SM_AGENT_IF_WRITE_V0_END;
+  if (ran_func_id == 145) {
+    wr.type = SLICE_CTRL_REQ_V0;
+    wr.slice_req_ctrl.hdr.dummy = 0;
+
+    if (type == SLICE_CTRL_SM_V0_ADD) {
+      /// ADD MOD ///
+      wr.slice_req_ctrl.msg.type = SLICE_CTRL_SM_V0_ADD;
+      fill_slice_conf(&wr.slice_req_ctrl.msg.u.add_mod_slice);
+    } else if (type == SLICE_CTRL_SM_V0_DEL) {
+      /// DEL ///
+      wr.slice_req_ctrl.msg.type = SLICE_CTRL_SM_V0_DEL;
+      fill_del_slice(&wr.slice_req_ctrl.msg.u.del_slice);
+    } else if (type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC) {
+      /// ASSOC SLICE ///
+      wr.slice_req_ctrl.msg.type = SLICE_CTRL_SM_V0_UE_SLICE_ASSOC;
+      fill_ue_slice_conf(&wr.slice_req_ctrl.msg.u.ue_slice);
+    } else {
+      assert(0 != 0 && "Unknown slice ctrl type");
+    }
+  } else {
+    assert(0 !=0 && "Unknown RAN function id");
+  }
+  return wr;
+}
+
+static
+sm_ag_if_wr_t fill_mac_ctrl_req(uint16_t ran_func_id)
+{
+  assert(ran_func_id == 142);
+
+  sm_ag_if_wr_t wr = {.type = SM_AGENT_IF_WRITE_V0_END};
+  if (ran_func_id == 142) {
+    wr.type = MAC_CTRL_REQ_V0;
+    wr.mac_ctrl.hdr.dummy = 0;
+    wr.mac_ctrl.msg.action = 42;
+  } else {
+    assert(0 !=0 && "Unknown RAN function id");
+  }
+  return wr;
+}
+
 sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
 {
   assert(data != NULL);
@@ -390,6 +454,10 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
     //printf("Control message called in the RAN \n");
     sm_ag_if_ans_t ans = {.type = MAC_AGENT_IF_CTRL_ANS_V0};
     ans.mac.ans = MAC_CTRL_OUT_OK;
+    return ans;
+  } else if (data->type == SLICE_CTRL_REQ_V0) {
+    sm_ag_if_ans_t ans = {.type = SLICE_AGENT_IF_CTRL_ANS_V0};
+    ans.slice.ans = SLICE_CTRL_OUT_OK;
     return ans;
   } else {
     assert(0 != 0 && "Not supported function ");
@@ -406,19 +474,13 @@ int main(int argc, char *argv[])
   const int mnc_digit_len = 2;
   const int nb_id = 42;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
-  args_t args;
-
+  fr_args_t args = init_fr_args(argc, argv);
   // Parse arguments
-  if(parse_args(argc, argv, &args) > 0) {
-    print_usage(argv[0]);
-    exit(1);
-  }
-  
-  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io, args);
+  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io, &args);
   sleep(1);
 
   // Init the RIC
-  init_near_ric_api(args);
+  init_near_ric_api(&args);
   sleep(1);
 
   const uint16_t MAC_ran_func_id = 142;
@@ -426,8 +488,8 @@ int main(int argc, char *argv[])
   report_service_near_ric_api(MAC_ran_func_id, cmd );
   sleep(2);
 
-  const char* cmd2 = "Hello";
-  control_service_near_ric_api(MAC_ran_func_id, cmd2 );  
+  sm_ag_if_wr_t mac_ctrl_cmd = fill_mac_ctrl_req(MAC_ran_func_id);
+  control_service_near_ric_api(MAC_ran_func_id, &mac_ctrl_cmd);
   sleep(2);
 
 //  load_sm_near_ric_api("../test/so/librlc_sm.so");
@@ -442,6 +504,10 @@ int main(int argc, char *argv[])
 
   const uint16_t SLICE_ran_func_id = 145;
   report_service_near_ric_api(SLICE_ran_func_id, cmd);
+  sleep(2);
+
+  sm_ag_if_wr_t add_slice_cmd = fill_slice_sm_ctrl_req(SLICE_ran_func_id, SLICE_CTRL_SM_V0_ADD);
+  control_service_near_ric_api(SLICE_ran_func_id, &add_slice_cmd);
   sleep(2);
 
   rm_report_service_near_ric_api(MAC_ran_func_id, cmd);
