@@ -443,34 +443,56 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
   assert(id != NULL);
   assert(ctrl != NULL);
 
+  if(ctrl->type == SLICE_CTRL_SM_V0_ADD){
+    slice_conf_t* s_conf = &ctrl->u.add_mod_slice;
+    assert(s_conf->dl.sched_name != NULL);
 
-  if(ctrl->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
-    assert(ctrl->u.ue_slice.len_ue_slice == 2);
-    for(size_t i = 0; i <  ctrl->u.ue_slice.len_ue_slice; ++i){
-      std::cout << "RNTI = " <<  ctrl->u.ue_slice.ues[i].rnti << '\n' ;
+    if (s_conf->dl.len_slices == 0)
+      std::cout << "RESET DL SLICE, algo = NONE" << '\n';
+    for(size_t i =0; i < s_conf->dl.len_slices; ++i) {
+      fr_slice_t *s = &s_conf->dl.slices[i];
+      assert(s->len_sched != 0);
+      assert(s->sched != NULL);
+      slice_params_t *p = &s->params;
+      if (p->type == SLICE_ALG_SM_V0_STATIC) {
+        static_slice_t *sta_sli = &p->u.sta;
+        std::cout << "ADD STATIC DL SLICE: id " << s->id <<
+                  ", label " << s->label <<
+                  ", pos_low " << sta_sli->pos_low <<
+                  ", pos_high " << sta_sli->pos_high << '\n';
+      } else if (p->type == SLICE_ALG_SM_V0_NVS) {
+        nvs_slice_t *nvs_sli = &p->u.nvs;
+        if (nvs_sli->conf == SLICE_SM_NVS_V0_RATE)
+          std::cout << "ADD NVS DL SLICE: id " << s->id <<
+                    ", label " << s->label <<
+                    ", conf " << nvs_sli->conf << "(rate)" <<
+                    ", mbps_required " << nvs_sli->u.rate.u1.mbps_required <<
+                    ", mbps_reference " << nvs_sli->u.rate.u2.mbps_reference << '\n';
+        else if (nvs_sli->conf == SLICE_SM_NVS_V0_CAPACITY)
+          std::cout << "ADD NVS DL SLICE: id " << s->id <<
+                    ", label " << s->label <<
+                    ", conf " << nvs_sli->conf << "(capacity)" <<
+                    ", pct_reserved " << nvs_sli->u.capacity.u.pct_reserved << '\n';
+        else assert(0 != 0 && "Unknow NVS conf");
+      } else if (p->type == SLICE_ALG_SM_V0_EDF) {
+        edf_slice_t *edf_sli = &p->u.edf;
+        std::cout << "ADD EDF DL SLICE: id " << s->id <<
+                  ", label " << s->label <<
+                  ", deadline " << edf_sli->deadline <<
+                  ", guaranteed_prbs " << edf_sli->guaranteed_prbs <<
+                  ", max_replenish " << edf_sli->max_replenish << '\n';
+      } else assert(0 != 0 && "Unknow slice algo type");
     }
-  } else if(ctrl->type == SLICE_CTRL_SM_V0_ADD){
-      slice_conf_t* s_conf = &ctrl->u.add_mod_slice;
-      assert(s_conf->dl.len_sched_name == 0);
-      assert(s_conf->dl.sched_name == NULL);
+  } else if(ctrl->type == SLICE_CTRL_SM_V0_UE_SLICE_ASSOC){
+    for (size_t i = 0; i <  ctrl->u.ue_slice.len_ue_slice; ++i)
+      std::cout << "ASSOC DL SLICE: rnti " << std::hex << ctrl->u.ue_slice.ues[i].rnti <<
+                ", to slice id " << ctrl->u.ue_slice.ues[i].dl_id << '\n';
+  } else if (ctrl->type == SLICE_CTRL_SM_V0_DEL) {
+    del_slice_conf_t* d_conf = &ctrl->u.del_slice;
+    for (size_t i = 0; i <  d_conf->len_dl; ++i)
+      std::cout << "DEL DL SLICE: id " << d_conf->dl[i] << '\n';
+    // TODO: UL
 
-      assert( s_conf->dl.len_slices == 2 && "For the test");
-      for(size_t i =0; i < s_conf->dl.len_slices; ++i){
-        fr_slice_t * s = &s_conf->dl.slices[i];
-        std::cout << "Slice id " << s->id << '\n';
-        assert(s->len_label == 0 && "For the test");
-        assert(s->label == NULL && "For the test");
-
-        assert(s->len_sched == 0 && "For the test");
-        assert(s->sched == NULL && "For the test");
-
-        slice_params_t* p = &s->params;
-        std::cout << "p->type == " << p->type << '\n';
-        assert(p->type == SLICE_ALG_SM_V0_STATIC);
-        static_slice_t* sta_sli = &p->u.sta;
-        std::cout << "high pos = " << sta_sli->pos_high << " and low pos = " << sta_sli->pos_low << '\n';
-        assert(sta_sli->pos_high >= sta_sli->pos_low);
-      }
   } else {
     assert(0!=0 && "not foreseen case");
   }

@@ -94,7 +94,8 @@ namespace std {
 
 %array_class(ue_slice_assoc_t, ue_slice_assoc_array);
 %array_class(fr_slice_t, slice_array);
-
+%array_class(uint32_t, del_dl_array);
+%array_class(uint32_t, del_ul_array);
 
 %include "swig_wrapper.h"
 %include "../../util/byte_array.h"
