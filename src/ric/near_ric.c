@@ -689,13 +689,11 @@ void control_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, ui
   assert(cmd != NULL);
 
   sm_ric_t* sm = sm_plugin_ric(&ric->plugin ,ran_func_id); 
-  assert(sm->ran_func_id == 142 && "Only ctrl for MAC supported");
+  assert((sm->ran_func_id == 142 || sm->ran_func_id == 145) && "Only ctrl for MAC supported");
 
-  sm_ag_if_wr_t wr = {.type = MAC_CTRL_REQ_V0};
-  wr.mac_ctrl.hdr.dummy = 0;
-  wr.mac_ctrl.msg.action = 42;
+  sm_ag_if_wr_t* wr = (sm_ag_if_wr_t*) cmd;
 
-  ric_control_request_t ctrl_req = generate_control_request(ric, sm, &wr);  
+  ric_control_request_t ctrl_req = generate_control_request(ric, sm, wr);
 
   // A pending event is created along with a timer of 1000 ms,
   // after which an event will be generated
