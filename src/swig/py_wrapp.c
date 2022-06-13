@@ -5,19 +5,30 @@
 
 static
 const uint16_t MAC_ran_func_id = 142;
+
 static
 const uint16_t RLC_ran_func_id = 143;
+
 static
 const char* cmd = "1_ms";
+
 static
 bool start = false;
+
+// FixME: This is horrible. 
+const char* conf_file = "/usr/local/flexric/flexric.conf";
+const char* libs_dir = "/usr/local/flexric/";
 
 void init()
 {
   if(start == false){
-  const char* addr = "127.0.0.1";
-  init_near_ric_api(addr);
-  start = true;
+    args_t args;
+    memcpy(args.conf_file, conf_file , strlen(conf_file));
+    memcpy(args.libs_dir,  libs_dir, strlen(libs_dir));
+
+    //const char* addr = "127.0.0.1";
+    init_near_ric_api(args); // addr);
+    start = true;
   }
 }
 

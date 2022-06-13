@@ -12,6 +12,8 @@
 
 #include "../../sm/slice_sm/slice_sm_id.h"
 
+#include "../../util/conf_file.h"
+
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -20,6 +22,14 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <iostream>
+
+// FixME: Again this sucks profoundly
+static
+const char* conf_file = "/usr/local/flexric/flexric.conf";
+static
+const char* libs_dir = "/usr/local/flexric/";
+
+
 
 static
 int64_t time_now_us(void)
@@ -67,7 +77,12 @@ void init(const char* addr)
 
   initialized = true; 
 
-  init_xapp_api(addr);
+
+  args_t args;
+  memcpy(args.conf_file, conf_file, strlen(conf_file));
+  memcpy(args.libs_dir, libs_dir, strlen(libs_dir) );
+
+  init_xapp_api(args);
 }
 
 bool try_stop()
@@ -454,7 +469,8 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
     assert(0!=0 && "not foreseen case");
   }
 
-  sm_ag_if_wr_t wr = {.type = SLICE_CTRL_REQ_V0};
+  sm_ag_if_wr_t wr;
+  wr.type = SLICE_CTRL_REQ_V0;
   wr.slice_req_ctrl.msg = cp_slice_ctrl_msg(ctrl);
 
   control_sm_xapp_api(id, SM_SLICE_ID,  &wr);
