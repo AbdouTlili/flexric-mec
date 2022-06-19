@@ -197,7 +197,7 @@ void free_slice_ind_hdr(slice_ind_hdr_t* src)
   (void)src;
 } 
 
-slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t* src)
+slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t const* src)
 {
   assert(src != NULL);
   slice_ind_hdr_t dst = {.dummy = src->dummy}; 
@@ -566,7 +566,6 @@ ul_dl_slice_conf_t cpy_ul_dl_slice_conf(ul_dl_slice_conf_t const* src)
   return dst;
 }
 
-static
 slice_conf_t cp_slice_conf(slice_conf_t const* src)
 {
   assert(src != NULL);
@@ -593,7 +592,6 @@ ue_slice_assoc_t cp_ue_slice_assoc(ue_slice_assoc_t const* src)
   return dst;
 }
 
-static
 ue_slice_conf_t cp_ue_slice_conf(ue_slice_conf_t const* src)
 {
   assert(src != NULL);
@@ -612,7 +610,7 @@ ue_slice_conf_t cp_ue_slice_conf(ue_slice_conf_t const* src)
   return dst;
 }
 
-slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t* src)
+slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t const* src)
 {
   assert(src != NULL);
 

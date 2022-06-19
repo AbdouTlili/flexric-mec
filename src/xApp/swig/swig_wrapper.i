@@ -89,6 +89,9 @@ namespace std {
   %template(MACStatsVector) vector<mac_ue_stats_impl_t>;
   %template(RLC_RBStatsVector) vector<rlc_radio_bearer_stats_t>;
   %template(PDCP_RBStatsVector) vector<pdcp_radio_bearer_stats_t>;
+  %template(StringVector) vector<std::string>;
+  %template(SLICE_slicesStatsVector) vector<swig_fr_slice_t>;
+  %template(SLICE_UEsStatsVector) vector<ue_slice_assoc_t>;
 }
 
 

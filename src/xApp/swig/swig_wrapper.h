@@ -89,13 +89,45 @@ struct pdcp_cb {
 
 void report_pdcp_sm(global_e2_node_id_t* id, Interval inter, pdcp_cb* handler);
 
-//void rm_report_pdcp_sm(void);
+void rm_report_pdcp_sm(void);
 
 //////////////////////////////////////
 // SLICE SM   
 /////////////////////////////////////
 
+typedef struct{
+    uint32_t id;
+
+    uint32_t len_label;
+    std::vector<std::string> label;
+
+    uint32_t len_sched;
+    std::vector<std::string> sched;
+
+    slice_params_t params;
+} swig_fr_slice_t ;
+
+typedef struct{
+    uint32_t len_slices;
+    std::vector<swig_fr_slice_t> slices;
+
+    uint32_t len_sched_name;
+    std::vector<std::string> sched_name;
+} swig_ul_dl_slice_conf_t ;
+
+typedef struct{
+    swig_ul_dl_slice_conf_t dl;
+    swig_ul_dl_slice_conf_t ul;
+} swig_slice_conf_t ;
+
+typedef struct{
+    uint32_t len_ue_slice;
+    std::vector<ue_slice_assoc_t> ues;
+} swig_ue_slice_conf_t;
+
 struct swig_slice_ind_msg_t{
+  swig_slice_conf_t slice_stats;
+  swig_ue_slice_conf_t ue_slice_stats;
   int64_t tstamp;
 };
 
@@ -105,6 +137,8 @@ struct slice_cb {
 };
 
 void report_slice_sm(global_e2_node_id_t* id, Interval inter, slice_cb* handler);
+
+void rm_report_slice_sm(void);
 
 void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl);
 

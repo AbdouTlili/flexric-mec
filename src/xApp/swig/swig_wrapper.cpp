@@ -426,16 +426,102 @@ void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handle
 
 
 //////////////////////////////////////
-// SLICE Control  
+// SLICE Indication & Control
 /////////////////////////////////////
 
-void report_slice_sm(global_e2_node_id_t* id, Interval inter, slice_cb* handler)
+static
+slice_cb* hndlr_slice_cb;
+
+static
+sm_ans_xapp_t hndlr_slice_ans;
+
+static
+void sm_cb_slice(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == SLICE_STATS_V0);
+  assert(hndlr_slice_cb != NULL);
+
+  slice_ind_data_t const* data = &rd->slice_stats;
+
+  swig_slice_ind_msg_t ind;
+  ind.tstamp = data->msg.tstamp;
+
+
+  ind.slice_stats.dl.len_slices = data->msg.slice_conf.dl.len_slices;
+  ind.slice_stats.dl.sched_name.push_back(data->msg.slice_conf.dl.sched_name);
+  for (size_t i = 0; i < ind.slice_stats.dl.len_slices; ++i) {
+    swig_fr_slice_t tmp;
+    tmp.id = data->msg.slice_conf.dl.slices[i].id;
+    tmp.label.push_back(data->msg.slice_conf.dl.slices[i].label);
+    tmp.sched.push_back(data->msg.slice_conf.dl.slices[i].sched);
+    tmp.params = data->msg.slice_conf.dl.slices[i].params;
+    ind.slice_stats.dl.slices.emplace_back(tmp);
+  }
+
+  ind.ue_slice_stats.len_ue_slice = data->msg.ue_slice_conf.len_ue_slice;
+  for (size_t i = 0; i < ind.ue_slice_stats.len_ue_slice; ++i) {
+    ue_slice_assoc_t tmp_ue;
+    tmp_ue.rnti = data->msg.ue_slice_conf.ues[i].rnti;
+    tmp_ue.dl_id = data->msg.ue_slice_conf.ues[i].dl_id;
+    tmp_ue.ul_id = data->msg.ue_slice_conf.ues[i].ul_id;
+    ind.ue_slice_stats.ues.emplace_back(tmp_ue);
+  }
+
+#ifdef XAPP_LANG_PYTHON
+  PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+  hndlr_slice_cb->handle(&ind);
+
+#ifdef XAPP_LANG_PYTHON
+  PyGILState_Release(gstate);
+#endif
+
+}
+
+void report_slice_sm(global_e2_node_id_t* id, Interval inter_arg, slice_cb* handler)
 {
   assert( id != NULL);
-  (void)inter;
+  (void)inter_arg;
   assert(handler != NULL);
 
-  assert(0!=0 && "not implemented");
+  hndlr_slice_cb = handler;
+
+  inter_xapp_e i;
+  if(inter_arg == Interval::ms_1 ){
+    i = ms_1;
+  } else if (inter_arg == Interval::ms_2) {
+    i = ms_2;
+  } else if(inter_arg == Interval::ms_5) {
+    i = ms_5;
+  } else if(inter_arg == Interval::ms_10) {
+    i = ms_10;
+  } else {
+    assert(0 != 0 && "Unknown type");
+  }
+
+  sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_SLICE_ID, i, sm_cb_slice);
+  assert(ans.success == true);
+  hndlr_slice_ans = ans;
+}
+
+void rm_report_slice_sm(void)
+{
+
+#ifdef XAPP_LANG_PYTHON
+  PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+  assert(hndlr_slice_ans.u.handle != 0);
+  rm_report_sm_xapp_api(hndlr_slice_ans.u.handle);
+
+#ifdef XAPP_LANG_PYTHON
+  PyGILState_Release(gstate);
+#endif
+
 }
 
 void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
