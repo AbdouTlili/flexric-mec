@@ -42,6 +42,7 @@ typedef struct{
 
   pthread_t p;
   tsq_t q;
+  char* db_filename;
 } db_xapp_t;
 
 void init_db_xapp(db_xapp_t* db, char const* db_filename);
@@ -49,6 +50,10 @@ void init_db_xapp(db_xapp_t* db, char const* db_filename);
 void close_db_xapp(db_xapp_t* db);
 
 void write_db_xapp(db_xapp_t* db, global_e2_node_id_t const* id, sm_ag_if_rd_t const* rd);
+
+void write_db_xapp_str(db_xapp_t* db, char const* sql_query, uint32_t len_query);
+
+char* read_db_xapp(db_xapp_t const* db, char const* sql_query);
 
 #endif
 

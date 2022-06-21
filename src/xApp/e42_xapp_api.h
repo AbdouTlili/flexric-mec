@@ -43,6 +43,10 @@ bool try_stop_xapp_api(void);
 
 e2_node_arr_t e2_nodes_xapp_api(void);
 
+int write_to_xapp_db(const char* sqlite_query, uint32_t len_query);
+
+char* get_cur_db_name();
+
 typedef void (*sm_cb)(sm_ag_if_rd_t const*);
 
 typedef union{

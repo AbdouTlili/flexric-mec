@@ -40,8 +40,15 @@ typedef enum{
   SLICE_STATS_V0,
   TC_STATS_V0,
 
+  // for DB writing
+  DB_WRITE_QUERY, 
   SM_AGENT_IF_READ_V0_END,
 } sm_ag_if_rd_e;
+
+typedef struct {
+  char* query;
+  int len_query;
+} db_write_query_t;
 
 // Do not change the order of data in the struct
 typedef struct{
@@ -52,8 +59,12 @@ typedef struct{
     slice_ind_data_t slice_stats;
     tc_ind_data_t tc_stats;
   };
+
+  // TODO: verify if we can put this inside union to save memory
+  db_write_query_t query_write;
   sm_ag_if_rd_e type;
 } sm_ag_if_rd_t;
+
 
 
 void free_sm_ag_if_rd(sm_ag_if_rd_t* d);
