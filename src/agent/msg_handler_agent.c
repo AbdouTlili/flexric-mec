@@ -22,11 +22,11 @@
 
 
 #include "msg_handler_agent.h"
+#include "lib/ind_event.h"
 #include "lib/pending_events.h"
 #include "sm/sm_agent.h"
 #include "util/alg_ds/alg/alg.h"
 #include "util/compare.h"
-#include "ind_event.h"
 
 #include <stdio.h>
 

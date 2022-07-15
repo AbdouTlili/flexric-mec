@@ -19,32 +19,34 @@
  *      contact@openairinterface.org
  */
 
-
-
-#ifndef ASYNC_EVENT_AGENT
-#define ASYNC_EVENT_AGENT
+#ifndef ASYNC_EVENT_H
+#define ASYNC_EVENT_H
 
 #include "ind_event.h"
-#include "lib/pending_events.h"
-
+#include "pending_events.h"
+#include "ep/sctp_msg.h"
 
 typedef enum
 {
-  NETWORK_EVENT,
+  CHECK_STOP_TOKEN_EVENT,
+  SCTP_CONNECTION_SHUTDOWN_EVENT,
+  SCTP_MSG_ARRIVED_EVENT, 
   INDICATION_EVENT,
   PENDING_EVENT,
+
   UNKNOWN_EVENT,
 } async_event_e;
 
 typedef struct
 {
+  async_event_e type;
+  int fd;
   union{
     pending_event_t* p_ev;
     ind_event_t* i_ev;
+    sctp_msg_t msg; 
   };
-  async_event_e type;
 } async_event_t;
-
 
 #endif
 

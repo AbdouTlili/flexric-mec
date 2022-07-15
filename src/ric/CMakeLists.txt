@@ -38,9 +38,7 @@ set(RIC_SRC
             iApps/string_parser.c
             plugin_ric.c
             map_e2_node_sockaddr.c
-            #iApps/nng/notify_nng_listener.c
-            #iApps/nng/req_reply.c
-            #iApps/nng/keep_alive/keep_alive_timer.c
+            not_handler_ric.c
             ${RIC_IAPP_SRC}
             $<TARGET_OBJECTS:e2ap_ep_obj> 
             $<TARGET_OBJECTS:e2ap_ap_obj>

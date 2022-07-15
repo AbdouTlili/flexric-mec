@@ -52,7 +52,5 @@ assoc_rb_tree_t cp_reg_e2_node(reg_e2_nodes_t* n);
 
 e2_node_arr_t generate_e2_node_arr(reg_e2_nodes_t* n); 
 
-
-
 #endif
 

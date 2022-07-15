@@ -15,8 +15,8 @@ set(E2_AGENT_SRC
             endpoint_agent.c
             msg_handler_agent.c
             e2_agent_api.c
-            ind_event.c
             plugin_agent.c
+            not_handler_agent.c
             ../sm/sm_proc_data.c
             $<TARGET_OBJECTS:e2ap_ap_obj>
             $<TARGET_OBJECTS:e2ap_ep_obj>

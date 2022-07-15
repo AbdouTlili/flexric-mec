@@ -23,7 +23,7 @@ static
 void maybe_shrink(seq_arr_t* arr)
 {
   const float occ = (float)arr->size / (float)arr->cap; 
-  printf("Occ = %f and size = %ld \n", occ, arr->size);
+  //printf("Occ = %f and size = %ld \n", occ, arr->size);
   if(arr->size > MIN_SIZE && occ < 0.25){
     assert(arr->cap > MIN_SIZE); 
     seq_arr_t tmp = {.data = NULL, .size = arr->size, .elt_size = arr->elt_size, .cap = arr->cap/2};

@@ -50,7 +50,7 @@ void* static_start_xapp(void* a)
 void init_xapp_api(args_t args)
 {
   char* addr = get_near_ric_ip(args);
-  assert(xapp == NULL && "The  init_xapp_api function can only be called once");
+  assert(xapp == NULL && "The init_xapp_api function can only be called once");
   printf("[xApp]: IP Address = %s\n", addr);
   xapp = init_e42_xapp(addr, args);
 
@@ -83,7 +83,6 @@ e2_node_arr_t e2_nodes_xapp_api(void)
   assert(xapp != NULL);
   
   return e2_nodes_xapp(xapp);
-
 }
 
 static inline
@@ -115,7 +114,6 @@ bool valid_global_e2_node(global_e2_node_id_t* id, reg_e2_nodes_t* n)
 
   return it == end ? false : true;
 }
-
 
 static inline
 bool valid_sm_id(global_e2_node_id_t* id, uint32_t sm_id)

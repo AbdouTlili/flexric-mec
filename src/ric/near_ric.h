@@ -56,20 +56,14 @@ typedef struct near_ric_s
  
   // Connected E2 Nodes
   seq_arr_t conn_e2_nodes; // e2_node_t 
+  pthread_mutex_t conn_e2_nodes_mtx;
 
   // Monotonically increasing RIC request ID
   atomic_int req_id;
 
-  // Active Requests
-//  seq_arr_t act_req; // act_req_t 
-//  pthread_mutex_t act_req_mtx;
-
   // Pending events
   bi_map_t pending; // left: fd, right: pending_event_ric_t   
   pthread_mutex_t pend_mtx;
-
-  // Global E2 Node -> sockaddr_in 
-//  map_e2_node_sockaddr_t e2_node_sock;
 
   atomic_bool server_stopped;
   atomic_bool stop_token;

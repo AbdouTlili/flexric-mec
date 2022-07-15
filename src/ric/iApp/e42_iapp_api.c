@@ -76,6 +76,14 @@ void add_e2_node_iapp_api(global_e2_node_id_t* id, size_t len, ran_function_t co
   add_e2_node_iapp(iapp, id, len , ran_func );
 }
 
+void rm_e2_node_iapp_api(global_e2_node_id_t* id)
+{
+  assert(iapp != NULL);
+  assert(id != NULL);
+
+  rm_e2_node_iapp(iapp, id);
+}
+
 void notify_msg_iapp_api(e2ap_msg_t const* msg)
 {
   assert(iapp != NULL);

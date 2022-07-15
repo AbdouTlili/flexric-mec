@@ -482,10 +482,10 @@ e2ap_msg_t e2ap_handle_e42_setup_request_xapp(struct e42_xapp_s* xapp, const str
 
   printf("[xApp]: E42 SETUP-REQUEST sent\n");
 
-  // A pending event is created along with a timer of 1000 ms,
+  // A pending event is created along with a timer of 3000 ms,
   // after which an event will be triggered
   pending_event_xapp_t x_ev = {.ev = E42_SETUP_REQUEST_PENDING_EVENT,
-                                .wait_ms = 1000,
+                                .wait_ms = 3000,
                                .id = {0} }; 
   add_pending_event_xapp(xapp, &x_ev);
 

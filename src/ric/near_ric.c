@@ -26,12 +26,14 @@
 #include "iApp/e42_iapp_api.h"
 
 #include "msg_handler_ric.h"
+#include "not_handler_ric.h"
 
 #include "iApps/redis.h"
 #include "iApps/stdout.h"
 #include "iApps/influx.h"
 //#include "iApps/nng/notify_nng_listener.h"
 #include "iApps/subscription_ric.h"
+#include "lib/async_event.h" 
 #include "lib/ap/free/e2ap_msg_free.h"
 #include "lib/pending_event_ric.h"
 #include "sm/sm_ric.h" 
@@ -184,23 +186,16 @@ static inline
 void init_e2_nodes_ric(near_ric_t* ric)
 {
   assert(ric != NULL);
-  seq_init(&ric->conn_e2_nodes, sizeof(e2_node_t));
-}
-
-/*static inline
-void init_active_request(near_ric_t* ric)
-{
-  assert(ric != NULL);
-  seq_init(&ric->act_req, sizeof( act_req_t ) );
 
   pthread_mutexattr_t attr = {0};
 #ifdef DEBUG
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK); 
 #endif
-  int rc = pthread_mutex_init(&ric->act_req_mtx, &attr);
+  int rc = pthread_mutex_init(&ric->conn_e2_nodes_mtx, &attr);
   assert(rc == 0);
+
+  seq_init(&ric->conn_e2_nodes, sizeof(e2_node_t));
 }
-*/
 
 static inline
 void init_pending_events(near_ric_t* ric)
@@ -244,14 +239,10 @@ near_ric_t* init_near_ric(const char* addr, args_t args)
 
   init_e2_nodes_ric(ric);
 
-  //init_active_request(ric);
-
   init_pending_events(ric);
 
   near_ric_if_t ric_if = {.type = ric};
   init_iapp_api(addr, ric_if);
-
-  //init_map_e2_node_sad(&ric->e2_node_sock);
 
   ric->req_id = 1021; // 0 could be a sign of a bug
   ric->stop_token = false;
@@ -261,11 +252,11 @@ near_ric_t* init_near_ric(const char* addr, args_t args)
 }
 
 static inline
-bool net_pkt(const near_ric_t* ric, int fd)
+bool net_pkt(e2ap_ep_t const *ep, int fd)
 {
-  assert(ric != NULL);
+  assert(ep != NULL);
   assert(fd > 0);
-  return fd == ric->ep.base.fd;
+  return fd == ep->fd;
 }
 
 static inline
@@ -318,45 +309,135 @@ bool addr_registered_or_first_msg(e2ap_msg_t* msg, seq_arr_t* arr, sctp_msg_t co
   return it != end;
 }
 
+/*
+static
+async_event_t find_event_type(near_ric_t* ric, int fd)
+{
+  assert(ric != NULL);
+  assert(fd > 0);
+  async_event_t e = {.type = UNKNOWN_EVENT };
+  if (net_pkt(ric, fd) == true){
+    e.type = NETWORK_EVENT;
+  } else if (pend_event(ric, fd, &e.p_ev) == true){
+    e.type = PENDING_EVENT;
+  } else{
+    assert("Unknown event happened!");
+  }
+  return e;
+}
+*/
+
+static inline
+bool pend_event(near_ric_t* ric, int fd, pending_event_t** p_ev)
+{
+  assert(ric != NULL);
+  assert(fd > 0);
+  assert(*p_ev == NULL);
+  
+  assert(bi_map_size(&ric->pending) == 1 );
+
+  void* start_it = assoc_front(&ric->pending.left);
+  void* end_it = assoc_end(&ric->pending.left);
+
+  void* it = find_if(&ric->pending.left,start_it, end_it, &fd, eq_fd);
+
+  assert(it != end_it);
+  *p_ev = assoc_value(&ric->pending.left ,it);
+  return *p_ev != NULL;
+}
+
+
+
+static
+async_event_t next_asio_event_ric(near_ric_t* ric)
+{
+  assert(ric != NULL);
+
+  int const fd = event_asio_ric(&ric->io);
+
+  async_event_t e = {.type = UNKNOWN_EVENT,
+                     .fd = fd};
+
+  if(fd == -1){ // no event happened. Just for checking the stop_token condition
+    e.type = CHECK_STOP_TOKEN_EVENT;
+  } else if (net_pkt(&ric->ep.base, fd) == true){
+
+    e.msg = e2ap_recv_msg_ric(&ric->ep);
+    if(e.msg.type == SCTP_MSG_NOTIFICATION ){
+      e.type = SCTP_CONNECTION_SHUTDOWN_EVENT;
+    } else if (e.msg.type == SCTP_MSG_PAYLOAD){
+       e.type = SCTP_MSG_ARRIVED_EVENT;
+    } else { 
+      assert(0!=0 && "Unknown type");
+    }
+
+  } else if (pend_event(ric, fd, &e.p_ev) == true){
+    e.type = PENDING_EVENT;
+  } else{
+    assert( 0!=0 && "Unknown event happened!");
+  }
+  return e;
+}
 
 static
 void e2_event_loop_ric(near_ric_t* ric)
 {
   assert(ric != NULL);
   while(ric->stop_token == false){ 
-    int fd = event_asio_ric(&ric->io);
-    if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
 
-    if(net_pkt(ric, fd) == true){
-      sctp_msg_t rcv = e2ap_recv_msg_ric(&ric->ep);
-      defer({free_sctp_msg(&rcv);});
+    async_event_t e = next_asio_event_ric(ric);
+    assert(e.type != UNKNOWN_EVENT && "Unknown event triggered ");
 
-      e2ap_msg_t msg = e2ap_msg_dec_ric(&ric->ap, rcv.ba); 
-      defer({e2ap_msg_free_ric(&ric->ap, &msg); } );
+    switch(e.type)
+    {
+      case SCTP_MSG_ARRIVED_EVENT:
+        {
+          defer({free_sctp_msg(&e.msg);});
 
-      if(msg.type == E2_SETUP_REQUEST){
-        global_e2_node_id_t* id = &msg.u_msgs.e2_stp_req.id;
-        printf("Received message with id = %d, port = %d \n", id->nb_id, rcv.info.addr.sin_port);
-        e2ap_reg_sock_addr_ric(&ric->ep, id, &rcv.info);
-      }
+          e2ap_msg_t msg = e2ap_msg_dec_ric(&ric->ap, e.msg.ba); 
+          defer({e2ap_msg_free_ric(&ric->ap, &msg); } );
 
-      e2ap_msg_t ans = e2ap_msg_handle_ric(ric, &msg);
-      defer({ e2ap_msg_free_ric(&ric->ap, &ans);} );
-            
-      if(ans.type != NONE_E2_MSG_TYPE){
+          if(msg.type == E2_SETUP_REQUEST){
+            global_e2_node_id_t* id = &msg.u_msgs.e2_stp_req.id;
+            printf("Received message with id = %d, port = %d \n", id->nb_id, e.msg.info.addr.sin_port);
+            e2ap_reg_sock_addr_ric(&ric->ep, id, &e.msg.info);
+          }
 
-        sctp_msg_t sctp_msg = { .info = rcv.info }; 
+          e2ap_msg_t ans = e2ap_msg_handle_ric(ric, &msg);
+          defer({ e2ap_msg_free_ric(&ric->ap, &ans);} );
 
-        sctp_msg.ba = e2ap_msg_enc_ric(&ric->ap, &ans); 
-        defer({free_sctp_msg(&sctp_msg); } );
+          if(ans.type != NONE_E2_MSG_TYPE){
 
-        e2ap_send_sctp_msg_ric(&ric->ep, &sctp_msg);
-      }
+            sctp_msg_t sctp_msg = { .info = e.msg.info }; 
 
-    } else {
-      printf("Pending event timeout happened. Communication lost?\n");
-      consume_fd(fd);
-//      assert(fd == ric->ep.base.fd && "Only pkt interrupt implemented done. Pending events need to be implemented");
+            sctp_msg.ba = e2ap_msg_enc_ric(&ric->ap, &ans); 
+            defer({free_sctp_msg(&sctp_msg); } );
+
+            e2ap_send_sctp_msg_ric(&ric->ep, &sctp_msg);
+          }
+
+          break;
+        }
+      case PENDING_EVENT:
+        {
+          printf("Pending event timeout happened. Communication with E2 Node lost?\n");
+          consume_fd(e.fd);
+
+          break;
+        }
+      case SCTP_CONNECTION_SHUTDOWN_EVENT: 
+        {
+          defer({free_sctp_msg(&e.msg);});
+          notification_handle_ric(ric, &e.msg);
+          break;
+        }
+      case CHECK_STOP_TOKEN_EVENT:
+        {
+          break;
+        }
+
+      default:
+        assert(0!=0 && "Unknown event happened");
     }
   }
   ric->server_stopped = true; 
@@ -391,14 +472,15 @@ void free_near_ric(near_ric_t* ric)
   free_plugin_ric(&ric->plugin); 
 
   assoc_free(&ric->pub_sub); 
+
   seq_free(&ric->conn_e2_nodes, static_free_e2_node );
 
-//  int rc = pthread_mutex_destroy(&ric->act_req_mtx);
-//  assert(rc == 0);
+  int rc = pthread_mutex_destroy(&ric->conn_e2_nodes_mtx);
+  assert(rc == 0);
 
 //  seq_free(&ric->act_req, NULL);
 
-  int rc = pthread_mutex_destroy(&ric->pend_mtx);
+  rc = pthread_mutex_destroy(&ric->pend_mtx);
   assert(rc == 0);
 
   bi_map_free(&ric->pending);
@@ -456,6 +538,8 @@ seq_arr_t conn_e2_nodes(near_ric_t* ric)
 
   seq_arr_t arr = {0};
   seq_init(&arr, sizeof(e2_node_t));
+
+  lock_guard(&ric->conn_e2_nodes_mtx);
 
   void* it = seq_front(&ric->conn_e2_nodes);
   void* end = seq_end(&ric->conn_e2_nodes);

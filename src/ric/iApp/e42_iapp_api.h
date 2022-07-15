@@ -39,6 +39,8 @@ void stop_iapp_api(void);
 
 void add_e2_node_iapp_api(global_e2_node_id_t* id, size_t len, ran_function_t const ran_func[len]);
 
+void rm_e2_node_iapp_api(global_e2_node_id_t* id);
+
 void notify_msg_iapp_api(e2ap_msg_t const* msg);
 
 #endif

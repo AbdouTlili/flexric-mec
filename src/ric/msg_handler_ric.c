@@ -38,6 +38,8 @@
 #include "iApps/subscription_ric.h"
 #include "iApp/e42_iapp_api.h"
 
+#include "util/alg_ds/ds/lock_guard/lock_guard.h"
+
 static inline
 bool check_valid_msg_type(e2_msg_type_t msg_type)
 {
@@ -361,9 +363,10 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_t* d)
   e2ap_msg_t ans = {.type = E2_SETUP_RESPONSE };
   ans.u_msgs.e2_stp_resp = generate_setup_response(ric, req); 
 
-  e2_node_t n;
+  e2_node_t n = {0};
   init_e2_node(&n, &req->id, ans.u_msgs.e2_stp_resp.len_acc, ans.u_msgs.e2_stp_resp.accepted); 
 
+  lock_guard(&ric->conn_e2_nodes_mtx);
   seq_push_back(&ric->conn_e2_nodes, &n, sizeof(n));
 
   return ans;

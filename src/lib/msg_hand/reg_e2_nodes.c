@@ -120,8 +120,6 @@ void add_reg_e2_node(reg_e2_nodes_t* i, global_e2_node_id_t const* id, size_t le
 //  assert(seq_size(arr_tmp) == 2 && "Only for current test valid");
 }
 
-
-
 static inline
 assoc_rb_tree_t available_e2node(reg_e2_nodes_t* n, size_t len, ran_function_t rf[len])
 {
@@ -273,7 +271,8 @@ void rm_reg_e2_node(reg_e2_nodes_t* n, global_e2_node_id_t const* id)
   assert(n != NULL);
   assert(id != NULL);
 
-  ran_function_t* rf = NULL;
+  printf("[NEAR-RIC]: Removing E2 Node MCC %d MNC %d NB_ID %u \n", id->plmn.mcc, id->plmn.mnc, id->nb_id);
+
   {
     lock_guard(&n->mtx);
 
@@ -282,11 +281,9 @@ void rm_reg_e2_node(reg_e2_nodes_t* n, global_e2_node_id_t const* id)
     it = find_if(&n->node_to_rf, it, end, id, eq_global_e2_node_id_wrapper );
     assert(it != end && "Not registed e2 Node passed");
 
-    rf = assoc_extract(&n->node_to_rf, (global_e2_node_id_t*)id);;
+    seq_arr_t* arr = assoc_extract(&n->node_to_rf, (global_e2_node_id_t*)id);;
+
+    free_e2_nodes(id , arr);
   }
-
-  free_ran_function_wrapper(rf);
-  free(rf);  
 }
-
 

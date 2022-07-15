@@ -35,14 +35,25 @@
 
 #include "util/byte_array.h"
 
+typedef enum {
+  SCTP_MSG_PAYLOAD,
+  SCTP_MSG_NOTIFICATION
+} sctp_msg_type_t;
+
 typedef struct{
   struct sockaddr_in addr; 
   struct sctp_sndrcvinfo sri;
 } sctp_info_t ;
 
+int cmp_sctp_info_wrapper(void const* m0, void const* m1);
+
 typedef struct{
+  sctp_msg_type_t type;
   sctp_info_t info;
-  byte_array_t ba;
+  union{
+    byte_array_t ba;
+    union sctp_notification notif;
+  };
 } sctp_msg_t;
 
 void free_sctp_msg(sctp_msg_t* rcv);

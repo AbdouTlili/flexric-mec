@@ -191,7 +191,6 @@ void send_setup_request(e42_xapp_t* xapp)
   xapp->handle_msg[E42_SETUP_REQUEST](xapp, NULL);
 }
 
-
 static
 void e2_event_loop_xapp(e42_xapp_t* xapp)
 {
@@ -222,9 +221,9 @@ void e2_event_loop_xapp(e42_xapp_t* xapp)
         e2ap_send_bytes_xapp(&xapp->ep, ba_ans);
       }
     } else if(e.type == PENDING_EVENT){
-      assert((*e.p_ev == E42_SETUP_REQUEST_PENDING_EVENT 
-            ||*e.p_ev == E42_RIC_SUBSCRIPTION_REQUEST_PENDING_EVENT
-            ||*e.p_ev == E42_RIC_SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT 
+      assert(( *e.p_ev == E42_SETUP_REQUEST_PENDING_EVENT 
+            || *e.p_ev == E42_RIC_SUBSCRIPTION_REQUEST_PENDING_EVENT
+            || *e.p_ev == E42_RIC_SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT 
             || *e.p_ev == E42_RIC_CONTROL_REQUEST_PENDING_EVENT ) && "Unforeseen pending event happened!" );
 
       assert(*e.p_ev != E42_RIC_SUBSCRIPTION_REQUEST_PENDING_EVENT && "Timeout waiting for Report. Connection lost with the RIC?");
@@ -232,7 +231,7 @@ void e2_event_loop_xapp(e42_xapp_t* xapp)
       assert(*e.p_ev != E42_RIC_CONTROL_REQUEST_PENDING_EVENT && "Timeout waiting for Control ACK. Connection lost with the RIC?");
 
       // Resend the subscription request message
-      printf("[E2AP] Resending Setup Request after timeout\n");
+      printf("[E2AP]: Resending Setup Request after timeout\n");
       send_setup_request(xapp);
 
       consume_fd(fd);

@@ -19,11 +19,11 @@
  *      contact@openairinterface.org
  */
 
-#include "async_event_agent.h"
 #include "asio_agent.h"
 #include "e2_agent.h"
 #include "endpoint_agent.h"
 #include "msg_handler_agent.h"
+#include "lib/async_event.h"
 #include "lib/ap/e2ap_ap.h"
 #include "lib/ap/free/e2ap_msg_free.h"
 #include "sm/mac_sm/mac_sm_agent.h"
@@ -168,7 +168,6 @@ void* ind_fd(e2_agent_t* ag, int fd)
   return it;
 }
 
-
 static inline
 bool net_pkt(const e2_agent_t* ag, int fd)
 {
@@ -190,7 +189,6 @@ bool ind_event(e2_agent_t* ag, int fd, ind_event_t** i_ev)
     return false;
 }
 
-
 static inline
 bool pend_event(e2_agent_t* ag, int fd, pending_event_t** p_ev)
 {
@@ -210,6 +208,7 @@ bool pend_event(e2_agent_t* ag, int fd, pending_event_t** p_ev)
   return *p_ev != NULL;
 }
 
+/*
 static
 async_event_t find_event_type(e2_agent_t* ag, int fd)
 {
@@ -227,6 +226,7 @@ async_event_t find_event_type(e2_agent_t* ag, int fd)
   }
   return e;
 }
+*/
 
 static
 void consume_fd(int fd)
@@ -238,18 +238,127 @@ void consume_fd(int fd)
 }
 
 static
+async_event_t next_async_event_agent(e2_agent_t* ag)
+{
+  assert(ag != NULL);
+
+  int const fd = event_asio_agent(&ag->io);
+
+  async_event_t e = {.type = UNKNOWN_EVENT,
+                     .fd = fd};
+
+  if(fd == -1){ // no event happened. Just for checking the stop_token condition
+    e.type = CHECK_STOP_TOKEN_EVENT;
+  } else if (net_pkt(ag, fd) == true){
+
+    e.msg = e2ap_recv_msg_agent(&ag->ep);
+    if(e.msg.type == SCTP_MSG_NOTIFICATION){
+      e.type = SCTP_CONNECTION_SHUTDOWN_EVENT;
+    } else if (e.msg.type == SCTP_MSG_PAYLOAD){
+       e.type = SCTP_MSG_ARRIVED_EVENT;
+    } else { 
+      assert(0!=0 && "Unknown type");
+    }
+
+  } else if (ind_event(ag, fd, &e.i_ev) == true) {
+    e.type = INDICATION_EVENT;
+  } else if (pend_event(ag, fd, &e.p_ev) == true){
+    e.type = PENDING_EVENT;
+  } else {
+    assert(0!=0 && "Unknown event happened!");
+  }
+  return e;
+}
+
+static
 void e2_event_loop_agent(e2_agent_t* ag)
 {
   assert(ag != NULL);
-  while (ag->stop_token == false) {
-    int fd = event_asio_agent(&ag->io);
-    if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
+  while(ag->stop_token == false){
 
-    async_event_t const e = find_event_type(ag,fd);
-
+    async_event_t e = next_async_event_agent(ag); 
     assert(e.type != UNKNOWN_EVENT && "Unknown event triggered ");
 
-    if(e.type == NETWORK_EVENT ){ 
+    switch(e.type){
+      case SCTP_MSG_ARRIVED_EVENT:
+        {
+          defer({free_sctp_msg(&e.msg);});
+
+          e2ap_msg_t msg = e2ap_msg_dec_ag(&ag->ap, e.msg.ba);
+          defer( { e2ap_msg_free_ag(&ag->ap, &msg);} );
+
+          e2ap_msg_t ans = e2ap_msg_handle_agent(ag, &msg);
+          defer( { e2ap_msg_free_ag(&ag->ap, &ans);} );
+
+          if(ans.type != NONE_E2_MSG_TYPE){
+            byte_array_t ba_ans = e2ap_msg_enc_ag(&ag->ap, &ans); 
+            defer ({free_byte_array(ba_ans); } );
+
+            e2ap_send_bytes_agent(&ag->ep, ba_ans);
+          }
+
+          break;
+        }
+      case INDICATION_EVENT:
+        {
+          sm_agent_t* sm = e.i_ev->sm;
+          sm_ind_data_t data = sm->proc.on_indication(sm);
+
+          ric_indication_t ind = generate_indication(ag, &data, e.i_ev);
+          defer({ e2ap_free_indication(&ind); } );
+
+          byte_array_t ba = e2ap_enc_indication_ag(&ag->ap, &ind); 
+          defer({ free_byte_array(ba); } );
+
+          e2ap_send_bytes_agent(&ag->ep, ba);
+
+          consume_fd(e.fd);
+
+          break;
+        }
+      case PENDING_EVENT:
+        {
+          assert(*e.p_ev == SETUP_REQUEST_PENDING_EVENT && "Unforeseen pending event happened!" );
+
+          // Resend the subscription request message
+          e2_setup_request_t sr = generate_setup_request(ag); 
+          defer({ e2ap_free_setup_request(&sr); } );
+
+          printf("[E2AP] Resending Setup Request after timeout\n");
+          byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
+          defer({ free_byte_array(ba); } ); 
+
+          e2ap_send_bytes_agent(&ag->ep, ba);
+
+          consume_fd(e.fd);
+
+          break;
+        }
+      case SCTP_CONNECTION_SHUTDOWN_EVENT: 
+        {
+          defer({free_sctp_msg(&e.msg);});
+          notification_handle_ag(ag, &e.msg);
+          break;
+        }
+      case CHECK_STOP_TOKEN_EVENT:
+        {
+          break;
+        }
+      default:
+        {
+          assert(0!=0 && "Unknown event happened");
+          break;
+        }
+    }
+
+/*
+    if(e.type == CHECK_STOP_TOKEN_EVENT) continue;
+
+//    int fd = event_asio_agent(&ag->io);
+//    if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
+//    async_event_t const e = find_event_type(ag,fd);
+
+    if(e.type == SCTP_MSG_ARRIVED_EVENT){ 
 
       byte_array_t ba = e2ap_recv_msg_agent(&ag->ep);
       defer( {free_byte_array(ba);} );
@@ -266,6 +375,7 @@ void e2_event_loop_agent(e2_agent_t* ag)
 
         e2ap_send_bytes_agent(&ag->ep, ba_ans);
       }
+
     } else if(e.type == INDICATION_EVENT){
 
       sm_agent_t* sm = e.i_ev->sm;
@@ -279,7 +389,7 @@ void e2_event_loop_agent(e2_agent_t* ag)
       
       e2ap_send_bytes_agent(&ag->ep, ba);
 
-      consume_fd(fd);
+      consume_fd(e.fd);
     } else if(e.type == PENDING_EVENT){
       assert(*e.p_ev == SETUP_REQUEST_PENDING_EVENT && "Unforeseen pending event happened!" );
 
@@ -293,11 +403,12 @@ void e2_event_loop_agent(e2_agent_t* ag)
 
       e2ap_send_bytes_agent(&ag->ep, ba);
 
-      consume_fd(fd);
+      consume_fd(e.fd);
     } else {
       assert(0!=0 && "An interruption that it is not a network pkt, an indication event or a timer expired pending event happened!");
     }
 
+  */
   }
   ag->agent_stopped = true;
 }
@@ -344,15 +455,13 @@ void e2_start_agent(e2_agent_t* ag)
   e2_setup_request_t sr = generate_setup_request(ag); 
   defer({ e2ap_free_setup_request(&sr);  } );
 
-
   printf("[E2-AGENT]: Sending setup request\n");
   byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
   defer({free_byte_array(ba); } ); 
 
   e2ap_send_bytes_agent(&ag->ep, ba);
 
-
-  // A pending event is created along with a timer of 1000 ms,
+  // A pending event is created along with a timer of 3000 ms,
   // after which an event will be generated
   pending_event_t ev = SETUP_REQUEST_PENDING_EVENT;
   long const wait_ms = 3000;

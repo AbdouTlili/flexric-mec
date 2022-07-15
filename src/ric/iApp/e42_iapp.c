@@ -240,6 +240,14 @@ void add_e2_node_iapp(e42_iapp_t* i, global_e2_node_id_t* id, size_t len, ran_fu
   add_reg_e2_node(&i->e2_nodes,id, len, ran_func);
 }
 
+void rm_e2_node_iapp(e42_iapp_t* i, global_e2_node_id_t* id)
+{
+  assert(i != NULL);
+  assert(id != NULL);
+
+  rm_reg_e2_node(&i->e2_nodes,id);
+}
+
 /*
 static
 xapp_ric_id_t get_ric_gen_id(e42_iapp_t* iapp, e2ap_msg_t const* msg)
@@ -305,13 +313,5 @@ void notify_msg_iapp(e42_iapp_t* iapp, e2ap_msg_t const* msg)
 //  sctp_info_t s = find_map_xapps_sad(map_xapps_sockaddr_t* m, uint16_t xapp_id)
 //  sctp_info_t s = find_xapps
 //  handle_msg(iapp, msg);
-}
-
-void rm_e2_node_iapp(e42_iapp_t* i, global_e2_node_id_t* id)
-{
-  assert(i != NULL);
-  assert(id != NULL);
-
-  rm_reg_e2_node(&i->e2_nodes, id);
 }
 
