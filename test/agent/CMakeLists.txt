@@ -4,14 +4,14 @@
 
 
 #############################
-# E2 Agent 42  
+# E2 Agent 1  
 #############################
 
-add_executable(agent_42 
+add_executable(agent_1 
               test_agent.c
               ../common/fill_ind_data.c)
 
-target_link_libraries(agent_42
+target_link_libraries(agent_1
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
@@ -19,17 +19,17 @@ target_link_libraries(agent_42
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_42 PRIVATE TEST_AGENT_42)
+target_compile_definitions(agent_1 PRIVATE TEST_AGENT_1)
 
 #############################
-# E2 Agent 43  
+# E2 Agent 2  
 #############################
 
-add_executable(agent_43 
+add_executable(agent_2 
               test_agent.c
               ../common/fill_ind_data.c)
 
-target_link_libraries(agent_43
+target_link_libraries(agent_2
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
@@ -37,17 +37,17 @@ target_link_libraries(agent_43
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_43 PRIVATE TEST_AGENT_43)
+target_compile_definitions(agent_2 PRIVATE TEST_AGENT_2)
 
 #############################
-# E2 Agent 44  
+# E2 Agent 3  
 #############################
 
-add_executable(agent_44 
+add_executable(agent_3 
               test_agent.c
               ../common/fill_ind_data.c)
 
-target_link_libraries(agent_44
+target_link_libraries(agent_3
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
@@ -55,17 +55,17 @@ target_link_libraries(agent_44
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_44 PRIVATE TEST_AGENT_44)
+target_compile_definitions(agent_3 PRIVATE TEST_AGENT_3)
 
 #############################
-# E2 Agent 45  
+# E2 Agent 4  
 #############################
 
-add_executable(agent_45 
+add_executable(agent_4 
               test_agent.c
               ../common/fill_ind_data.c)
 
-target_link_libraries(agent_45
+target_link_libraries(agent_4
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
@@ -73,17 +73,17 @@ target_link_libraries(agent_45
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_45 PRIVATE TEST_AGENT_45)
+target_compile_definitions(agent_4 PRIVATE TEST_AGENT_4)
 
 #############################
 # E2 Agent 46  
 #############################
 
-add_executable(agent_46 
+add_executable(agent_5 
               test_agent.c
               ../common/fill_ind_data.c)
 
-target_link_libraries(agent_46
+target_link_libraries(agent_5
                       PUBLIC 
                       e2_agent
                       ${FlatCC} 
@@ -91,5 +91,5 @@ target_link_libraries(agent_46
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_46 PRIVATE TEST_AGENT_46)
+target_compile_definitions(agent_5 PRIVATE TEST_AGENT_5)
 

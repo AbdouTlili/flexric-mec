@@ -107,16 +107,16 @@ int main(int argc, char *argv[])
   const int mnc = 15; 
   const int mnc_digit_len = 2;
 
-#ifdef TEST_AGENT_42
-  const int nb_id = 42;
-#elif TEST_AGENT_43
-  const int nb_id = 43;
-#elif TEST_AGENT_44
-  const int nb_id = 44;
-#elif TEST_AGENT_45
-  const int nb_id = 45;
-#elif TEST_AGENT_46
-  const int nb_id = 46;
+#ifdef TEST_AGENT_1
+  const int nb_id = 1;
+#elif TEST_AGENT_2
+  const int nb_id = 2;
+#elif TEST_AGENT_3
+  const int nb_id = 3;
+#elif TEST_AGENT_4
+  const int nb_id = 4;
+#elif TEST_AGENT_5
+  const int nb_id = 5;
 #else
   static_assert( 0!=0 , "Unknown type");
 #endif
