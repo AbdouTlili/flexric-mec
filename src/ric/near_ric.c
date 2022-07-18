@@ -21,7 +21,6 @@
 
 
 #include "near_ric.h"
-//#include "act_req.h"
 #include "e2_node.h"
 #include "iApp/e42_iapp_api.h"
 
@@ -31,7 +30,7 @@
 #include "iApps/redis.h"
 #include "iApps/stdout.h"
 #include "iApps/influx.h"
-//#include "iApps/nng/notify_nng_listener.h"
+
 #include "iApps/subscription_ric.h"
 #include "lib/async_event.h" 
 #include "lib/ap/free/e2ap_msg_free.h"

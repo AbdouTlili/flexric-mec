@@ -94,10 +94,6 @@ sctp_msg_t e2ap_recv_msg_agent(e2ap_ep_ag_t* ep)
 
   sctp_msg_t rcv = e2ap_recv_sctp_msg(&ep->base);// , &ba);
   return rcv;
-
-// sctp_msg_t sctp_msg = e2ap_recv_sctp_msg(&ep->base);//, &ba);
-// assert(eq_sockaddr(&sctp_msg.info.addr, &ep->to) == true && "Missmatch in received socket. More than one RIC connected??");
-// return sctp_msg.ba;
 }
 
 void e2ap_send_bytes_agent(e2ap_ep_ag_t* ep, byte_array_t ba)

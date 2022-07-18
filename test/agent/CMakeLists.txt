@@ -91,5 +91,5 @@ target_link_libraries(agent_46
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_46 PRIVATE TEST_AGENT_43)
+target_compile_definitions(agent_46 PRIVATE TEST_AGENT_46)
 

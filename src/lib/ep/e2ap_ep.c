@@ -159,8 +159,10 @@ sctp_msg_t e2ap_recv_sctp_msg(e2ap_ep_t* ep)
   assert(ep != NULL);
 
   sctp_msg_t from = {0}; 
+
   from.ba.len = 2048;
   from.ba.buf = malloc(2048);
+
   assert(from.ba.buf != NULL && "Memory exhausted");
 
   socklen_t len = sizeof(from.info.addr);
@@ -172,9 +174,12 @@ sctp_msg_t e2ap_recv_sctp_msg(e2ap_ep_t* ep)
 
   if(msg_flags & MSG_NOTIFICATION){
     assert((msg_flags & MSG_EOR) && "Notification received but the buffer is not large enough");
-    
+    uint8_t buf[2048] = {0};
+    memcpy(buf, from.ba.buf, 2048);
+    free(from.ba.buf); 
+
     from.type = SCTP_MSG_NOTIFICATION;
-    from.notif = cp_sctp_notification((union sctp_notification*) from.ba.buf, rc); 
+    from.notif = cp_sctp_notification((union sctp_notification*) buf, rc); 
   } else {
     from.type = SCTP_MSG_PAYLOAD;
     from.ba.len = rc; // set actually received number of bytes

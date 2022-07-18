@@ -81,7 +81,7 @@ void free_map_e2_node_sad(map_e2_node_sockaddr_t* m)
   bi_map_free(&m->map);
 }
 
-void add_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t const* id,sctp_info_t* s)
+void add_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t const* id, sctp_info_t const* s)
 {
   assert(m != NULL);
   assert(id != NULL);
@@ -89,29 +89,25 @@ void add_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t const* i
 
   lock_guard(&m->mtx);
 
-  assoc_rb_tree_t* tree = &m->map.left;  
+#if DEBUG
+  assoc_rb_tree_t* left = &m->map.left;  
 
-  void* it = assoc_front(tree);
-  void* end = assoc_end(tree);
+  void* it = assoc_front(left);
+  void* end = assoc_end(left);
 
-  it = find_if(tree, it, end, id, eq_global_e2_node_id_wrapper);
+  it = find_if(left, it, end, id, eq_global_e2_node_id_wrapper);
   assert(it == end && "E2 Node already registered in the tree");
 
+  assoc_rb_tree_t* right = &m->map.right;  
 
+  it = assoc_front(right);
+  end = assoc_end(right);
 
-  sctp_info_t* info = calloc(1, sizeof(sctp_info_t)); 
-  assert(info != NULL && "Memory exhausted");
-
-  info->addr.sin_addr.s_addr = s->addr.sin_addr.s_addr;
-  info->addr.sin_port = s->addr.sin_port;
-  info->addr.sin_family = s->addr.sin_family;
-
-  info->sri = s->sri;
-
-  printf("adding nb id %d with port number %d \n", id->nb_id, info->addr.sin_port);
-  bi_map_insert(&m->map, id, sizeof(global_e2_node_id_t), info, sizeof(sctp_info_t));
-
-//  assoc_insert(&m->tree, id, sizeof(global_e2_node_id_t), info);
+  it = find_if(right, it, end, id, eq_sctp_info_wrapper);
+  assert(it == end && "SCTP info already registered in the tree");
+#endif
+  
+  bi_map_insert(&m->map, id, sizeof(global_e2_node_id_t), s, sizeof(sctp_info_t));
 }
 
 sctp_info_t* rm_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t* id)

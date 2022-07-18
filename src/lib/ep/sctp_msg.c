@@ -25,8 +25,8 @@ void free_sctp_msg(sctp_msg_t* rcv)
 {
   assert(rcv != NULL);
 
-  if(rcv->type == SCTP_MSG_PAYLOAD)
-    free_byte_array(rcv->ba);
+ if(rcv->type == SCTP_MSG_PAYLOAD)
+  free_byte_array(rcv->ba);
 }
 
 
@@ -99,3 +99,9 @@ int cmp_sctp_info_wrapper(void const* m0_v, void const* m1_v)
 
   return cmp_sctp_sndrcvinfo(&m0->sri, &m1->sri); 
 }
+
+bool eq_sctp_info_wrapper(void const* m0, void const* m1)
+{
+  return cmp_sctp_info_wrapper(m0,m1) == 0;
+}
+

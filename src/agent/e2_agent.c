@@ -336,7 +336,6 @@ void e2_event_loop_agent(e2_agent_t* ag)
         }
       case SCTP_CONNECTION_SHUTDOWN_EVENT: 
         {
-          defer({free_sctp_msg(&e.msg);});
           notification_handle_ag(ag, &e.msg);
           break;
         }
@@ -350,66 +349,9 @@ void e2_event_loop_agent(e2_agent_t* ag)
           break;
         }
     }
-
-/*
-    if(e.type == CHECK_STOP_TOKEN_EVENT) continue;
-
-//    int fd = event_asio_agent(&ag->io);
-//    if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
-//    async_event_t const e = find_event_type(ag,fd);
-
-    if(e.type == SCTP_MSG_ARRIVED_EVENT){ 
-
-      byte_array_t ba = e2ap_recv_msg_agent(&ag->ep);
-      defer( {free_byte_array(ba);} );
-
-      e2ap_msg_t msg = e2ap_msg_dec_ag(&ag->ap, ba);
-      defer( { e2ap_msg_free_ag(&ag->ap, &msg);} );
-
-      e2ap_msg_t ans = e2ap_msg_handle_agent(ag, &msg);
-      defer( { e2ap_msg_free_ag(&ag->ap, &ans);} );
-
-      if(ans.type != NONE_E2_MSG_TYPE){
-        byte_array_t ba_ans = e2ap_msg_enc_ag(&ag->ap, &ans); 
-        defer ({free_byte_array(ba_ans); } );
-
-        e2ap_send_bytes_agent(&ag->ep, ba_ans);
-      }
-
-    } else if(e.type == INDICATION_EVENT){
-
-      sm_agent_t* sm = e.i_ev->sm;
-      sm_ind_data_t data = sm->proc.on_indication(sm);
-
-      ric_indication_t ind = generate_indication(ag, &data, e.i_ev);
-      defer({ e2ap_free_indication(&ind); } );
-
-      byte_array_t ba = e2ap_enc_indication_ag(&ag->ap, &ind); 
-      defer({ free_byte_array(ba); } );
-      
-      e2ap_send_bytes_agent(&ag->ep, ba);
-
-      consume_fd(e.fd);
-    } else if(e.type == PENDING_EVENT){
-      assert(*e.p_ev == SETUP_REQUEST_PENDING_EVENT && "Unforeseen pending event happened!" );
-
-      // Resend the subscription request message
-      e2_setup_request_t sr = generate_setup_request(ag); 
-      defer({ e2ap_free_setup_request(&sr); } );
-
-      printf("[E2AP] Resending Setup Request after timeout\n");
-      byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
-      defer({ free_byte_array(ba); } ); 
-
-      e2ap_send_bytes_agent(&ag->ep, ba);
-
-      consume_fd(e.fd);
-    } else {
-      assert(0!=0 && "An interruption that it is not a network pkt, an indication event or a timer expired pending event happened!");
-    }
-
-  */
   }
+
+  printf("ag->agent_stopped = true \n");
   ag->agent_stopped = true;
 }
 

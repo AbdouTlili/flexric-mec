@@ -47,7 +47,7 @@ void init_map_e2_node_sad(map_e2_node_sockaddr_t* m);
 
 void free_map_e2_node_sad(map_e2_node_sockaddr_t* m);
 
-void add_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t const* id, sctp_info_t* info );
+void add_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t const* id, sctp_info_t const* info );
 
 //void rm_map_e2_node_sad(map_e2_node_sockaddr_t* m, global_e2_node_id_t* id);
 

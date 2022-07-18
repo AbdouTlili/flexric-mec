@@ -33,6 +33,7 @@
 #include <sys/socket.h>
 #include <unistd.h> 
 
+#include <stdbool.h>
 #include "util/byte_array.h"
 
 typedef enum {
@@ -46,6 +47,8 @@ typedef struct{
 } sctp_info_t ;
 
 int cmp_sctp_info_wrapper(void const* m0, void const* m1);
+
+bool eq_sctp_info_wrapper(void const* m0, void const* m1);
 
 typedef struct{
   sctp_msg_type_t type;
