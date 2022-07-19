@@ -37,18 +37,20 @@ elseif(SANITIZER STREQUAL "THREAD" )
   add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=thread;>")
 endif()
 
+option(CODE_PROFILER "Code Profiler" ON)
+if(CODE_PROFILER)
+  add_compile_options("$<$<CONFIG:DEBUG>:-pg>")
+  add_link_options("$<$<CONFIG:DEBUG>:-pg;>")
+
+  message(STATUS "Code Profiler ON. Example usage: gprof test_pdcp_sm gmon.out > prof.txt && vim prof.txt")
+endif()
+
 option(CODE_COVERAGE "Code coverage" ON)
 if(CODE_COVERAGE)
   add_compile_options("$<$<CONFIG:DEBUG>:-fprofile-arcs;-ftest-coverage>")
   add_link_options("$<$<CONFIG:DEBUG>:-lgcov;-coverage;>")
-  message(STATUS "CODE COVERAGE ON")
-endif()
 
-option(CODE_PROFILER "Code Profiler" ON)
-if(CODE_PROFILER)
-  message(STATUS "CODE PROFILER ON")
-  add_compile_options("$<$<CONFIG:DEBUG>:-pg>")
-  add_link_options("$<$<CONFIG:DEBUG>:-pg;>")
+  message(STATUS "Code Coverage ON. Example usage: lcov --capture --directory . --output-file coverage.info && genhtml coverage.info --output-directory out && cd out && firefox index.html")
 endif()
 
 set(SM_ENCODING_PDCP "PLAIN" CACHE STRING "The PDCP SM encoding to use")
@@ -68,9 +70,8 @@ if(SM_ENCODING_PDCP  STREQUAL "PLAIN")
                       ../../../util/alg_ds/alg/defer.c
                       ../../../util/alg_ds/alg/eq_float.c
                       ../ie/pdcp_data_ie.c
-                      ../../agent_if/read/sm_ag_if_rd.c
               )
-elseif(SM_ENCODING_PDCP STREQUAL  "ASN")
+elseif(SM_ENCODING_PDCP STREQUAL "ASN")
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}../ie/asn/ )
   file(GLOB asn_sources "../ie/asn/*.c")
   #include_directories("/usr/local/share/asn1c/")
@@ -88,7 +89,7 @@ elseif(SM_ENCODING_PDCP STREQUAL  "ASN")
                       ../../if_sm/read/sm_rd_if.c
                       ${asn_sources} 
               )
-elseif(SM_ENCODING_PDCP STREQUAL  "FLATBUFFERS")
+elseif(SM_ENCODING_PDCP STREQUAL "FLATBUFFERS")
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}../ie/fb/ )
   add_executable(test_pdcp_sm
                       main.c 

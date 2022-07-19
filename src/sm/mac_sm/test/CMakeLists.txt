@@ -15,15 +15,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-
 set(COMPILER "GCC" CACHE STRING "Compiler")
 set_property(CACHE COMPILER PROPERTY STRINGS "GCC" "CLANG")
 
 if(COMPILER STREQUAL CLANG)
-  add_compile_options("$<$<CONFIG:DEBUG>:-fblocks;>")
-  add_link_options("$<$<CONFIG:DEBUG>:-lBlocksRuntime;>")
+  add_compile_options("-fblocks;")
+  add_link_options("-lBlocksRuntime;")
 endif()
-
 
 set(SANITIZER "ADDRESS" CACHE STRING "Sanitizers")
 set_property(CACHE SANITIZER PROPERTY STRINGS "NONE" "ADDRESS" "THREAD")
@@ -37,74 +35,72 @@ elseif(SANITIZER STREQUAL "THREAD" )
   add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=thread;>")
 endif()
 
+option(CODE_PROFILER "Code Profiler" ON)
+if(CODE_PROFILER)
+  add_compile_options("$<$<CONFIG:DEBUG>:-pg>")
+  add_link_options("$<$<CONFIG:DEBUG>:-pg;>")
+
+  message(STATUS "Code Profiler ON. Example usage: gprof gprof test_mac_sm gmon.out > prof.txt && vim prof.txt")
+endif()
+
 option(CODE_COVERAGE "Code coverage" ON)
 if(CODE_COVERAGE)
   add_compile_options("$<$<CONFIG:DEBUG>:-fprofile-arcs;-ftest-coverage>")
   add_link_options("$<$<CONFIG:DEBUG>:-lgcov;-coverage;>")
-  message(STATUS "CODE COVERAGE ON")
+
+  message(STATUS "Code Coverage ON. Example usage: lcov --capture --directory . --output-file coverage.info && genhtml coverage.info --output-directory out && cd out && firefox index.html")
 endif()
-
-option(CODE_PROFILER "Code Profiler" ON)
-if(CODE_PROFILER)
-  message(STATUS "CODE PROFILER ON")
-  add_compile_options("$<$<CONFIG:DEBUG>:-pg>")
-  add_link_options("$<$<CONFIG:DEBUG>:-pg;>")
-endif()
-
-
 
 set(SM_ENCODING_MAC "PLAIN" CACHE STRING "The MAC SM encoding to use")
 set_property(CACHE SM_ENCODING_MAC PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
 message(STATUS "Selected MAC SM_ENCODING: ${SM_ENCODING_MAC}")
 
+
 if(SM_ENCODING_MAC  STREQUAL "PLAIN")
-  add_executable(test_mac_sm 
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR} )
+  add_executable(test_mac_sm
                       main.c 
                       ../../sm_proc_data.c 
                       ../mac_sm_agent.c 
                       ../mac_sm_ric.c 
                       ../enc/mac_enc_plain.c 
                       ../dec/mac_dec_plain.c 
-                      ../ie/mac_data_ie.c
-                      ../../../util/alg_ds/alg/eq_float.c
                       ../../../util/alg_ds/alg/defer.c
-                      )
+                      ../../../util/alg_ds/alg/eq_float.c
+                      ../ie/mac_data_ie.c
+              )
 elseif(SM_ENCODING_MAC STREQUAL "ASN")
-  message(FATAL_ERROR "ASN encoding for MAC SM not implemented" )
-
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}../ie/asn/ )
   file(GLOB asn_sources "../ie/asn/*.c")
-  include_directories("/usr/local/share/asn1c/")
+  #include_directories("/usr/local/share/asn1c/")
   target_compile_options(test_mac_sm PUBLIC "-DASN_DISABLE_OER_SUPPORT")
-
   add_executable(test_mac_sm
                       main.c 
                       ../../sm_proc_data.c 
                       ../mac_sm_agent.c 
-                      ../mac_sm_ric.c 
+                      ../mac_sm_server.c 
                       ../enc/mac_enc_asn.c 
                       ../dec/mac_dec_asn.c 
+                      ../../util/alg_ds/alg/defer.c
+                      ../../util/alg_ds/alg/eq_float.c
                       ../ie/mac_data_ie.c
-                      ../../../util/alg_ds/alg/eq_float.c
-                      ../../../util/alg_ds/alg/defer.c
+                      ../../if_sm/read/sm_rd_if.c
                       ${asn_sources} 
-                )
+              )
 elseif(SM_ENCODING_MAC STREQUAL "FLATBUFFERS")
-  message(FATAL_ERROR "FB encoding for MAC SM not implemented" )
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}../ie/fb/ )
   add_executable(test_mac_sm
                       main.c 
                       ../../sm_proc_data.c 
                       ../mac_sm_agent.c 
-                      ../mac_sm_ric.c 
+                      ../mac_sm_server.c 
                       ../enc/mac_enc_fb.c 
                       ../dec/mac_dec_fb.c 
-                      ../ie/mac_data_ie.c
-                      ../../../util/alg_ds/alg/eq_float.c
                       ../../../util/alg_ds/alg/defer.c
+                      ../../../util/alg_ds/alg/eq_float.c
+                      ../ie/mac_data_ie.c
+                      ../../if_sm/read/sm_rd_if.c
               )
-else()
-  message(FATAL_ERROR "Unknown encoding type" )
 endif()
 
 target_compile_definitions(test_mac_sm PUBLIC ${SM_ENCODING_MAC})
