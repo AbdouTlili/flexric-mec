@@ -23,6 +23,7 @@
 #include "e2_agent.h"
 #include "endpoint_agent.h"
 #include "msg_handler_agent.h"
+#include "not_handler_agent.h"
 #include "lib/async_event.h"
 #include "lib/ap/e2ap_ap.h"
 #include "lib/ap/free/e2ap_msg_free.h"
@@ -355,7 +356,7 @@ void e2_event_loop_agent(e2_agent_t* ag)
   ag->agent_stopped = true;
 }
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, args_t args)
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, fr_args_t const* args)
 {
   assert(addr != NULL);
   assert(port > 0 && port < 65535);
@@ -375,7 +376,7 @@ e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid
 
   init_handle_msg_agent(&ag->handle_msg);
 
-  init_plugin_ag(&ag->plugin, args.libs_dir, io);
+  init_plugin_ag(&ag->plugin, args->libs_dir, io);
 
   init_pending_events(ag);
 

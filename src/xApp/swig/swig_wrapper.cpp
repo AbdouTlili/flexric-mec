@@ -9,6 +9,7 @@
 
 #include "../../sm/mac_sm/mac_sm_id.h"
 #include "../../sm/rlc_sm/rlc_sm_id.h"
+#include "../../sm/pdcp_sm/pdcp_sm_id.h"
 
 #include "../../sm/slice_sm/slice_sm_id.h"
 
@@ -23,38 +24,30 @@
 #include <unistd.h>
 #include <iostream>
 
-// FixME: Again this sucks profoundly
-static
-const char* conf_file = "/usr/local/flexric/flexric.conf";
-static
-const char* libs_dir = "/usr/local/flexric/";
-
-
-
+/*
 static
 int64_t time_now_us(void)
 {
   struct timespec tms;
 
-  /* The C11 way */
-  /* if (! timespec_get(&tms, TIME_UTC))  */
-
-  /* POSIX.1-2008 way */
-  if (clock_gettime(CLOCK_REALTIME,&tms)) {
+  if (clock_gettime(CLOCK_REALTIME, &tms)) {
     return -1;
   }
-  /* seconds, multiplied with 1 million */
+  // seconds, multiplied with 1 million 
   int64_t micros = tms.tv_sec * 1000000;
-  /* Add full microseconds */
+
+  // Add full microseconds 
   micros += tms.tv_nsec/1000;
-  /* round up if necessary */
+
+  // Round up if necessary 
   if (tms.tv_nsec % 1000 >= 500) {
     ++micros;
   }
   return micros;
 }
+*/
 
-
+/*
 static
 bool valid_ipv4(const char* addr)
 {
@@ -64,32 +57,28 @@ bool valid_ipv4(const char* addr)
   int result = inet_pton(AF_INET, addr, &(sa.sin_addr));
   return result == 1;
 }
-
+*/
 
 static
 bool initialized = false;
 
-void init(const char* addr)
+void init()
 {
   assert(initialized == false && "Already initialized!");
-  assert(addr != NULL);
-  assert(valid_ipv4(addr) == true);
+
+  int const argc = 1;
+  char** argv = NULL;
+  fr_args_t args = init_fr_args(argc, argv);
 
   initialized = true; 
 
-
-  args_t args;
-  memcpy(args.conf_file, conf_file, strlen(conf_file));
-  memcpy(args.libs_dir, libs_dir, strlen(libs_dir) );
-
-  init_xapp_api(args);
+  init_xapp_api(&args);
 }
 
 bool try_stop()
 {
   return try_stop_xapp_api();
 }
-
 
 std::vector<E2Node> conn_e2_nodes(void)
 {
@@ -105,24 +94,10 @@ std::vector<E2Node> conn_e2_nodes(void)
     e2_node_connected_t const* src = &arr.n[i];
     tmp.id = cp_global_e2_node_id(&src->id); 
 
-/*
-    tmp.id.plmn.mcc = 208;
-    tmp.id.plmn.mnc = 5;
-    tmp.id.plmn.mnc_digit_len = 2;
-
-    tmp.id.type = ngran_gNB; 
-    tmp.id.nb_id = 42+i;
-*/
-
     std::vector<ran_function_t> ran_func;//(src->len_rf);
 
     for(size_t j = 0; j < src->len_rf; ++j){
       ran_function_t rf = cp_ran_function(&src->ack_rf[j]);
-      //       rf.def = "Definition";
-      //       rf.id = 142;
-      //       rf.rev = 0;
-
-      //       ran_func.push_back(rf);
       ran_func.push_back(rf);// [j] = rf;
     }
     tmp.ran_func = ran_func;
@@ -133,9 +108,6 @@ std::vector<E2Node> conn_e2_nodes(void)
 
   return x;
 }
-
-//static
-//pthread_t t_mac;
 
 static 
 mac_cb* hndlr_mac_cb; 
@@ -230,43 +202,6 @@ rlc_cb* hndlr_rlc_cb;
 static
 sm_ans_xapp_t hndlr_rlc_ans;
 
-
-
-/*
-static
-void *start_routine_rlc(void *arg)
-{
-  Interval inter = *(Interval*)arg;
-  delete (Interval*)arg;
-  assert(hndlr_rlc != NULL);
-  for(int i = 0; i < 3; ++i){
-    swig_rlc_ind_msg_t ind;
-    ind.tstamp = time_now_us();
-
-    for(int j = 0; j < 2; ++j){
-      rlc_radio_bearer_stats_t tmp;
-      tmp.rnti = 42 + j;
-      ind.rb_stats.emplace_back(tmp);
-    }
-
-#ifdef XAPP_LANG_PYTHON
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-#endif
-
-    hndlr_rlc->handle(&ind);
-
-#ifdef XAPP_LANG_PYTHON
-    PyGILState_Release(gstate);
-#endif
-
-    sleep(1);
-  }
-
-  std::cout << "Ending the RLC routine \n";
-  return NULL;
-}
-*/
 static
 void sm_cb_rlc(sm_ag_if_rd_t const* rd)
 {
@@ -297,8 +232,6 @@ void sm_cb_rlc(sm_ag_if_rd_t const* rd)
 
 }
 
-
-
 void report_rlc_sm(global_e2_node_id_t* id, Interval inter_arg, rlc_cb* handler)
 {
 
@@ -324,20 +257,6 @@ void report_rlc_sm(global_e2_node_id_t* id, Interval inter_arg, rlc_cb* handler)
   assert(ans.success == true); 
   hndlr_rlc_ans = ans;
 
-
-/*
-  hndlr_rlc = handler; 
- 
-  Interval* inter = new Interval;
-  *inter = inter_arg;
-
-  if(inter_arg == Interval::ms_1)
-    std::cout << "Everything went fine \n";
-
-  std::cout << "Before thread create \n";
-  int rc = pthread_create(&t_rlc, NULL, start_routine_rlc, inter);
-  assert(rc == 0);
-  */
 }
 
 void rm_report_rlc_sm(void)
@@ -362,6 +281,87 @@ void rm_report_rlc_sm(void)
 //////////////////////////////////////
 // PDCP 
 /////////////////////////////////////
+
+static 
+pdcp_cb* hndlr_pdcp_cb; 
+
+static
+sm_ans_xapp_t hndlr_pdcp_ans;
+
+static
+void sm_cb_pdcp(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == PDCP_STATS_V0);
+  assert(hndlr_pdcp_cb != NULL);
+
+  pdcp_ind_data_t const* data = &rd->pdcp_stats; 
+
+  swig_pdcp_ind_msg_t ind;
+  ind.tstamp = data->msg.tstamp;
+
+  for(uint32_t i = 0; i < data->msg.len; ++i){
+    pdcp_radio_bearer_stats_t tmp = data->msg.rb[i];
+    ind.rb_stats.push_back(tmp);
+  }
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+    hndlr_pdcp_cb->handle(&ind);
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_Release(gstate);
+#endif
+
+}
+
+void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handler)
+{
+  assert(id != NULL);
+  assert(handler != NULL);
+
+  hndlr_pdcp_cb = handler;
+
+  inter_xapp_e i;
+  if(inter_arg == Interval::ms_1 ){
+    i = ms_1;
+  } else if (inter_arg == Interval::ms_2) {
+    i = ms_2;
+  } else if(inter_arg == Interval::ms_5) {
+    i = ms_5;
+  } else if(inter_arg == Interval::ms_10) {
+    i = ms_10;
+  } else {
+    assert(0 != 0 && "Unknown type");
+  }
+
+  sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_PDCP_ID, i, sm_cb_pdcp);
+  assert(ans.success == true); 
+  hndlr_pdcp_ans = ans;
+
+}
+
+void rm_report_pdcp_sm(void)
+{
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+  assert(hndlr_pdcp_ans.u.handle != 0);
+  rm_report_sm_xapp_api(hndlr_pdcp_ans.u.handle);
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_Release(gstate);
+#endif
+
+}
+
+/*
 
 static
 pthread_t t_pdcp;
@@ -420,6 +420,8 @@ void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handle
   assert(rc == 0);
 }
 
+*/
+
 
 
 
@@ -429,6 +431,10 @@ void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handle
 
 void report_slice_sm(global_e2_node_id_t* id, Interval inter, slice_cb* handler)
 {
+  assert( id != NULL);
+  (void)inter;
+  assert(handler != NULL);
+
   assert(0!=0 && "not implemented");
 }
 

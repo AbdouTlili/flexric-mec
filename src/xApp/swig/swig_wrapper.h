@@ -15,9 +15,6 @@
 #include "../../sm/pdcp_sm/ie/pdcp_data_ie.h"
 #include "../../sm/slice_sm/ie/slice_data_ie.h"
 
-
-//#include "slice_data_ie.h"
-
 //////////////////////////////////////
 // General    
 /////////////////////////////////////
@@ -27,8 +24,7 @@ struct E2Node {
   std::vector<ran_function_t> ran_func;
 };
 
-
-void init(const char* addr); 
+void init(void); 
 
 bool try_stop(void);
 
@@ -40,7 +36,6 @@ enum class Interval {
   ms_5,
   ms_10,
 };
-
 
 //////////////////////////////////////
 // MAC SM   

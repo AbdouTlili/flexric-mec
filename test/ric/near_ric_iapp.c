@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <poll.h>
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
@@ -39,33 +40,15 @@ const uint16_t PDCP_ran_func_id = 144;
 const uint16_t SLICE_ran_func_id = 145; // Not implemented yet
 const char* cmd = "5_ms";
 
-/*
-static inline
-bool e2_node_connected()
-{
-  e2_nodes_api_t nodes = e2_nodes_near_ric_api();
- 
-  bool const node_connected = nodes.len != 0; 
-
-  free_e2_nodes_api(&nodes);
-
-  return node_connected;
-}
-*/
-
 static
 void sig_handler(int sig_num)
 {
   printf("\nEnding the near-RIC with signal number = %d\n", sig_num);
 
-//  if(e2_node_connected() == false ) {
-//    printf("[NEAR-RIC]: E2 Node never connected \n");
-//  }
-
   // Stop the RIC
   stop_near_ric_api();
 
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 
@@ -74,20 +57,13 @@ int main(int argc, char *argv[])
   // Signal handler
   signal(SIGINT, sig_handler);
 
-  args_t args;
-  // Parse arguments
-  if(parse_args(argc, argv, &args) > 0) {
-    print_usage(argv[0]);
-    exit(1);
-  }
-  
+  fr_args_t args = init_fr_args(argc, argv);
+ 
   // Init the RIC
-  init_near_ric_api(args);
-
-//  wait_e2_node();
+  init_near_ric_api(&args);
 
   while(1){
-    sleep(42);
+    poll(NULL, 0, 1000);
   }
   return EXIT_SUCCESS;
 }

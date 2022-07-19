@@ -68,6 +68,14 @@ void check_dl_error(void)
 }
 
 static
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+static
 void load_all_pugin_ric(plugin_ric_t* p, const char* dir_path)
 {
   /* Scanning the in directory */

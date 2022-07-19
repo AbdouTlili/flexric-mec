@@ -1,4 +1,5 @@
 add_subdirectory(db)
+add_subdirectory(swig)
 
 if(BUILDING_LIBRARY STREQUAL "STATIC")
   set(XAPP_BLD_LIB  "STATIC")
@@ -42,13 +43,26 @@ if(E2AP_ENCODING STREQUAL "ASN")
             ${XAPP_SRC}
             $<TARGET_OBJECTS:e2ap_asn1_obj>
             )
+
+          add_library(e42_xapp_shared SHARED # STATIC or SHARED
+            ${XAPP_SRC}
+            $<TARGET_OBJECTS:e2ap_asn1_obj>
+            )
+
+
 elseif(E2AP_ENCODING STREQUAL "FLATBUFFERS" )
   add_library(e42_xapp ${XAPP_BLD_LIB} # STATIC or SHARED
             ${XAPP_SRC}
             )
+
+  add_library(e42_xapp_shared ${XAPP_BLD_LIB} # STATIC or SHARED
+            ${XAPP_SRC}
+            )
+
 endif()
 
 target_compile_definitions(e42_xapp PRIVATE ${E2AP_ENCODING} ${XAPP_DB} )
+target_compile_definitions(e42_xapp_shared PRIVATE ${E2AP_ENCODING} ${XAPP_DB} )
 
 string(APPEND XAPP_DB_DIR xapp_db)
 add_definitions(-DXAPP_DB_DIR="${XAPP_DB_DIR}")
@@ -57,5 +71,4 @@ add_definitions(-DXAPP_DB_DIR="${XAPP_DB_DIR}")
 #string(APPEND XAPP_DB_DIR ${NOW} )
 #string(APPEND XAPP_DB_DIR .sqlite3 )
 #add_definitions(-DXAPP_DB_DIR="${TODAY}")
-
 

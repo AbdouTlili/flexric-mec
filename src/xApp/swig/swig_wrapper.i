@@ -1,5 +1,5 @@
 /* File : example.i */
-%module(directors="4") flexric
+%module(directors="4") xapp_sdk
 %include "std_string.i"
 %include "std_vector.i"
 %include "carrays.i"

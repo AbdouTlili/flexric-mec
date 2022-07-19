@@ -88,7 +88,7 @@ typedef struct e42_xapp_s
   atomic_bool stop_token;
 } e42_xapp_t;
 
-e42_xapp_t* init_e42_xapp(const char* addr, args_t args);
+e42_xapp_t* init_e42_xapp(fr_args_t const* args);
 
 bool connected_e42_xapp( e42_xapp_t* xapp);
 

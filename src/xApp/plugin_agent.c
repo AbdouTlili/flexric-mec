@@ -25,7 +25,6 @@
 
 #include "util/alg_ds/alg/alg.h"
 #include "util/alg_ds/ds/lock_guard/lock_guard.h"
-//#include "util/alg_ds/alg/string/search_naive.h"
 #include "util/compare.h"
 #include "util/conf_file.h"
 #include <assert.h>
@@ -148,6 +147,14 @@ void check_dl_error(void)
     fflush(stdout);
     assert(0 != 0 && "error loading the init of the shared object");
   }
+}
+
+static
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
 }
 
 static

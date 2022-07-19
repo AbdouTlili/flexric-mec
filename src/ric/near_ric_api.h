@@ -41,7 +41,7 @@ typedef struct{
 
 void free_e2_nodes_api( e2_nodes_api_t* src);
 
-void init_near_ric_api(args_t);
+void init_near_ric_api(fr_args_t const*);
 
 void stop_near_ric_api(void);
 

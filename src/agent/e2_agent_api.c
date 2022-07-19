@@ -54,8 +54,7 @@ void init_agent_api(int mcc,
                     int mnc_digit_len,
                     int nb_id,
                     sm_io_ag_t io,
-		    args_t args
-                    )
+		                fr_args_t const* args)
 {
   assert(agent == NULL);  
   assert(mcc > 0);
@@ -65,7 +64,7 @@ void init_agent_api(int mcc,
 
 
   char* server_ip_str = get_near_ric_ip(args);
-  printf("[E2 AGENT]: RIC IP Address = %s\n", server_ip_str);
+  printf("[E2 AGENT]: nearRT-RIC IP Address = %s\n", server_ip_str);
 
   const plmn_t plmn = {.mcc = mcc, .mnc = mnc, .mnc_digit_len = mnc_digit_len};
   const global_e2_node_id_t ge2ni = {.type = ngran_gNB, .plmn = plmn, .nb_id = nb_id };

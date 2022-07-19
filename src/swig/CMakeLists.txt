@@ -20,3 +20,5 @@ SET(CMAKE_SWIG_FLAGS "")
 SET_PROPERTY(SOURCE py_wrapp.i PROPERTY C ON)
 SWIG_ADD_LIBRARY(flexric LANGUAGE python SOURCES py_wrapp.i py_wrapp.c ${CMAKE_CURRENT_SOURCE_DIR}/../../build/src/ric/libnear_ric.so)
 SWIG_LINK_LIBRARIES(flexric ${PYTHON_LIBRARIES} ${CMAKE_CURRENT_SOURCE_DIR}/../../build/src/ric/libnear_ric.so -ldl -lsctp -lpthread)
+
+add_dependencies(performCrc32 <hex-targets...> <map-targets> <elf-target>)

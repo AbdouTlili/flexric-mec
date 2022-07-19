@@ -69,7 +69,7 @@ typedef struct near_ric_s
   atomic_bool stop_token;
 } near_ric_t;
 
-near_ric_t* init_near_ric(const char* addr, args_t args);
+near_ric_t* init_near_ric(fr_args_t const* args);
 
 // Blocking call
 void start_near_ric(near_ric_t* ric);

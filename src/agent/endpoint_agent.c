@@ -70,6 +70,7 @@ void e2ap_init_ep_agent(e2ap_ep_ag_t* ep, const char* addr, int port)
   init_sctp_conn_client(ep, addr, port);
 }
 
+/*
 static
 bool eq_sockaddr(struct sockaddr_in* m0, struct sockaddr_in* m1)
 {
@@ -87,6 +88,7 @@ bool eq_sockaddr(struct sockaddr_in* m0, struct sockaddr_in* m1)
 
   return true;
 }
+*/
 
 sctp_msg_t e2ap_recv_msg_agent(e2ap_ep_ag_t* ep)
 {
@@ -111,5 +113,5 @@ void e2ap_send_bytes_agent(e2ap_ep_ag_t* ep, byte_array_t ba)
 void e2ap_free_ep_agent(e2ap_ep_ag_t* ep)
 {
   assert(ep != NULL);
-  assert(0!=0 && "Not implememented!");
+  assert(0!=0 && "Not implemented!");
 }

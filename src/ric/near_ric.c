@@ -213,11 +213,16 @@ void init_pending_events(near_ric_t* ric)
   assert(rc == 0);
 }
 
-near_ric_t* init_near_ric(const char* addr, args_t args)
+near_ric_t* init_near_ric(fr_args_t const* args)
 {
-  assert(addr != NULL);
+  assert(args != NULL);
   near_ric_t* ric = calloc(1, sizeof(near_ric_t));
   assert(ric != NULL);
+
+  char* addr = get_near_ric_ip(args);
+  defer({ free(addr); } );
+
+  printf("[nearRT-RIC]: RIC IP Address = %s\n", addr);
 
   const int port = 36421;
   e2ap_init_ep_ric(&ric->ep, addr, port);
@@ -230,7 +235,7 @@ near_ric_t* init_near_ric(const char* addr, args_t args)
 
   init_handle_msg_ric(&ric->handle_msg);
 
-  init_plugin_ric(&ric->plugin, args.libs_dir);
+  init_plugin_ric(&ric->plugin, args->libs_dir);
 
   init_pub_sub_ds_ric(ric); 
 

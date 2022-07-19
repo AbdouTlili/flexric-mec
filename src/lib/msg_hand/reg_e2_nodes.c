@@ -283,7 +283,7 @@ void rm_reg_e2_node(reg_e2_nodes_t* n, global_e2_node_id_t const* id)
 
     seq_arr_t* arr = assoc_extract(&n->node_to_rf, (global_e2_node_id_t*)id);;
 
-    free_e2_nodes(id , arr);
+    free_e2_nodes((void*)id , arr);
   }
 }
 

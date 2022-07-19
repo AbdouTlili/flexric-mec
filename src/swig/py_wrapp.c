@@ -22,7 +22,7 @@ const char* libs_dir = "/usr/local/flexric/";
 void init()
 {
   if(start == false){
-    args_t args;
+    fr_args_t args = init_fr_args( );
     memcpy(args.conf_file, conf_file , strlen(conf_file));
     memcpy(args.libs_dir,  libs_dir, strlen(libs_dir));
 

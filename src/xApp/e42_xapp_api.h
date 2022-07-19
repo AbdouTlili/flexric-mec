@@ -37,7 +37,7 @@ extern "C" {
 #include "../util/conf_file.h"
 
 
-void init_xapp_api(args_t);
+void init_xapp_api(fr_args_t const*);
   
 bool try_stop_xapp_api(void);     
 

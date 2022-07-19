@@ -74,19 +74,14 @@ int main(int argc, char *argv[])
   const int mnc_digit_len = 2;
   const int nb_id = 42;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
-  args_t args;
+  fr_args_t args = init_fr_args(argc, argv);
   // Parse arguments
-  if(parse_args(argc, argv, &args) > 0) {
-    print_usage(argv[0]);
-    exit(1);
-  }
-  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io,args );
+  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io, &args);
   sleep(1);
 
   // Init the RIC
-  init_near_ric_api(args);
+  init_near_ric_api(&args);
   sleep(1);
-
 
   e2_nodes_api_t e2_nodes = e2_nodes_near_ric_api();
   assert(e2_nodes.len > 0 && "No E2 Nodes connected");

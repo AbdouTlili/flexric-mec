@@ -1,10 +1,16 @@
-import flexric as ric
+import xapp_sdk 
 import time
 import pdb
+import sys
+import signal, os
+
+def sig_handler(signum, frame):
+    print('Signal handler called with signal', signum)
+    sys.exit(-1)
 
 
 def create_static_slice(idx, low, high):
-    s = ric.slice_t()
+    s = xapp_sdk.slice_t()
 
     s.id = idx
 
@@ -14,7 +20,7 @@ def create_static_slice(idx, low, high):
     s.len_sched = 0
     s.sched = None
 
-    s.params.type = ric.SLICE_ALG_SM_V0_STATIC 
+    s.params.type = xapp_sdk.SLICE_ALG_SM_V0_STATIC 
     s.params.u.sta.pos_high = high
     s.params.u.sta.pos_low = low
     #pdb.set_trace()
@@ -27,11 +33,11 @@ def create_static_slice(idx, low, high):
 ####################
 
 #  MACCallback class is defined and derived from C++ class mac_cb
-class MACCallback(ric.mac_cb):
+class MACCallback( xapp_sdk.mac_cb):
 # Define Python class 'constructor'
     def __init__(self):
         # Call C++ base class constructor
-        ric.mac_cb.__init__(self)
+         xapp_sdk.mac_cb.__init__(self)
     # Override C++ method: virtual void handle(swig_mac_ind_msg_t a) = 0;
     def handle(self, ind):
     # Print swig_mac_ind_msg_t 
@@ -46,11 +52,11 @@ class MACCallback(ric.mac_cb):
 #### RLC INDICATION CALLBACK
 ####################
 
-class RLCCallback(ric.rlc_cb):
+class RLCCallback(xapp_sdk.rlc_cb):
 # Define Python class 'constructor'
     def __init__(self):
         # Call C++ base class constructor
-        ric.rlc_cb.__init__(self)
+        xapp_sdk.rlc_cb.__init__(self)
     # Override C++ method: virtual void handle(swig_rlc_ind_msg_t a) = 0;
     def handle(self, ind):
     # Print swig_rlc_ind_msg_t 
@@ -62,11 +68,11 @@ class RLCCallback(ric.rlc_cb):
 #### PDCP INDICATION CALLBACK
 ####################
 
-class PDCPCallback(ric.pdcp_cb):
+class PDCPCallback(xapp_sdk.pdcp_cb):
 # Define Python class 'constructor'
     def __init__(self):
         # Call C++ base class constructor
-        ric.pdcp_cb.__init__(self)
+        xapp_sdk.pdcp_cb.__init__(self)
     # Override C++ method: virtual void handle(swig_pdcp_ind_msg_t a) = 0;
     def handle(self, ind):
     # Print swig_pdcp_ind_msg_t 
@@ -79,9 +85,11 @@ class PDCPCallback(ric.pdcp_cb):
 ####  GENERAL 
 ####################
 
-ric.init("127.0.0.1")
+signal.signal(signal.SIGINT, sig_handler)
 
-conn = ric.conn_e2_nodes()
+xapp_sdk.init()
+
+conn = xapp_sdk.conn_e2_nodes()
 assert(len(conn) > 0)
 print("Global E2 Node [0]: PLMN MCC = " + str(conn[0].id.plmn.mcc) )
 print("Global E2 Node [0]: PLMN MNC = " + str(conn[0].id.plmn.mnc) )
@@ -94,7 +102,7 @@ print("Global E2 Node [0]: PLMN MNC = " + str(conn[0].id.plmn.mnc) )
 ####################
 
 mac_cb = MACCallback()
-ric.report_mac_sm(conn[0].id, ric.Interval_ms_1, mac_cb)
+xapp_sdk.report_mac_sm(conn[0].id, xapp_sdk.Interval_ms_1, mac_cb)
 
 time.sleep(5)
 
@@ -103,14 +111,14 @@ time.sleep(5)
 ####################
 
 rlc_cb = RLCCallback()
-ric.report_rlc_sm(conn[0].id, ric.Interval_ms_1, rlc_cb)
+xapp_sdk.report_rlc_sm(conn[0].id, xapp_sdk.Interval_ms_1, rlc_cb)
 
 ####################
 #### PDCP INDICATION
 ####################
 
 #pdcp_cb = PDCPCallback()
-#ric.report_pdcp_sm(conn[0].id, ric.Interval_ms_1, pdcp_cb)
+# xapp_sdk.report_pdcp_sm(conn[0].id, xapp_sdk.Interval_ms_1, pdcp_cb)
 
 
 
@@ -119,18 +127,18 @@ ric.report_rlc_sm(conn[0].id, ric.Interval_ms_1, rlc_cb)
 ####  SLICE CTRL ASSOC
 ####################
 
-msg = ric.slice_ctrl_msg_t()
-msg.type = ric.SLICE_CTRL_SM_V0_UE_SLICE_ASSOC
+msg = xapp_sdk.slice_ctrl_msg_t()
+msg.type = xapp_sdk.SLICE_CTRL_SM_V0_UE_SLICE_ASSOC
 msg.u.ue_slice.len_ue_slice = 2
-assoc = ric.ue_slice_assoc_array(2)
+assoc = xapp_sdk.ue_slice_assoc_array(2)
 
-one = ric.ue_slice_assoc_t()
+one = xapp_sdk.ue_slice_assoc_t()
 one.dl_id = 0
 one.ul_id = 0
 one.rnti = 42
 assoc[0] = one
 
-two = ric.ue_slice_assoc_t()
+two = xapp_sdk.ue_slice_assoc_t()
 two.dl_id = 0
 two.ul_id = 0
 two.rnti = 43
@@ -138,7 +146,7 @@ assoc[1] = two
 
 msg.u.ue_slice.ues = assoc 
 
-ric.control_slice_sm(conn[0].id, msg)
+xapp_sdk.control_slice_sm(conn[0].id, msg)
 print('Sent control slice')
 time.sleep(2)
 
@@ -146,11 +154,11 @@ time.sleep(2)
 ####  SLICE CTRL ADD
 ####################
 
-msg = ric.slice_ctrl_msg_t()
-msg.type = ric.SLICE_CTRL_SM_V0_ADD
+msg = xapp_sdk.slice_ctrl_msg_t()
+msg.type = xapp_sdk.SLICE_CTRL_SM_V0_ADD
 
-dl = ric.ul_dl_slice_conf_t()
-#ul = ric.ul_dl_slice_conf_t()
+dl = xapp_sdk.ul_dl_slice_conf_t()
+#ul = xapp_sdk.ul_dl_slice_conf_t()
 
 dl.len_sched_name = 0
 dl.sched_name = None
@@ -158,7 +166,7 @@ dl.sched_name = None
 
 dl.len_slices = 2
 
-slices = ric.slice_array(2)
+slices = xapp_sdk.slice_array(2)
 
 idx = 0
 low = 0
@@ -172,17 +180,17 @@ dl.slices = slices
 msg.u.add_mod_slice.dl = dl; 
 #msg.u.add_mod_slice.ul = ul; 
 
-ric.control_slice_sm(conn[0].id, msg)
+xapp_sdk.control_slice_sm(conn[0].id, msg)
 
 
 time.sleep(2)
 
-ric.rm_report_mac_sm()
+xapp_sdk.rm_report_mac_sm()
 
-ric.rm_report_rlc_sm()
+xapp_sdk.rm_report_rlc_sm()
 
 # Avoid deadlock. ToDo revise architecture 
-while ric.try_stop == 0:
+while xapp_sdk.try_stop == 0:
     time.sleep(1)
 
 print('Test finished' )

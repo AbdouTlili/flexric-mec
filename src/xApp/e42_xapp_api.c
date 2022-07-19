@@ -28,6 +28,7 @@
 #include "../util/alg_ds/alg/alg.h"
 #include "../sm/slice_sm/slice_sm_id.h"
 
+#include <signal.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -38,6 +39,14 @@ e42_xapp_t* xapp = NULL;
 static
 pthread_t thrd_xapp;
 
+
+static
+void sig_handler(int sig_num)
+{
+  printf("\nEnding abnormally the xApp SDK with signal number = %d\n", sig_num);
+  exit(EXIT_FAILURE);
+}
+
 static inline
 void* static_start_xapp(void* a)
 {
@@ -47,15 +56,15 @@ void* static_start_xapp(void* a)
   return NULL;
 }
 
-void init_xapp_api(args_t args)
+void init_xapp_api(fr_args_t const* args)
 {
   assert(xapp == NULL && "The init_xapp_api function can only be called once");
+  assert(args != NULL);
 
-  char* addr = get_near_ric_ip(args);
-  defer({ free(addr); });
+  // Signal handler
+  signal(SIGINT, sig_handler);
 
-  printf("[xApp]: IP Address = %s\n", addr);
-  xapp = init_e42_xapp(addr, args);
+  xapp = init_e42_xapp(args);
 
   // Spawn a new thread for the xapp
   const int rc = pthread_create(&thrd_xapp, NULL, static_start_xapp, NULL);

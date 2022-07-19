@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-
-project(flexric VERSION 0.0.1 LANGUAGES C)
+project(Flexric VERSION 0.0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -92,6 +91,8 @@ endif()
 
 
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 if(BUILDING_LIBRARY STREQUAL "STATIC")
   add_compile_options("-W;-Wall;-Wextra;-g;-fopt-info")
 elseif(BUILDING_LIBRARY STREQUAL "DYNAMIC")
@@ -111,14 +112,6 @@ message(STATUS "Selected E2AP_ENCODING: ${E2AP_ENCODING}")
 #######
 ## Service Models 
 #######
-
-# Default shared objects location
-#set(SM_DIR_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "The SM directory")
-#if(NOT SM_DIR_PATH MATCHES "/")
-#  message(FATAL_ERROR "Service Models directory path needs to terminate in one / char ${CMAKE_INSTALL_PREFIX}")
-  #set(SM_DIR_PATH "/usr/lib/flexric/" CACHE STRING "The SM directory")
-#endif() 
-#message(STATUS "Service Models directory path : ${SM_DIR_PATH}/")
 
 add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}/")
 
@@ -165,6 +158,8 @@ include_directories(src)
 add_subdirectory(src)
 add_subdirectory(test)
 
+# Build SWIG interface
+#add_subdirectory(src/xApp/swig)
 
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON )
 # For YouCompleteMe configuration

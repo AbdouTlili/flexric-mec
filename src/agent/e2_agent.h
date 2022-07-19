@@ -68,7 +68,7 @@ typedef struct e2_agent_s
   atomic_bool agent_stopped;
 } e2_agent_t;
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, args_t args);
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, fr_args_t const* args);
 
 // Blocking call
 void e2_start_agent(e2_agent_t* ag);

@@ -101,15 +101,10 @@ sm_ag_if_wr_t create_assoc_slice(void)
 
 int main(int argc, char *argv[])
 {
- args_t args;
-  // Parse arguments
-  if(parse_args(argc, argv, &args) > 0) {
-    print_usage(argv[0]);
-    exit(1);
-  }
+  fr_args_t args = init_fr_args(argc, argv);
 
   //Init the xApp
-  init_xapp_api(args);
+  init_xapp_api(&args);
   sleep(1);
 
   e2_node_arr_t nodes = e2_nodes_xapp_api();

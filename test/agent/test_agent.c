@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <poll.h>
 #include <unistd.h>
 
 
@@ -95,16 +95,14 @@ void sig_handler(int sig_num)
 }
 
 
-
 int main(int argc, char *argv[])
 {
-
   // Signal handler
   signal(SIGINT, sig_handler);
 
   // Init the Agent
-  const int mcc = 10; 
-  const int mnc = 15; 
+  const int mcc = 505; 
+  const int mnc = 1; 
   const int mnc_digit_len = 2;
 
 #ifdef TEST_AGENT_1
@@ -122,16 +120,12 @@ int main(int argc, char *argv[])
 #endif
 
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
-  args_t args;
-  // Parse arguments
-  if(parse_args(argc, argv, &args) > 0) {
-    print_usage(argv[0]);
-    exit(1);
-  }
-  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io,args);
+  fr_args_t args = init_fr_args(argc, argv);
+
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io, &args);
 
   while(1){
-    sleep(42);
+    poll(NULL, 0, 1000);
   }
 
   return EXIT_SUCCESS;

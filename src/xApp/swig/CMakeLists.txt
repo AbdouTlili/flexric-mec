@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 CMAKE_POLICY(VERSION 3.8)
 
-PROJECT(FlexRIC)
+PROJECT(XAPP_SDK)
 
 CMAKE_POLICY(SET CMP0078 NEW) 
 CMAKE_POLICY(SET CMP0086 NEW) 
@@ -17,7 +17,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 #SET(CMAKE_SWIG_FLAGS "")
 
-SET(CMAKE BUILD TYPE Debug)
+#SET(CMAKE BUILD TYPE Debug)
 
 SET_PROPERTY(SOURCE swig_wrapper.i PROPERTY CPLUSPLUS ON)
 
@@ -46,7 +46,9 @@ else()
   message(FATAL_ERROR "Unknown XAPP_TARGET_LANGUAGE")
 endif()
 
-SWIG_ADD_LIBRARY(flexric LANGUAGE ${XAPP_LANG} SOURCES 
+
+
+SWIG_ADD_LIBRARY(xapp_sdk LANGUAGE ${XAPP_LANG} SOURCES 
                                                  swig_wrapper.i 
                                                  swig_wrapper.cpp
                                                  ../../lib/ap/e2ap_types/common/e2ap_plmn.c
@@ -58,24 +60,29 @@ SWIG_ADD_LIBRARY(flexric LANGUAGE ${XAPP_LANG} SOURCES
                                                  ../../sm/slice_sm/ie/slice_data_ie.c
                                                  ../../util/byte_array.c
                                                  ../../util/alg_ds/alg/eq_float.c
-                                                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/src/xApp/libe42_xapp.so
                                                  )
- 
+
+
 #PYTHON compilation
 if(XAPP_TARGET_LANGUAGE STREQUAL "PYTHON_LANG")
   ADD_COMPILE_DEFINITIONS(XAPP_LANG_PYTHON)
-  SWIG_LINK_LIBRARIES(flexric ${PYTHON_LIBRARIES})
+  SWIG_LINK_LIBRARIES(xapp_sdk ${PYTHON_LIBRARIES})
 
-  add_custom_command(TARGET flexric POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_BINARY_DIR}/_flexric.so" "${CMAKE_CURRENT_BINARY_DIR}/../../../../test/xApp/python3/_flexric.so" )
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/_xapp_sdk.so" "${CMAKE_CURRENT_BINARY_DIR}/../../../test/xApp/python3/_xapp_sdk.so" )
 
-  add_custom_command(TARGET flexric POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_BINARY_DIR}/flexric.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../../test/xApp/python3/flexric.py" )
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/xapp_sdk.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../test/xApp/python3/xapp_sdk.py" )
+
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+     "${CMAKE_CURRENT_BINARY_DIR}/../../../../src/xApp/swig/test.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../test/xApp/python3/test.py" )
+
+# I do not like this solution at all but it is not my code ...
+target_compile_options(xapp_sdk PRIVATE -Wno-missing-field-initializers -Wno-unused-parameter )
+
 
 #GOLANG compilation
 elseif(XAPP_TARGET_LANGUAGE STREQUAL "GO_LANG")
   ADD_COMPILE_DEFINITIONS(XAPP_LANG_GO)
-  SET_PROPERTY(TARGET flexric PROPERTY SWIG_COMPILE_OPTIONS -intgosize 64)
+  SET_PROPERTY(TARGET xapp_sdk PROPERTY SWIG_COMPILE_OPTIONS -intgosize 64)
 
 #JAVA compilation
 elseif(XAPP_TARGET_LANGUAGE STREQUAL "JAVA_LANG")
@@ -86,7 +93,7 @@ elseif(XAPP_TARGET_LANGUAGE STREQUAL "JAVA_LANG")
 #JAVASCRIPT compilation
 elseif(XAPP_TARGET_LANGUAGE STREQUAL "JAVASCRIPT_LANG")
   ADD_COMPILE_DEFINITIONS(XAPP_LANG_JAVASCRIPT)
-  SET_PROPERTY(TARGET flexric PROPERTY SWIG_COMPILE_OPTIONS -v8)
+  SET_PROPERTY(TARGET xapp_sdk PROPERTY SWIG_COMPILE_OPTIONS -v8)
   INCLUDE_DIRECTORIES(/usr/include/nodejs/src)
   INCLUDE_DIRECTORIES(/usr/include/nodejs/deps/v8/include/)
 
@@ -94,12 +101,14 @@ else()
   message(FATAL_ERROR "Unknown XAPP_TARGET_LANGUAGE")
 endif()
 
-SWIG_LINK_LIBRARIES(flexric 
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/src/xApp/libe42_xapp.so
+#Comment this line to build it from the directory
+ADD_DEPENDENCIES(xapp_sdk e42_xapp_shared)
+
+SWIG_LINK_LIBRARIES(xapp_sdk 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/src/xApp/libe42_xapp_shared.so
                     -ldl
                     -lsctp
                     -lpthread)
-
 
 
 

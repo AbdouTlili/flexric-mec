@@ -129,9 +129,9 @@ sm_ag_if_ans_t write_xapp(sm_ag_if_wr_t const* data)
   return ans; 
 }
 
-e42_xapp_t* init_e42_xapp(const char* addr, args_t args)
+e42_xapp_t* init_e42_xapp(fr_args_t const* args)
 {
-  assert(addr != NULL);
+  assert(args != NULL);
 
   printf("[xAapp]: Initializing ... \n");
 
@@ -139,6 +139,11 @@ e42_xapp_t* init_e42_xapp(const char* addr, args_t args)
   assert(xapp != NULL && "Memory exhausted");
 
   uint32_t const port = 36422;
+
+  char* addr = get_near_ric_ip(args);
+  defer({ free(addr); } );
+
+  printf("[xApp]: RIC IP Address = %s\n", addr);
 
   e2ap_init_ep_xapp(&xapp->ep, addr, port);
 
@@ -151,8 +156,8 @@ e42_xapp_t* init_e42_xapp(const char* addr, args_t args)
   init_handle_msg_xapp(&xapp->handle_msg);
 
   sm_io_ag_t io = {.read = read_xapp, .write = write_xapp };
-  init_plugin_ag(&xapp->plugin_ag, args.libs_dir, io);
-  init_plugin_ric(&xapp->plugin_ric, args.libs_dir);
+  init_plugin_ag(&xapp->plugin_ag, args->libs_dir, io);
+  init_plugin_ric(&xapp->plugin_ric, args->libs_dir);
 
   init_reg_e2_node(&xapp->e2_nodes); 
 

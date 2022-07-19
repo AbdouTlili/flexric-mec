@@ -33,8 +33,8 @@
 static
 const uint16_t SM_RLC_ID = 143; 
 
-static
-const char* __attribute__((unused))SM_RLC_STR = "RLC_STATS_V0"; 
+__attribute__((unused)) static
+const char* SM_RLC_STR = "RLC_STATS_V0"; 
 
 #endif
 
