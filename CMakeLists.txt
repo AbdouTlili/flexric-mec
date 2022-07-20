@@ -181,6 +181,7 @@ install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 
 ###
 # Install the configuration file

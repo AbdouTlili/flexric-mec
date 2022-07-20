@@ -1,10 +1,12 @@
 
 add_executable(test_xapp 
                 test.c
+                # This sucks, profoundly
                 ../../../src/sm/mac_sm/ie/mac_data_ie.c
                 ../../../src/sm/rlc_sm/ie/rlc_data_ie.c
                 ../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../src/sm/slice_sm/ie/slice_data_ie.c
+                ../../../src/sm/tc_sm/ie/tc_data_ie.c
                 ../../../src/util/alg_ds/alg/defer.c
                 )
 

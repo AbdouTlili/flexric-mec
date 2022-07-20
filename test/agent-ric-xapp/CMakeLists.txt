@@ -6,6 +6,7 @@ add_executable(test_ag_ric_xapp
                 ../../src/sm/rlc_sm/ie/rlc_data_ie.c
                 ../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../src/sm/slice_sm/ie/slice_data_ie.c
+                ../../src/sm/tc_sm/ie/tc_data_ie.c
                 ../../src/util/alg_ds/alg/defer.c
                 )
 
@@ -28,6 +29,7 @@ add_executable(test_python
                 ../../src/sm/rlc_sm/ie/rlc_data_ie.c
                 ../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../src/sm/slice_sm/ie/slice_data_ie.c
+                ../../src/sm/tc_sm/ie/tc_data_ie.c
                 )
 
 target_link_libraries(test_python
@@ -38,7 +40,6 @@ target_link_libraries(test_python
                       -pthread
                       -lsctp
                       -ldl
-                      #-lnng
                       )
 
 else()

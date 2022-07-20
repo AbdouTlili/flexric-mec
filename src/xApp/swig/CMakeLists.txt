@@ -58,6 +58,7 @@ SWIG_ADD_LIBRARY(xapp_sdk LANGUAGE ${XAPP_LANG} SOURCES
                                                  ../../sm/rlc_sm/ie/rlc_data_ie.c
                                                  ../../sm/pdcp_sm/ie/pdcp_data_ie.c
                                                  ../../sm/slice_sm/ie/slice_data_ie.c
+                                                 ../../sm/tc_sm/ie/tc_data_ie.c
                                                  ../../util/byte_array.c
                                                  ../../util/alg_ds/alg/eq_float.c
                                                  )
