@@ -240,11 +240,6 @@ void insert_db(sqlite3* db, char const* sql)
   assert(rc == SQLITE_OK && "Error while inserting into the DB. Check the err_msg string for further info");
 }
 
-static 
-void write_data(sqlite3* db, const char* query){
-  printf("Hung 5: query we get: %s \n", query);
-  insert_db(db, query);
-}
 
 static
 int to_sql_string_mac_ue(global_e2_node_id_t const* id, mac_ue_stats_impl_t* stats, int64_t tstamp, char* out, size_t out_len)
@@ -880,7 +875,7 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
 {
   assert(db != NULL);
   assert(rd != NULL);
-  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0 || rd->type == DB_WRITE_QUERY);
+  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0);
 
   if(rd->type == MAC_STATS_V0){
     write_mac_stats(db, id, &rd->mac_stats);
@@ -890,8 +885,6 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
     write_pdcp_stats(db, id, &rd->pdcp_stats);
   } else if (rd->type == SLICE_STATS_V0) {
     write_slice_stats(db, id, &rd->slice_stats);
-  } else if (rd->type == DB_WRITE_QUERY) {
-    write_data(db, rd->query_write.query);
   } else {
     assert(0!=0 && "Unknown statistics type received ");
   }

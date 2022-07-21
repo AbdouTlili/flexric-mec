@@ -40,8 +40,6 @@ void free_sm_ag_if_rd(sm_ag_if_rd_t* d)
     free_rlc_ind_data(&d->rlc_stats);
   } else if(d->type == PDCP_STATS_V0){
     free_pdcp_ind_data(&d->pdcp_stats);
-  } else if(d->type == DB_WRITE_QUERY){
-    // do nothing
   } else if(d->type == SLICE_STATS_V0){
     free_slice_ind_data(&d->slice_stats);
   } else if(d->type == TC_STATS_V0){

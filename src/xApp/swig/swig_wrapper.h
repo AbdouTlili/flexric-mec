@@ -142,12 +142,6 @@ void rm_report_slice_sm(void);
 
 void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl);
 
-//////////////////////////////////////
-// DB inteface 
-//////////////////////////////////////
-
-void write_to_db(const char* query, uint32_t len_query);
-char* get_db_name();
 
 #endif
 

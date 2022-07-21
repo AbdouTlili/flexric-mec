@@ -27,7 +27,6 @@
 #include "../util/alg_ds/alg/defer.h"
 #include "../util/alg_ds/alg/alg.h"
 #include "../sm/slice_sm/slice_sm_id.h"
-#include "../xApp/db/db.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -89,15 +88,6 @@ bool try_stop_xapp_api(void)
   assert(rc == 0);
   printf("[xApp]: Sucessfully stopped \n");
   return true;
-}
-
-int write_to_xapp_db(const char* sqlite_query, uint32_t len_query){
-  assert(xapp != NULL);
-  write_db_xapp_str(&(xapp->db), sqlite_query, len_query);
-}
-
-char* get_cur_db_name(){
-  return (xapp->db).db_filename;
 }
 
 e2_node_arr_t e2_nodes_xapp_api(void)

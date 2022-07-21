@@ -128,11 +128,6 @@ void init_db_xapp(db_xapp_t* db, char const* db_filename)
   assert(db != NULL);
   assert(db_filename != NULL);
 
-  db->db_filename = (char*) calloc(strlen(db_filename)+ 1, sizeof(char));
-  
-  //Hung
-  strncpy(db->db_filename, db_filename, strlen(db_filename));
-
   init_db_gen(&db->handler, db_filename);
 
   init_tsq(&db->q, sizeof(e2_node_ag_if_t));
@@ -150,37 +145,11 @@ void free_e2_node_ag_if_wrapper(void* it)
   free_sm_ag_if_rd(&d->rd);
 }
 
-void write_db_xapp_str(db_xapp_t* db, char const* sql_query, uint32_t len_query){
-  assert(db != NULL);
-  // dummy data to match with the struct of data inside query
-  global_e2_node_id_t id = {
-    .nb_id = 99999,
-    .plmn = {
-      .mcc = 999, 
-      .mnc = 99,
-      .mnc_digit_len = 2,
-    } 
-  }; 
-
-  //TODO: free this query
-  sm_ag_if_rd_t rd = {.type = DB_WRITE_QUERY}; 
-  rd.query_write.query = (char *) calloc((len_query + 1), sizeof(char));
-  strncpy(rd.query_write.query, sql_query, len_query);
-  rd.query_write.len_query = len_query;
-
-  e2_node_ag_if_t d = {
-    .rd = rd,
-    .id = id,
-  };
-  push_tsq(&db->q, &d, sizeof(d));
-}
-
 
 void close_db_xapp(db_xapp_t* db)
 {
   assert(db != NULL);
   
-  free(db->db_filename);
   free_tsq(&db->q, free_e2_node_ag_if_wrapper);
   pthread_join(db->p, NULL);
   close_db_gen(db->handler);  
