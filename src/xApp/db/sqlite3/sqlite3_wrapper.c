@@ -562,6 +562,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
   const size_t max = 1024;
   assert(out_len >= max);
 
+  char* c_null = NULL;
   char sched_name[50];
   sched_name[0] = '\0';
   strncat(sched_name, slices->sched_name, slices->len_sched_name);
@@ -588,7 +589,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
-                  , 0, sched_name, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00);
+                  , 0, sched_name, 0, c_null, c_null, c_null, c_null, 0.00, 0.00, 0.00);
     assert(rc < (int)max && "Not enough space in the char array to write all the data");
     return rc;
   }
@@ -604,7 +605,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
   sched[0] = '\0';
   strncat(sched, s->sched, s->len_sched);
   if (s->params.type == SLICE_ALG_SM_V0_STATIC) {
-    strncat(params_type, "STATIC", strlen("STATIC"));
+    strcat(params_type, "STATIC");
     rc = snprintf(out, out_len,
                   "INSERT INTO SLICE VALUES("
                   "%ld,"   // tstamp
@@ -625,13 +626,13 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
-                  , slices->len_slices, NULL
-                  , s->id, label, params_type, NULL, sched
+                  , slices->len_slices, c_null
+                  , s->id, label, params_type, c_null, sched
                   , s->params.u.sta.pos_low, s->params.u.sta.pos_high, 0.00);
   } else if (s->params.type == SLICE_ALG_SM_V0_NVS) {
-    strncat(params_type, "NVS", strlen("NVS"));
+    strcat(params_type, "NVS");
     if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_RATE) {
-      strncat(params_type_conf, "RATE", strlen("RATE"));
+      strcat(params_type_conf, "RATE");
       rc = snprintf(out, out_len,
                     "INSERT INTO SLICE VALUES("
                     "%ld,"   // tstamp
@@ -652,11 +653,11 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                     "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                     ");"
                     , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
-                    , slices->len_slices, NULL
+                    , slices->len_slices, c_null
                     , s->id, label, params_type, params_type_conf, sched
                     , s->params.u.nvs.u.rate.u1.mbps_required, s->params.u.nvs.u.rate.u2.mbps_reference, 0.00);
       } else if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_CAPACITY) {
-        strncat(params_type_conf, "CAPACITY", strlen("CAPACITY"));
+        strcat(params_type_conf, "CAPACITY");
         rc = snprintf(out, out_len,
                       "INSERT INTO SLICE VALUES("
                       "%ld,"   // tstamp
@@ -677,12 +678,12 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                       "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                       ");"
                       , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
-                      , slices->len_slices, NULL
+                      , slices->len_slices, c_null
                       , s->id, label, params_type, params_type_conf, sched
                       , s->params.u.nvs.u.capacity.u.pct_reserved, 0.00, 0.00);
       }
   } else if (s->params.type == SLICE_ALG_SM_V0_EDF) {
-    strncat(params_type, "EDF", strlen("EDF"));
+    strcat(params_type, "EDF");
     rc = snprintf(out, out_len,
                   "INSERT INTO SLICE VALUES("
                   "%ld,"   // tstamp
@@ -703,8 +704,8 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%d"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
-                  , slices->len_slices, NULL
-                  , s->id, label, params_type, NULL, sched
+                  , slices->len_slices, c_null
+                  , s->id, label, params_type, c_null, sched
                   , s->params.u.edf.deadline
                   , s->params.u.edf.guaranteed_prbs
                   , s->params.u.edf.max_replenish);
@@ -814,9 +815,6 @@ void write_slice_stats(sqlite3* db, global_e2_node_id_t const* id, slice_ind_dat
   assert(ind != NULL);
 
   slice_ind_msg_t const* ind_msg_slice = &ind->msg;
-
-  char buffer[4096] = {0};
-  int pos = 0;
 
   write_slice_conf_stats(db, id, ind_msg_slice->tstamp, &ind_msg_slice->slice_conf);
   write_ue_slice_conf_stats(db, id, ind_msg_slice->tstamp, &ind_msg_slice->ue_slice_conf);

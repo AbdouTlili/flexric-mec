@@ -186,6 +186,7 @@ void fill_assoc_ue_slice(ue_slice_conf_t* assoc)
   for(uint32_t i = 0; i < assoc->len_ue_slice; ++i) {
     /// SET RNTI ///
     assoc->ues[i].rnti = assoc_rnti; // TODO: get rnti from sm_cb_slice()
+    assoc->ues[i].rnti = assoc_rnti; // TODO: get rnti from sm_cb_slice()
     /// SET DL ID ///
     assoc->ues[i].dl_id = 5;
     printf("ASSOC DL SLICE: <rnti>, id %u\n", assoc->ues[i].dl_id);
@@ -243,7 +244,7 @@ int main(int argc, char *argv[])
   printf("Connected E2 nodes len = %d\n", nodes.len);
 
   // SLICE indication
-  inter_xapp_e i = ms_5;
+  inter_xapp_e inter_t = ms_5;
   sm_ans_xapp_t slice_handle;
 
   for(size_t i = 0; i < nodes.len; ++i) {
@@ -251,7 +252,7 @@ int main(int argc, char *argv[])
     for (size_t j = 0; j < n->len_rf; ++j)
       printf("Registered ran func id = %d \n ", n->ack_rf[j].id);
 
-    slice_handle = report_sm_xapp_api(&nodes.n[i].id, n->ack_rf[3].id, i, sm_cb_slice);
+    slice_handle = report_sm_xapp_api(&nodes.n[i].id, n->ack_rf[3].id, inter_t, sm_cb_slice);
     assert(slice_handle.success == true);
     sleep(2);
 
