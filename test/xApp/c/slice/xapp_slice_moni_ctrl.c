@@ -19,11 +19,11 @@
  *      contact@openairinterface.org
  */
 
-#include "../../../src/xApp/e42_xapp_api.h"
-#include "../../../src/util/alg_ds/alg/defer.h"
-#include "../../../src/util/time_now_us.h"
+#include "../../../../src/xApp/e42_xapp_api.h"
+#include "../../../../src/util/alg_ds/alg/defer.h"
+#include "../../../../src/util/time_now_us.h"
 
-#include "../../../src/sm/slice_sm/slice_sm_id.h"
+#include "../../../../src/sm/slice_sm/slice_sm_id.h"
 
 #include <stdlib.h>
 #include <stdio.h>

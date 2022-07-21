@@ -11,7 +11,7 @@
 static
 const uint16_t SM_TC_ID = 146; 
 
-static
+__attribute__((unused)) static 
 const char* SM_TC_STR = "TC_STATS_V0"; 
 
 #endif

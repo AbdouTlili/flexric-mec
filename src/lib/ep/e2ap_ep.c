@@ -137,9 +137,9 @@ union sctp_notification cp_sctp_notification(union sctp_notification const* src,
                              assert(0!=0 && "Not implemented");
                              break;
 
-    case SCTP_AUTHENTICATION_EVENT: //This notification is used to tell a receiver that either an error occurred on authentication, or a new key was made active. See Section 6.1.8.
-                             assert(0!=0 && "Not implemented");
-                             break;
+    //case SCTP_AUTHENTICATION_EVENT: //This notification is used to tell a receiver that either an error occurred on authentication, or a new key was made active. See Section 6.1.8.
+    //                         assert(0!=0 && "Not implemented");
+    //                         break;
 
     case SCTP_SENDER_DRY_EVENT:
                              assert(0!=0 && "Not implemented");
