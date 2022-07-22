@@ -21,6 +21,7 @@
 
 
 
+#include "../../../../test/common/fill_ind_data.h"
 #include "../../mac_sm/mac_sm_agent.h"
 #include "../../mac_sm/mac_sm_ric.h"
 
@@ -30,69 +31,8 @@
 #include <stdio.h>
 #include <time.h>
 
-
 static
 mac_ind_data_t cp;
-
-///
-// Functions implemented and specific to the RAN
-//
-
-void fill_mac_ind_data(mac_ind_data_t* ind_data)
-{
-  srand(time(0));
-
-  int const mod = 1024;
-
-  mac_ind_msg_t* ind_msg = &ind_data->msg; 
-  
-  int const NUM_UES = abs(rand()%10);
-
-  ind_msg->len_ue_stats = NUM_UES;
-
-  ind_msg->tstamp = 123456789;
-
-  if(NUM_UES > 0){
-    ind_msg->ue_stats = calloc(NUM_UES, sizeof(mac_ue_stats_impl_t));
-    assert(ind_msg->ue_stats != NULL && "memory exhausted");
-  }
-
-  const size_t numDLHarq = 4;
-  const size_t numUlHarq = 4;
-
-  for(uint32_t i = 0; i < ind_msg->len_ue_stats; ++i){
-    ind_msg->ue_stats[i].dl_aggr_tbs = abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_aggr_tbs = abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_aggr_bytes_sdus = abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_aggr_bytes_sdus = abs(rand()%mod);
-    ind_msg->ue_stats[i].pusch_snr = 64.0; //: float = -64;
-    ind_msg->ue_stats[i].pucch_snr = 64.0; //: float = -64;
-    ind_msg->ue_stats[i].rnti = abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_aggr_prb = abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_aggr_prb = abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_aggr_sdus = abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_aggr_sdus= abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_aggr_retx_prb= abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_aggr_retx_prb= abs(rand()%mod);
-    ind_msg->ue_stats[i].wb_cqi= abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_mcs1= abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_mcs1= abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_mcs2= abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_mcs2= abs(rand()%mod);
-    ind_msg->ue_stats[i].phr= abs(rand()%mod);
-    ind_msg->ue_stats[i].bsr= abs(rand()%mod);
-    ind_msg->ue_stats[i].dl_num_harq = numUlHarq;
-    for (uint8_t j = 0; j < numDLHarq; j++)
-      ind_msg->ue_stats[i].dl_harq[j] = abs(rand()%mod);
-    ind_msg->ue_stats[i].ul_num_harq = numUlHarq;
-    for (uint8_t j = 0; j < numUlHarq; j++)
-      ind_msg->ue_stats[i].ul_harq[j] = abs(rand()%mod);
-  }
-
-  cp.hdr = cp_mac_ind_hdr(&ind_data->hdr);
-  cp.msg = cp_mac_ind_msg(&ind_data->msg);
-}
-
 
 /////
 // AGENT
@@ -106,6 +46,8 @@ void read_RAN(sm_ag_if_rd_t* read)
   assert(read->type == MAC_STATS_V0);
 
   fill_mac_ind_data(&read->mac_stats);
+  cp.hdr = cp_mac_ind_hdr(&read->mac_stats.hdr);
+  cp.msg = cp_mac_ind_msg(&read->mac_stats.msg);
 }
 
 static 
@@ -116,7 +58,6 @@ sm_ag_if_ans_t write_RAN(const sm_ag_if_wr_t* data)
   sm_ag_if_ans_t ans = {0};
   return ans;
 }
-
 
 
 /////////////////////////////

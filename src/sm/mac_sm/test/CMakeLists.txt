@@ -68,6 +68,7 @@ if(SM_ENCODING_MAC  STREQUAL "PLAIN")
                       ../../../util/alg_ds/alg/defer.c
                       ../../../util/alg_ds/alg/eq_float.c
                       ../ie/mac_data_ie.c
+                      ../../../../test/common/fill_ind_data.c
               )
 elseif(SM_ENCODING_MAC STREQUAL "ASN")
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}../ie/asn/ )
@@ -85,6 +86,7 @@ elseif(SM_ENCODING_MAC STREQUAL "ASN")
                       ../../util/alg_ds/alg/eq_float.c
                       ../ie/mac_data_ie.c
                       ../../if_sm/read/sm_rd_if.c
+                      ../../../../test/common/fill_ind_data.c
                       ${asn_sources} 
               )
 elseif(SM_ENCODING_MAC STREQUAL "FLATBUFFERS")
@@ -100,6 +102,7 @@ elseif(SM_ENCODING_MAC STREQUAL "FLATBUFFERS")
                       ../../../util/alg_ds/alg/eq_float.c
                       ../ie/mac_data_ie.c
                       ../../if_sm/read/sm_rd_if.c
+                      ../../../../test/common/fill_ind_data.c
               )
 endif()
 

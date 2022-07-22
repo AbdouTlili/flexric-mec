@@ -101,6 +101,14 @@ typedef struct
   float pusch_snr; //: float = -64;
   float pucch_snr; //: float = -64;
 
+  float dl_bler;
+  float ul_bler;
+
+  uint32_t dl_harq[5];
+  uint32_t ul_harq[5];
+  uint32_t dl_num_harq;
+  uint32_t ul_num_harq;
+
   uint32_t rnti;
   uint32_t dl_aggr_prb; 
   uint32_t ul_aggr_prb;
@@ -109,23 +117,17 @@ typedef struct
   uint32_t dl_aggr_retx_prb;
   uint32_t ul_aggr_retx_prb;
 
+  uint32_t bsr;
+  uint16_t frame;
+  uint16_t slot;
+
   uint8_t wb_cqi; 
   uint8_t dl_mcs1;
   uint8_t ul_mcs1;
   uint8_t dl_mcs2; 
   uint8_t ul_mcs2; 
   int8_t phr; 
-  uint32_t bsr;
-  float dl_bler;
-  float ul_bler;
 
-  int dl_num_harq;
-  int ul_num_harq;
-  uint32_t dl_harq[5];
-  uint32_t ul_harq[5];
-
-  int16_t frame;
-  int16_t slot;
 } mac_ue_stats_impl_t;
 
 mac_ue_stats_impl_t cp_mac_ue_stats_impl(mac_ue_stats_impl_t const* src);
