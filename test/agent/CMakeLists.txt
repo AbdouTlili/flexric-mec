@@ -9,7 +9,7 @@
 
 add_executable(agent_1 
               test_agent.c
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(agent_1
                       PUBLIC 
@@ -27,7 +27,7 @@ target_compile_definitions(agent_1 PRIVATE TEST_AGENT_1)
 
 add_executable(agent_2 
               test_agent.c
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(agent_2
                       PUBLIC 
@@ -45,7 +45,7 @@ target_compile_definitions(agent_2 PRIVATE TEST_AGENT_2)
 
 add_executable(agent_3 
               test_agent.c
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(agent_3
                       PUBLIC 
@@ -63,7 +63,7 @@ target_compile_definitions(agent_3 PRIVATE TEST_AGENT_3)
 
 add_executable(agent_4 
               test_agent.c
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(agent_4
                       PUBLIC 
@@ -81,7 +81,7 @@ target_compile_definitions(agent_4 PRIVATE TEST_AGENT_4)
 
 add_executable(agent_5 
               test_agent.c
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(agent_5
                       PUBLIC 

@@ -84,17 +84,17 @@ if(INCL_WHAT_YOU_USE)
   message(STATUS "IWYU: Include what you use ON")
 endif()
 
-option(IAPP_EMULATOR "iApp emulator" OFF)
-if(IAPP_EMULATOR)
-  message(STATUS "iApp emulator ON")
-endif()
+#option(IAPP_EMULATOR "iApp emulator" OFF)
+#if(IAPP_EMULATOR)
+#  message(STATUS "iApp emulator ON")
+#endif()
 
 
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(BUILDING_LIBRARY STREQUAL "STATIC")
-  add_compile_options("-W;-Wall;-Wextra;-g;-fopt-info")
+  add_compile_options("-W;-Wall;-Wextra;-g;-Wno-unused-result;-fopt-info")
 elseif(BUILDING_LIBRARY STREQUAL "DYNAMIC")
   # -fPIC flag
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -157,6 +157,7 @@ endif()
 include_directories(src)
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(examples)
 
 # Build SWIG interface
 #add_subdirectory(src/xApp/swig)

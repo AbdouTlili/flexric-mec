@@ -22,7 +22,7 @@
 
 
 #include "../src/agent/e2_agent_api.h"
-#include "../common/fill_ind_data.h"
+#include "../sm/common/fill_ind_data.h"
 
 #include <assert.h>
 #include <signal.h>

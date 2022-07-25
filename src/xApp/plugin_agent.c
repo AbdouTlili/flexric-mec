@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+/*
 static
 void* rx_plugin_agent(void* p_v)
 {
@@ -121,7 +122,7 @@ void* rx_plugin_agent(void* p_v)
   close(p->sockfd);
   return NULL;
 }
-
+*/
 
 static inline
 void free_sm_agent(void* key, void* value)

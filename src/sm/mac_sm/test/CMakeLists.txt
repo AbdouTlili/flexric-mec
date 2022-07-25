@@ -40,7 +40,7 @@ if(CODE_PROFILER)
   add_compile_options("$<$<CONFIG:DEBUG>:-pg>")
   add_link_options("$<$<CONFIG:DEBUG>:-pg;>")
 
-  message(STATUS "Code Profiler ON. Example usage: gprof gprof test_mac_sm gmon.out > prof.txt && vim prof.txt")
+  message(STATUS "Code Profiler ON. Example usage: gprof test_mac_sm gmon.out > prof.txt && vim prof.txt")
 endif()
 
 option(CODE_COVERAGE "Code coverage" ON)

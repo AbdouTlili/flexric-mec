@@ -43,6 +43,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+/*
 static
 void* rx_plugin_agent(void* p_v)
 {
@@ -60,8 +61,6 @@ void* rx_plugin_agent(void* p_v)
 
   int rc = bind(p->sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
   assert(rc != -1 && "Error while binding. Address already in use?");
-
-
 
   while(true){
     struct sockaddr_in cli_addr;
@@ -111,8 +110,6 @@ void* rx_plugin_agent(void* p_v)
     ptr[strlen(ptr)] = '/';
     memcpy(full_path + strlen(full_path), buf, strlen(buf));
 
-     
-
     // Load the plugin in the agent
     load_plugin_ag(p, full_path);
     printf("File received and loaded\n");
@@ -122,7 +119,7 @@ void* rx_plugin_agent(void* p_v)
   close(p->sockfd);
   return NULL;
 }
-
+*/
 
 static inline
 void free_sm_agent(void* key, void* value)

@@ -1,7 +1,7 @@
 if(E2AP_ENCODING STREQUAL "ASN")
 add_executable(test_ag_ric_xapp 
                 test_ag_ric_xapp.c
-                ../common/fill_ind_data.c
+                ../sm/common/fill_ind_data.c
                 ../../src/sm/mac_sm/ie/mac_data_ie.c
                 ../../src/sm/rlc_sm/ie/rlc_data_ie.c
                 ../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
@@ -22,9 +22,12 @@ target_link_libraries(test_ag_ric_xapp
                       #-lnng
                       )
 
+if(FALSE) # fake a block comment
+
+
 add_executable(test_python 
                 test_python.c
-                ../common/fill_ind_data.c
+                ../../common/fill_ind_data.c
                 ../../src/sm/mac_sm/ie/mac_data_ie.c
                 ../../src/sm/rlc_sm/ie/rlc_data_ie.c
                 ../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
@@ -41,6 +44,8 @@ target_link_libraries(test_python
                       -lsctp
                       -ldl
                       )
+
+endif()
 
 else()
   message(FATAL_ERROR "Only E2AP_ENCODING allowed ")

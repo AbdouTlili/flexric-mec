@@ -12,11 +12,11 @@ typedef struct{
 
 typedef struct{
 
-#ifdef IAPP_EMULATOR
-  near_ric_if_emulator_t* type;
-#else
+//#ifdef IAPP_EMULATOR
+//  near_ric_if_emulator_t* type;
+//#else
   near_ric_t* type;
-#endif
+//#endif
 
 } near_ric_if_t;
 

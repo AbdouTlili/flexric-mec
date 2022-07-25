@@ -25,7 +25,7 @@
 #include "../../src/sm/slice_sm/slice_sm_id.h"
 #include "../../src/util/alg_ds/alg/defer.h"
 #include "../../src/util/time_now_us.h"
-#include "../common/fill_ind_data.h"
+#include "../sm/common/fill_ind_data.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -197,7 +197,6 @@ int main(int argc, char *argv[])
   sm_ans_xapp_t h_2 = report_sm_xapp_api(&nodes.n[0].id, n->ack_rf[1].id, i_2, sm_cb_rlc);
   assert(h_2.success == true);
   sleep(2);
-
 
   // Control ADD slice
   sm_ag_if_wr_t ctrl_msg_add = create_add_slice();

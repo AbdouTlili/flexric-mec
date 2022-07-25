@@ -4,7 +4,7 @@
 
 add_executable(test_near_ric 
               test_near_ric.c 
-              ../common/fill_ind_data.c)
+              ../sm/common/fill_ind_data.c)
 
 target_link_libraries(test_near_ric
                       PUBLIC 

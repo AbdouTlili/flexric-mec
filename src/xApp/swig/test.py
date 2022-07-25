@@ -90,7 +90,7 @@ signal.signal(signal.SIGINT, sig_handler)
 xapp_sdk.init()
 
 conn = xapp_sdk.conn_e2_nodes()
-assert(len(conn) > 0)
+assert(len(conn) > 2 && "This script needs at least two active E2 Agent")
 print("Global E2 Node [0]: PLMN MCC = " + str(conn[0].id.plmn.mcc) )
 print("Global E2 Node [0]: PLMN MNC = " + str(conn[0].id.plmn.mnc) )
 
@@ -104,14 +104,14 @@ print("Global E2 Node [0]: PLMN MNC = " + str(conn[0].id.plmn.mnc) )
 mac_cb = MACCallback()
 xapp_sdk.report_mac_sm(conn[0].id, xapp_sdk.Interval_ms_1, mac_cb)
 
-time.sleep(5)
+time.sleep(2)
 
 ####################
 #### RLC INDICATION
 ####################
 
 rlc_cb = RLCCallback()
-xapp_sdk.report_rlc_sm(conn[0].id, xapp_sdk.Interval_ms_1, rlc_cb)
+xapp_sdk.report_rlc_sm(conn[1].id, xapp_sdk.Interval_ms_1, rlc_cb)
 
 ####################
 #### PDCP INDICATION

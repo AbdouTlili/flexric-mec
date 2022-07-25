@@ -9,20 +9,19 @@ else()
 endif()
 
 
-if(IAPP_EMULATOR)
+#if(IAPP_EMULATOR)
 
-  include_directories(/usr/local/share/asn1c/)
+# include_directories(/usr/local/share/asn1c/)
     #${CMAKE_CURRENT_SOURCE_DIR}../lib/ap/ie/asn/ )   
-  set(RIC_IAPP_SRC 
-                ../../test/iapp-xapp/near_ric_emulator.c
-                ../util/alg_ds/alg/defer.c
-                ../sm/mac_sm/ie/mac_data_ie.c
-                ../sm/mac_sm/enc/mac_enc_plain.c
-                ../sm/rlc_sm/ie/rlc_data_ie.c
-                ../sm/rlc_sm/enc/rlc_enc_plain.c
-    )
-   
-endif()
+    #  set(RIC_IAPP_SRC 
+    #            ../../test/iapp-xapp/near_ric_emulator.c
+    #            ../util/alg_ds/alg/defer.c
+    #            ../sm/mac_sm/ie/mac_data_ie.c
+    #            ../sm/mac_sm/enc/mac_enc_plain.c
+    #            ../sm/rlc_sm/ie/rlc_data_ie.c
+    #            ../sm/rlc_sm/enc/rlc_enc_plain.c
+    #)
+#endif()
 
 set(RIC_SRC 
             e2ap_ric.c

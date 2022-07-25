@@ -51,9 +51,9 @@ else()
   message(FATAL_ERROR "Error, while compiling the agent" )
 endif()
 
-if(IAPP_EMULATOR)
-  target_compile_definitions(e42_iapp PRIVATE IAPP_EMULATOR)
-endif()
+#if(IAPP_EMULATOR)
+#  target_compile_definitions(e42_iapp PRIVATE IAPP_EMULATOR)
+#endif()
 
 
 

@@ -23,7 +23,7 @@
 #include "../src/ric/near_ric_api.h"
 #include "../src/agent/e2_agent_api.h"
 
-#include "../common/fill_ind_data.h"
+#include "../sm/common/fill_ind_data.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
   // Init the RIC
   init_near_ric_api(&args);
-  sleep(1);
+  sleep(3);
 
   e2_nodes_api_t e2_nodes = e2_nodes_near_ric_api();
   assert(e2_nodes.len > 0 && "No E2 Nodes connected");
@@ -93,9 +93,9 @@ int main(int argc, char *argv[])
   report_service_near_ric_api(id, MAC_ran_func_id, cmd );
   sleep(2);
 
-  const char* cmd2 = "Hello";
-  control_service_near_ric_api(id, MAC_ran_func_id, cmd2 );  
-  sleep(2);
+//  const char* cmd2 = "Hello";
+//  control_service_near_ric_api(id, MAC_ran_func_id, cmd2 );  
+//  sleep(2);
 
 //  load_sm_near_ric_api("../test/so/librlc_sm.so");
 

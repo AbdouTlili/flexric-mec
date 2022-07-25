@@ -556,7 +556,6 @@ seq_arr_t conn_e2_nodes(near_ric_t* ric)
   return arr;
 }
 
-
 void report_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd)
 {
   assert(ric != NULL);
@@ -572,7 +571,6 @@ void report_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uin
 
   long const wait_ms = 3000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
-  //printf("RIC: fd_timer with value created == %d\n", fd_timer);
 
   {
     lock_guard(&ric->pend_mtx);
@@ -581,10 +579,8 @@ void report_service_near_ric(near_ric_t* ric, global_e2_node_id_t const* id, uin
 
   byte_array_t ba_msg = e2ap_enc_subscription_request_ric(&ric->ap, &sr); 
 
-//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
-
   printf("[NEAR-RIC]: Report Service Asked from nb_id = %d \n", id->nb_id);
-  assert(0!=0 && "Here we are");
+  //assert(0!=0 && "Here we are");
 
   e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
    
@@ -671,7 +667,6 @@ ric_control_request_t generate_control_request(near_ric_t* ric, sm_ric_t* sm, sm
   assert(ctrl_req.ack_req != NULL && "Memory exhausted" );
   *ctrl_req.ack_req = RIC_CONTROL_REQUEST_ACK; 
 
-    
   sm_ctrl_req_data_t data = sm->proc.on_control_req(sm, wr);
 
   ctrl_req.hdr.len = data.len_hdr;
@@ -783,12 +778,6 @@ uint16_t fwd_ric_subscription_request(near_ric_t* ric, global_e2_node_id_t const
   byte_array_t ba_msg = e2ap_enc_subscription_request_ric(&ric->ap, sr); 
   defer({ free_byte_array(ba_msg); });
 
-//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
-
-//  printf("[NEAR-RIC]: NB ID = %d \n ", id->nb_id );
-//  printf("[NEAR-RIC]: sockaddr_in port = %d \n", to.sin_port );
-  
-
   e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
    
   return ric_req_id;
@@ -800,28 +789,24 @@ void fwd_ric_subscription_request_delete(near_ric_t* ric, global_e2_node_id_t co
   assert(sdr != NULL);
   assert(f != NULL);
 
-  // A pending event is created along with a timer of 1000 ms,
+  // A pending event is created along with a timer of 3000 ms,
   // after which an event will be generated
   pending_event_ric_t ev = {.ev = SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT, .id = sdr->ric_id };
 
-  long const wait_ms = 1000;
+  long const wait_ms = 3000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
-  //printf("RIC: fd_timer with value created == %d\n", fd_timer);
 
   {
     lock_guard(&ric->pend_mtx);
     bi_map_insert(&ric->pending, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev)); 
   }
 
-
   byte_array_t ba_msg = e2ap_enc_subscription_delete_request_ric(&ric->ap, sdr); 
   defer({ free_byte_array(ba_msg); }  );
 
-//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
-
   e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
 
-  printf("[NEAR-RIC]: SUBSCRIPTION DELETE REQUEST tx \n" );
+  puts("[NEAR-RIC]: SUBSCRIPTION DELETE REQUEST tx\n" );
 }
 
 uint16_t fwd_ric_control_request(near_ric_t* ric, global_e2_node_id_t const* id, ric_control_request_t const* cr,  void (*f)(e2ap_msg_t const* msg))
@@ -833,11 +818,11 @@ uint16_t fwd_ric_control_request(near_ric_t* ric, global_e2_node_id_t const* id,
   uint16_t const ric_req_id = ric->req_id++;
   *(uint16_t*)&cr->ric_id.ric_req_id = ric_req_id;
 
-  // A pending event is created along with a timer of 1000 ms,
+  // A pending event is created along with a timer of 3000 ms,
   // after which an event will be generated
   pending_event_ric_t ev = {.ev = CONTROL_REQUEST_PENDING_EVENT, .id = cr->ric_id };
 
-  long const wait_ms = 2000;
+  long const wait_ms = 3000;
   int fd_timer = create_timer_ms_asio_ric(&ric->io, wait_ms, wait_ms); 
   {
     lock_guard(&ric->pend_mtx);
@@ -847,14 +832,10 @@ uint16_t fwd_ric_control_request(near_ric_t* ric, global_e2_node_id_t const* id,
   byte_array_t ba_msg = e2ap_enc_control_request_ric(&ric->ap, cr); 
   defer({ free_byte_array(ba_msg); } );
 
-//  struct sockaddr_in const to = find_map_e2_node_sad(&ric->e2_node_sock, id);
-
   e2ap_send_bytes_ric(&ric->ep, id, ba_msg);
 
-  printf("[NEAR-RIC]: CONTROL SERVICE sent\n");
+  puts("[NEAR-RIC]: CONTROL SERVICE sent\n");
 
-  //e2ap_free_control_request_ric(&ric->ap, &ctrl_req);
-  
   return ric_req_id; 
 }
 

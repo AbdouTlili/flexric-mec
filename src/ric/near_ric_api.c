@@ -84,7 +84,7 @@ e2_nodes_api_t e2_nodes_near_ric_api(void)
 
   seq_arr_t arr = conn_e2_nodes(ric); 
 
-  e2_nodes_api_t ans = {.len = seq_size(&arr), };  
+  e2_nodes_api_t ans = {.len = seq_size(&arr)};  
 
  if(ans.len > 0){
   ans.n = calloc(ans.len, sizeof(e2_node_t)); 
@@ -99,7 +99,7 @@ e2_nodes_api_t e2_nodes_near_ric_api(void)
   e2_node_t* n = (e2_node_t*)it;  
   ans.n[i] = cp_e2_node(n);
   ++i;
-  seq_next(&arr, it);
+  it = seq_next(&arr, it);
   if(n->len_acc > 0)
     free(n->accepted);
  }

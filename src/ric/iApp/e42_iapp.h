@@ -32,7 +32,8 @@
 #include "../../util/ngran_types.h"
 
 #include "../near_ric.h"
-#include "../../../test/iapp-xapp/near_ric_emulator.h"
+#include "near_ric_if.h"
+//#include "../../../test/iapp-xapp/near_ric_emulator.h"
 
 #include "asio_iapp.h"
 #include "e2ap_iapp.h"

@@ -38,8 +38,6 @@ int64_t time_now_us(void)
 }
 
 
-
-
 e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if)
 {
   assert(addr != NULL);
@@ -218,7 +216,7 @@ void free_e42_iapp(e42_iapp_t* iapp)
   }
 
   // Emulator
-  stop_near_ric_iapp_gen(iapp->ric_if.type);
+  //stop_near_ric_iapp_gen(iapp->ric_if.type);
 
   e2ap_free_ep_iapp(&iapp->ep);
 
