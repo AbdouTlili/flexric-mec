@@ -107,7 +107,7 @@ def slice_ind_to_dict_json(ind):
     ind_dict = slice_stats
     ind_json = json.dumps(ind_dict)
 
-    with open("../../../../examples/xApp/python3/sample.json", "w") as outfile:
+    with open("rt_slice_stats.json", "w") as outfile:
         outfile.write(ind_json)
     # print(ind_dict)
 
@@ -440,7 +440,7 @@ msg = fill_slice_ctrl_msg("ADDMOD", reset_slices)
 ric.control_slice_sm(conn[node_idx].id, msg)
 time.sleep(5)
 
-with open("../../../../examples/xApp/python3/sample.json", "w") as outfile:
+with open("rt_slice_stats.json", "w") as outfile:
     outfile.write(json.dumps({}))
 
 ### End
