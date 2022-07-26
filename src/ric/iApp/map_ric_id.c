@@ -143,7 +143,8 @@ void add_map_ric_id(map_ric_id_t* map, e2_node_ric_req_t* node, xapp_ric_id_t* x
   assert(node != NULL);
   assert(x != NULL);
 
-  lock_guard(&map->mtx);
+  // The lock must be already acquired
+//  lock_guard(&map->mtx);
 
   assoc_rb_tree_t* left = &map->bimap.left; 
 

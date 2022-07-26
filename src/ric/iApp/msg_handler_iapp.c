@@ -309,6 +309,9 @@ e2ap_msg_t e2ap_handle_e42_ric_subscription_request_iapp(e42_iapp_t* iapp, const
 
   printf("[iApp]: SUBSCRIPTION-REQUEST xapp_ric_id->ric_id.ran_func_id %d  \n", xapp_ric_id.ric_id.ran_func_id );
 
+  // I do not like the mtx here but there is a data race if not
+  lock_guard(&iapp->map_ric_id.mtx); 
+
   uint16_t const new_ric_id = fwd_ric_subscription_request_gen(iapp->ric_if.type, &e42_sr->id, &e42_sr->sr, notify_msg_iapp_api);
 
   e2_node_ric_req_t n = { .ric_req_id =  new_ric_id,
@@ -335,6 +338,9 @@ e2ap_msg_t e2ap_handle_e42_ric_control_request_iapp(e42_iapp_t* iapp, const e2ap
 
   xapp_ric_id_t xapp_ric_id = {.ric_id = e42_cr->ctrl_req.ric_id,
                                 .xapp_id = e42_cr->xapp_id};
+
+  // I do not like the mtx here but there is a data race if not
+  lock_guard(&iapp->map_ric_id.mtx); 
 
   uint16_t new_ric_id = fwd_ric_control_request_gen(iapp->ric_if.type, &e42_cr->id, &e42_cr->ctrl_req, notify_msg_iapp_api);
 
