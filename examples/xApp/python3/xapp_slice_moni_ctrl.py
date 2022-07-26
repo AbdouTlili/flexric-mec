@@ -28,7 +28,6 @@ def slice_ind_to_dict_json(ind):
         dl_dict["num_of_slices"] = ind.slice_stats.dl.len_slices
         dl_dict["slice_sched_algo"] = "null"
         dl_dict["slices"] = []
-
         slice_algo = ""
         for s in ind.slice_stats.dl.slices:
             if s.params.type == 1: # TODO: convert from int to string, ex: type = 1 -> STATIC
@@ -107,7 +106,8 @@ def slice_ind_to_dict_json(ind):
 
     ind_dict = slice_stats
     ind_json = json.dumps(ind_dict)
-    with open("../../../test/xApp/python3/sample.json", "w") as outfile:
+
+    with open("../../../../examples/xApp/python3/sample.json", "w") as outfile:
         outfile.write(ind_json)
     # print(ind_dict)
 
@@ -125,11 +125,11 @@ class SLICECallback(ric.slice_cb):
     # Override C++ method: virtual void handle(swig_slice_ind_msg_t a) = 0;
     def handle(self, ind):
         # Print swig_slice_ind_msg_t
-        # if (ind.slice_stats.dl.len_slices > 0):
+        #if (ind.slice_stats.dl.len_slices > 0):
         #     print('SLICE Indication tstamp = ' + str(ind.tstamp))
         #     print('SLICE STATE: len_slices = ' + str(ind.slice_stats.dl.len_slices))
         #     print('SLICE STATE: sched_name = ' + str(ind.slice_stats.dl.sched_name[0]))
-        # if (ind.ue_slice_stats.len_ue_slice > 0):
+        #if (ind.ue_slice_stats.len_ue_slice > 0):
         #    print('UE ASSOC SLICE STATE: len_ue_slice = ' + str(ind.ue_slice_stats.len_ue_slice))
         slice_ind_to_dict_json(ind)
 
@@ -393,12 +393,12 @@ conn = ric.conn_e2_nodes()
 assert(len(conn) > 0)
 
 node_idx = 0
-for i in range(0, len(conn)):
-    if conn[i].id.plmn.mcc == 1:
-        node_idx = i
+#for i in range(0, len(conn)):
+#    if conn[i].id.plmn.mcc == 1:
+#        node_idx = i
 
-print("Global E2 Node [" + str(node_idx) + "]: PLMN MCC = " + str(conn[node_idx].id.plmn.mcc))
-print("Global E2 Node [" + str(node_idx) + "]: PLMN MNC = " + str(conn[node_idx].id.plmn.mnc))
+#print("Global E2 Node [" + str(node_idx) + "]: PLMN MCC = " + str(conn[node_idx].id.plmn.mcc))
+#print("Global E2 Node [" + str(node_idx) + "]: PLMN MNC = " + str(conn[node_idx].id.plmn.mnc))
 
 ####################
 #### SLICE INDICATION
@@ -440,7 +440,7 @@ msg = fill_slice_ctrl_msg("ADDMOD", reset_slices)
 ric.control_slice_sm(conn[node_idx].id, msg)
 time.sleep(5)
 
-with open("../../../test/xApp/python3/sample.json", "w") as outfile:
+with open("../../../../examples/xApp/python3/sample.json", "w") as outfile:
     outfile.write(json.dumps({}))
 
 ### End
