@@ -136,10 +136,59 @@ In this release MAC, RLC, PDCP and partially Slicing are supported SMs.
 
 ## Demo July 2022
 
-If you want to see the full power of FlexRIC using their multi-RAT, multi-vendor, multi-language, multi-agent and multi-xApp in action follow the next steps.
+If you want to see the full power of FlexRIC using its multi-RAT, multi-vendor, multi-language, multi-agent and multi-xApp capabilities in action, you can replicate the following demo.
+
+<https://www.youtube.com/watch?v=sHJSA3FgGd8>
+
+![alt text](fig/1.png)
 
 
-XXXXXX Here Chieh
+### (opt) Synchronize clock
+
+Run ptp4l in all the machines
+
+```bash
+sudo ptp4l -m -i InterfaceName #for master
+sudo ptp4l -m -i InterfaceName -s #for slaves
+```
+
+![alt text](fig/2.png)
+
+Following make sure that no ntpd, chrondy or timesyncd is running in the system (e.g., $ sudo systemctl stop systemd-timesyncd ). 
+
+```bash
+sudo phc2sys -m -s InterfaceName -w
+```
+
+![alt text](fig/3.png)
+
+### Start some eNodeB/gNodeB
+
+```bash
+$ sudo ./nr-softmodem -O path/to/flexric/multiRAT/oai/gnb.sa.band78.fr1.106PRB.usrpb210.conf --sa -E --continuous-tx
+```
+
+### Start the nearRT-RIC
+
+```bash
+$ ./build/examples/ric/nearRT-RIC
+```
+
+### Start different xApps
+
+e.g, start the monitoring xApp
+
+```bash
+$ cd build/example/xApp/c/monitor/
+$ ./xapp_mac_rlc_pdcp_moni
+```
+
+Following the monitoring sequence diagram. 
+![alt text](fig/4.png)
+
+Next the slice sequence diagram.
+
+![alt text](fig/5.png)
 
 
 ## Flatbuffers 
@@ -148,7 +197,7 @@ follow the instructions at https://github.com/dvidelabs/flatcc and provide the p
 selecting it at ccmake .. from the build directory 
 
 ## Research Paper
-If you want to know more about FlexRIC and its architecture, you can find more details at:
+If you want to know more about FlexRIC and its original architecture, you can find more details at:
 
 Robert Schmidt, Mikel Irazabal, and Navid Nikaein. 2021. FlexRIC: an SDK for next-generation SD-RANs. In Proceedings of the 17th International Conference on emerging Networking EXperiments and Technologies (CoNEXT '21). Association for Computing Machinery, New York, NY, USA, 411–425. DOI:https://doi.org/10.1145/3485983.3494870
 
