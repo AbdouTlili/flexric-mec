@@ -154,7 +154,7 @@ sudo ptp4l -m -i InterfaceName -s #for slaves
 
 ![alt text](fig/2.png)
 
-Following make sure that no ntpd, chrondy or timesyncd is running in the system (e.g., $ sudo systemctl stop systemd-timesyncd ). 
+Following make sure that no ntpd, chrondy or timesyncd is running in the system (e.g., `sudo systemctl stop systemd-timesyncd`). 
 
 ```bash
 sudo phc2sys -m -s InterfaceName -w
@@ -186,7 +186,14 @@ $ ./xapp_mac_rlc_pdcp_moni
 Following the monitoring sequence diagram. 
 ![alt text](fig/4.png)
 
-Next the slice sequence diagram.
+
+e.g, start the slicing control xApp
+
+```bash
+$ cd build/example/xApp/python3/
+$ python3 ./xapp_slice_moni_ctrl.py
+```
+Following the controlling sequence diagram.
 
 ![alt text](fig/5.png)
 
