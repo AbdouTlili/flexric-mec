@@ -263,10 +263,10 @@ void to_string_slice(slice_ind_msg_t const* slice, int64_t tstamp, char* out, si
 {
   assert(slice != NULL);
   assert(out != NULL);
-  const size_t max = 512;
+  const size_t max = 2048;
   assert(out_len >= max);
 
-  char temp[512] = {0};
+  char temp[2048] = {0};
   size_t sz = 0;
 
   if (slice->slice_conf.dl.len_slices == 0) {
