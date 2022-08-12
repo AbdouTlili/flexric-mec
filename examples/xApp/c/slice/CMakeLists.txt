@@ -1,6 +1,6 @@
 
-add_executable(xapp_slice_moni_ctrl 
-             xapp_slice_moni_ctrl.c
+add_executable(xapp_slice
+        xapp_slice.c
                 ../../../../src/util/alg_ds/alg/defer.c
                 ../../../../src/sm/mac_sm/ie/mac_data_ie.c
                 ../../../../src/sm/rlc_sm/ie/rlc_data_ie.c
@@ -9,7 +9,7 @@ add_executable(xapp_slice_moni_ctrl
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
                 )
 
-target_link_libraries(xapp_slice_moni_ctrl
+target_link_libraries(xapp_slice
                       PUBLIC
                       e42_xapp
                       -pthread
