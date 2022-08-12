@@ -238,8 +238,14 @@ void e2_event_loop_xapp(e42_xapp_t* xapp)
       assert(*e.p_ev != E42_RIC_CONTROL_REQUEST_PENDING_EVENT && "Timeout waiting for Control ACK. Connection lost with the RIC?");
 
       // Resend the subscription request message
+      e42_setup_request_t sr = generate_e42_setup_request(xapp);
+      defer({ e2ap_free_e42_setup_request(&sr);  } );
+
       printf("[E2AP]: Resending Setup Request after timeout\n");
-      send_setup_request(xapp);
+      byte_array_t ba = e2ap_enc_e42_setup_request_xapp(&xapp->ap, &sr);
+      defer({free_byte_array(ba); } );
+
+      e2ap_send_bytes_xapp(&xapp->ep, ba);
 
       consume_fd(fd);
     } else {
