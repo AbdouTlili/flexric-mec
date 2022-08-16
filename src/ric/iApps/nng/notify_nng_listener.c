@@ -355,8 +355,8 @@ void notify_nng_listener(sm_ag_if_rd_t const* data)
   } else if(data->type == SLICE_STATS_V0){
     slice_ind_msg_t const* ind = &data->slice_stats.msg;
 
-    char stats[512] = {0};
-    to_string_slice(ind, ind->tstamp, stats, 512);
+    char stats[2048] = {0};
+    to_string_slice(ind, ind->tstamp, stats, 2048);
       int rv;
       if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
         fatal("nng_send", rv);

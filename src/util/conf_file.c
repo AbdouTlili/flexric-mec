@@ -384,7 +384,7 @@ fr_args_t init_fr_args(int argc, char* argv[])
   load_default_val(&args);
   
   if(argc > 1){
-    assert(argc < 4 && "Only -h -c -p flags supported");
+    assert(argc < 6 && "Only -h -c -p flags supported");
     assert(argv != NULL);
     parse_args(argc, argv, &args);
   }

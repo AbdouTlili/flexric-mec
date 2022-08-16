@@ -11,15 +11,15 @@ https://bit.ly/3uOXuCV
 
 Below is the list of features available in this version divided per component and per service model:
 
-|      | OAI-4g |OAI-5g| SRS-4g | E2 node Agent emulator| Near RT-RIC | xApp c/c++ SDK |xApp python SDK | O-RAN standardized|
-|:-----|:-------|:-----|:-------|:--------|:------------|:------------------|:---------------|:--------------|
-| MAC  |  Y     | Y    | Y      |Y | Y | Y  |Y  | N |
-| RLC  |  Y     | Y    | Y      |Y | Y | Y  |Y  | N | 
-| PDCP |  Y     | Y    | Y      |Y | Y | Y  |Y  | N | 
-| SLICE|  Y     | NO   | Y      |Y | Y | Y  |Y  | N |
-| TC   |  NO    | NO   | NO     |Y | Y | Y  |NO | N |
-| GTP  |  NO    | NO   | NO     |Y | Y | Y  |NO | N |
-| KPM  |  NO    | NO   | NO     |Y | Y | Y  |NO | Y |
+|      | OAI-4g |OAI-5g| SRS-4g | E2 Agent emulator | Near RT-RIC | xApp c/c++ SDK | xApp python SDK| O-RAN standardized|
+|:-----|:-------|:-----|:-------|:------------------|:------------|:------------------|:---------------|:--------------|
+| MAC  | Y      | Y    | Y      | Y                 | Y | Y  | Y              | N |
+| RLC  | Y      | Y    | Y      | Y                 | Y | Y  | Y              | N | 
+| PDCP | Y      | Y    | Y      | Y                 | Y | Y  | Y              | N | 
+| SLICE| Y      | N    | Y      | Y                 | Y | Y  | Y              | N |
+| TC   | N      | N    | N      | Y                 | Y | Y  | N              | N |
+| GTP  | N      | N    | N      | Y                 | Y | Y  | N              | N |
+| KPM  | N      | N    | N      | Y                 | Y | Y  | N              | Y |
 
 ## 1. Installation
 
@@ -121,25 +121,22 @@ $ ./build/examples/ric/nearRT-RIC
 
 Start one or multiple E2 node Agent emulators using default configuration
 ```bash
-$ ./build/examples/emulator/agent/agent_1
-$ ./build/examples/emulator/agent/agent_2 
+$ ./build/examples/emulator/agent/emu_agent_gnb_cu
+$ ./build/examples/emulator/agent/emu_agnet_gnb_du
 ```
 or a customized one, i.e.:
 ```bash
-$ ./build/examples/emulator/agent/agent_1 -c /usr/local/etc/flexric/flexric.conf  &
-$ ./build/examples/emulator/agent/agent_2 -c /usr/local/etc/flexric/flexric2.conf &
+$ ./build/examples/emulator/agent/emu_agent_gnb_cu -c ~/flexric1.conf  &
+$ ./build/examples/emulator/agent/emu_agnet_gnb_du -c ~/flexric2.conf &
 ```
-where, for example, flexric.conf is: 
+where, for example, flexric1.conf is: 
 ```
 [NEAR-RIC]
 NEAR_RIC_IP = 127.0.0.1
-E2_PORT = 36421
 
-[EMULATOR-E2-NODE]
-NB_ID = 11
-MCC = 222
-MNC = 11
-RAN_TYPE = gNB
+[XAPP]
+DB_PATH = /tmp/
+DB_NAME = xapp_db1
 ```
 
 flexric2.conf is: 
@@ -147,13 +144,10 @@ flexric2.conf is:
 ```
 [NEAR-RIC]
 NEAR_RIC_IP = 127.0.0.1
-E2_PORT = 36421
 
-[EMULATOR-E2-NODE]
-NB_ID = 12
-MCC = 555
-MNC = 22
-RAN_TYPE = gNB
+[XAPP]
+DB_PATH = /tmp/
+DB_NAME = xapp_db2
 ```
 
 Next, you can fetch some statistics from the E2 Agents using python xApps via `$ python3 build/examples/xApp/python3/xapp_gtp_moni.py`, while in other window you can start a second xApp developed in c `$ build/examples/xApp/c/monitor/xapp_monitor_all`
