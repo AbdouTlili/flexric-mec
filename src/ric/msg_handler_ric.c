@@ -355,7 +355,7 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_t* d)
   const e2_setup_request_t* req = &msg->u_msgs.e2_stp_req;
 
   const plmn_t* plmn = &req->id.plmn;
-  printf("[E2AP] Received SETUP-REQUEST from PLMN %3d.%*d Node ID %d\n", plmn->mcc, plmn->mnc_digit_len, plmn->mnc, req->id.nb_id);
+  printf("[E2AP] Received SETUP-REQUEST from PLMN %3d.%*d Node ID %d RAN type %d\n", plmn->mcc, plmn->mnc_digit_len, plmn->mnc, req->id.nb_id, req->id.type);
 
   // Add the E2 Node into the iApp
   add_e2_node_iapp_api((global_e2_node_id_t*)&req->id, req->len_rf, req->ran_func_item);

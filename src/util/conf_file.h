@@ -1,3 +1,5 @@
+#include "ngran_types.h"
+
 #ifndef FLEXRIC_CONFIGURATION_FILE_H
 #define FLEXRIC_CONFIGURATION_FILE_H 
 
@@ -30,5 +32,8 @@ char* get_conf_mcc(fr_args_t const*);
 
 char* get_conf_mnc(fr_args_t const*);
 
+ngran_node_t get_conf_rantype(fr_args_t const*);
+
+char* get_conf_cu_du_id(fr_args_t const*);
 #endif
 
