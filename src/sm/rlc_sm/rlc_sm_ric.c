@@ -79,7 +79,7 @@ sm_subs_data_t on_subscription_rlc_sm_ric(sm_ric_t const* sm_ric, const char* cm
 }
 
 static
- sm_ag_if_rd_t on_indication_rlc_sm_ric(sm_ric_t const* sm_ric, sm_ind_data_t* data)
+sm_ag_if_rd_t on_indication_rlc_sm_ric(sm_ric_t const* sm_ric, sm_ind_data_t* data)
 {
   assert(sm_ric != NULL); 
   assert(data != NULL); 

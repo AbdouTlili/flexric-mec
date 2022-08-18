@@ -29,6 +29,7 @@
 #include "../../mac_sm/ie/mac_data_ie.h"
 #include "../../slice_sm/ie/slice_data_ie.h"
 #include "../../tc_sm/ie/tc_data_ie.h"
+#include "../../kpm_sm_v2.02/ie/kpm_data_ie.h"
 
 typedef enum{
   SUBSCRIBE_TIMER = 0,
@@ -37,7 +38,6 @@ typedef enum{
   PDCP_CTRL_REQ_V0 = 3,
   SLICE_CTRL_REQ_V0 = 4,
   TC_CTRL_REQ_V0 = 5,
-
   SM_AGENT_IF_WRITE_V0_END,
 } sm_ag_if_wr_e;
 

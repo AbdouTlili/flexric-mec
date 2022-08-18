@@ -1,0 +1,56 @@
+Compliance to KPM SM v.2.02, as of 2022.08.08, is illustrated in the table below.
+
+E2E tests are the ones in kpm_sm/test directory that test encoding/decoding but does not check 
+the whole loop with E2AP messages, while OAI tests check the whole loop with E2AP messages
+Some development is still missing on test frameworks. Precisely
+- missing development of OAI patch
+- missing development of 'All-in-one tests'
+- partial development of 'internal SM tests'
+
+
+Legend: 
+not applicable: means that it does not have to be implemented.
+N/A: not available
+*: to implement just format 1 for indication message 
+**: missing decoding implementation. Anyway, implemented just action definition 1 (1/5). Test passed for encoding.
+
+
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+         Message              |  Implementation status  | encoding type | internal SM tests | coverage internal | OAI tests  | All-in-one  |
+                              |                         | (plain/asn/fb)|(plain, asn, fb)   | SM tests(enc/dec) |            | tests       |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Event Trigger Definition |          100%           |  plain, asn   |  plain, asn       |   (100%/100%)     |   N/A      |    N/A      |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Action Definition        |           10%(**)       |     asn       |     N/A           |    (50%/0%)       |   N/A      |    N/A      |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Indication Header        |          100%           |     asn       |     asn           |    (50%/50%)      |   N/A      |    N/A      |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Indication Message       |           30%(*)        |     asn       |      asn          |      N/A          |   N/A      |    N/A      |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Call Process ID          |        not applicable   |               |                   |                   |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Control Header           |        not applicable   |               |                   |                   |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Control Message          |        not applicable   |               |                   |                   |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RIC Control Outcome          |        not applicable   |               |                   |                   |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+ RAN Function Definition      |            0%           |               |                   |                   |
+------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
+
+Compatibility matrix among RIC styles, action definition and indication message, extracted from the KPM v2.02 spec.
+
+| RIC Service    |    Action Definition  |   indication message  |
+| Style          |       Format          |      format           |
+|----------------|-----------------------|-----------------------|
+|  Style 1       |     1                 |     1                 |
+|----------------|-----------------------|-----------------------|
+|  Style 2       |     2                 |     1                 |
+|----------------|-----------------------|-----------------------|
+|  Style 3       |     3                 |     2                 |
+|----------------|-----------------------|-----------------------|
+|  Style 4       |     4                 |     3                 |
+|----------------|-----------------------|-----------------------|
+|  Style 5       |     5                 |     3                 |
+|----------------|-----------------------|-----------------------|
+

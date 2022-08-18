@@ -67,7 +67,7 @@ void init_udp_socket()
 void notify_influx_listener(sm_ag_if_rd_t const* data)
 {
   assert(data != NULL);
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == KPM_STATS_V0);
   pthread_once(&init_socket, init_udp_socket);
 
 //  printf("Influx db data called!!!\n");

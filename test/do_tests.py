@@ -28,6 +28,7 @@ results += [run_test_if_exists("./../build/test/test_e2ap_encode_asn")]
 results += [run_test_if_exists("./../build/test/test_e2ap_enc_dec_asn")]
 results += [run_test_if_exists("./../build/test/test_e2ap_enc_dec_fb")]
 results += [run_test_if_exists("./../build/test/test_near_ric")]
+results += [run_test_if_exists("./../build/src/sm/kpm_sm_v2.02/test/test_kpm_sm")]
 
 # sums elementwise (x,y) in results
 result = tuple(map(sum, zip(*results)))

@@ -103,6 +103,43 @@ void fill_mac_ind_data(mac_ind_data_t* ind)
   }
 }
 
+void fill_kpm_ind_data(kpm_ind_data_t* ind)
+{
+  assert(ind != NULL);
+  srand(time(0));
+
+  int64_t t = time_now_us();
+  ind->hdr.collectStartTime.len = 4;
+  ind->hdr.collectStartTime.buf = calloc(1, 4);
+  assert(ind->hdr.collectStartTime.buf != NULL && "memory exhausted");
+  memcpy(ind->hdr.collectStartTime.buf, &t , 4);
+  ind->hdr.fileFormatversion = NULL;
+  ind->hdr.senderName = NULL;
+  ind->hdr.senderType = NULL;
+  ind->hdr.vendorName = NULL;
+
+
+  adapter_MeasDataItem_t *KPMData = calloc(1, sizeof(adapter_MeasDataItem_t));
+  KPMData[0].measRecord_len = rand()%100;
+  KPMData[0].incompleteFlag =  -1;
+  
+  adapter_MeasRecord_t * KPMRecord = calloc(KPMData[0].measRecord_len, sizeof(adapter_MeasRecord_t));
+  KPMData[0].measRecord = KPMRecord;
+  for (size_t i=0; i<KPMData[0].measRecord_len ; i++){
+    KPMRecord[i].type = MeasRecord_int;
+    KPMRecord[i].int_val = rand();
+  }
+  
+
+  ind->msg.MeasData = KPMData;
+  ind->msg.MeasData_len = 1;
+
+  ind->msg.granulPeriod = NULL;
+  ind->msg.MeasInfo = NULL;
+  ind->msg.MeasInfo_len = 0;
+
+}
+
 void fill_rlc_ind_data(rlc_ind_data_t* ind)
 {
   assert(ind != NULL);

@@ -169,6 +169,8 @@ void notify_stdout_listener(sm_ag_if_rd_t const* data)
     print_pdcp_stats(&data->pdcp_stats.msg);
   else if (data->type == SLICE_STATS_V0)
     print_slice_stats(&data->slice_stats.msg);
+  else if (data->type == KPM_STATS_V0)
+    printf("Printing statistics for KPM: not implemented yet\n");
   else
     assert(0!= 0);
 }
