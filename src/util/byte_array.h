@@ -41,11 +41,17 @@ typedef struct {
   byte_array_t (name) = {.buf = (name##_BuF), .len = (length)}
 
 /* create on the heap a new 'byte_array_t' data structure named 'ba' from OCTET_STRING_t named 'octet' pointer*/
-#define BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ba, octet)  \
+#define BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS(ba, octet)  \
   ba->buf = calloc(1, octet->size);\
   assert(ba->buf!=NULL && "Memory exhausted");\
   memcpy(ba->buf, octet->buf, octet->size);\
   ba->len = octet->size;
+
+#define BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ba, octet)  \
+  ba.buf = calloc(1, octet.size);\
+  assert(ba.buf!=NULL && "Memory exhausted");\
+  memcpy(ba.buf, octet.buf, octet.size);\
+  ba.len = octet.size;
 
 byte_array_t copy_byte_array(byte_array_t src);
 

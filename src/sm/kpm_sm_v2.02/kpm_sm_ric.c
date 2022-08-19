@@ -136,12 +136,15 @@ void free_ind_data_kpm_sm_ric(void* msg)
 }
 
 static
-void ric_on_e2_setup_kpm_sm_ric(sm_ric_t const* sm_ric, sm_e2_setup_t const* setup)
+void ric_on_e2_setup_kpm_sm_ric(sm_ric_t const* sm_ric, sm_e2_setup_t const* data)
 {
   assert(sm_ric != NULL); 
-  assert(setup == NULL); 
+  assert(data != NULL); 
 
-  assert(0!=0 && "Not implemented");
+  sm_kpm_ric_t* sm = (sm_kpm_ric_t*)sm_ric;
+ 
+  kpm_func_def_t fdef = kpm_dec_func_def(&sm->enc, data->len_rfd, data->ran_fun_def);
+  // well .... we do nothing with that for the moment.
 }
 
 static

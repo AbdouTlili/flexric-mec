@@ -109,11 +109,7 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
         {
           LabelInfoItem_t *labels = calloc(1, sizeof(LabelInfoItem_t));
           assert (labels != NULL && "Memory exhausted");
-          /* XXX - optimization
-           * 
-           * For the moment, you we need to copy all the data again with those malloc looks a wasts of time and resources.
-           * Explore a better way to do it, i.e. like having a static memory pool.
-           */
+          
           if (action_def->MeasInfo[i].labelInfo[j].noLabel != NULL) {
             labels->measLabel.noLabel = malloc (sizeof(*(labels->measLabel.noLabel)));
             assert (labels->measLabel.noLabel != NULL && "Memory exhausted");

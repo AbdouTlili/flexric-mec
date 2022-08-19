@@ -60,6 +60,11 @@ void check_eq_ran_function(sm_agent_t const* ag, sm_ric_t const* ric)
   assert(ag->ran_func_id == ric->ran_func_id);
   assert(ag->ran_func_id == SM_KPM_ID);
   Logme ("[IE RAN function ID]: Agent and RIC are using the same RAN function ID for KPM: %d\n", SM_KPM_ID);
+
+  // TODO: check the encoding/decoding of RAN function definition
+  sm_e2_setup_t data = ag->proc.on_e2_setup(ag);
+  ric->proc.on_e2_setup(ric, &data);
+
 }
 
 /* Direction: RIC -> E2 
@@ -76,8 +81,7 @@ void check_subscription(sm_agent_t* ag, sm_ric_t* ric)
   Logme ("[IE RIC Action Definition] correctly encoded\n");
   assert ((ag->proc.on_subscription(ag, &data)).ms == 2 && "error in decoding trigger");
   Logme ("[IE RIC Event Trigger Definition] correctly decoded\n");
-  Logme ("[IE RIC Action Definition]: WARN/decoding not yet implemented\n");
-
+  
   free_sm_subs_data(&data);
 }
 

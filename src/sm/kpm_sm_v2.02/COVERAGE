@@ -1,19 +1,4 @@
-Compliance to KPM SM v.2.02, as of 2022.08.08, is illustrated in the table below.
-
-E2E tests are the ones in kpm_sm/test directory that test encoding/decoding but does not check 
-the whole loop with E2AP messages, while OAI tests check the whole loop with E2AP messages
-Some development is still missing on test frameworks. Precisely
-- missing development of OAI patch
-- missing development of 'All-in-one tests'
-- partial development of 'internal SM tests'
-
-
-Legend: 
-not applicable: means that it does not have to be implemented.
-N/A: not available
-*: to implement just format 1 for indication message 
-**: missing decoding implementation. Anyway, implemented just action definition 1 (1/5). Test passed for encoding.
-
+Compliance to KPM SM v.2.02, as of 2022.08.19, is illustrated in the table below.
 
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
          Message              |  Implementation status  | encoding type | internal SM tests | coverage internal | OAI tests  | All-in-one  |
@@ -21,11 +6,11 @@ N/A: not available
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
  RIC Event Trigger Definition |          100%           |  plain, asn   |  plain, asn       |   (100%/100%)     |   N/A      |    N/A      |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
- RIC Action Definition        |           10%(**)       |     asn       |     N/A           |    (50%/0%)       |   N/A      |    N/A      |
+ RIC Action Definition        |           20%(**)       |     asn       |     N/A           |    (50%/0%)       |   N/A      |    N/A      |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
  RIC Indication Header        |          100%           |     asn       |     asn           |    (50%/50%)      |   N/A      |    N/A      |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
- RIC Indication Message       |           30%(*)        |     asn       |      asn          |      N/A          |   N/A      |    N/A      |
+ RIC Indication Message       |           33%(*)        |     asn       |      asn          |      N/A          |   N/A      |    N/A      |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
  RIC Call Process ID          |        not applicable   |               |                   |                   |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
@@ -35,10 +20,25 @@ N/A: not available
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
  RIC Control Outcome          |        not applicable   |               |                   |                   |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
- RAN Function Definition      |            0%           |               |                   |                   |
+ RAN Function Definition      |            100%         |     asn       |       N/A         |     N/A           |    N/A     |    N/A      |
 ------------------------------|-------------------------|---------------|-------------------|-------------------|------------|-------------|
 
-Compatibility matrix among RIC styles, action definition and indication message, extracted from the KPM v2.02 spec.
+Legend: 
+
+  not applicable: means that it does not have to be implemented.
+
+  N/A: not available
+
+  *: to implement just format 1 for indication message 
+
+  **: to implement just format 1 for action definition (one out of five possible action definitions)
+
+  'Internal SM test':  the ones you can find in test/sm/kpm_sm directory that test the encoding/decoding but does not check 
+  the whole loop with E2AP messages, while OAI tests check the whole loop with E2AP messages
+  Some development is still missing on test frameworks. Precisely, missing development of OAI patch and still partial development of 'All-in-one tests'.
+
+
+As a reference, below is the compatibility matrix among RIC styles, action definition and indication messages, extracted from the KPM v2.02 spec.
 
 | RIC Service    |    Action Definition  |   indication message  |
 | Style          |       Format          |      format           |

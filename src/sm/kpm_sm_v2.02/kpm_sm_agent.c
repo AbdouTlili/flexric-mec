@@ -2,10 +2,10 @@
  * Implementation agent side of SM KPM
 
  * Note that the agent side functionalities at E2AP level is already implemented with generic code
- * given that the framework is the same(SM), it changes only the content of the IE at applicative layer SM, i.e. SM-KPM, SM-PDCP
+ * given that the framework is the same for all SM, it changes only the content of the IE at applicative layer SM, i.e. SM-KPM, SM-PDCP
  * 
- * I.e. ON SUSCRIPTION, implemented in src/agent/msg_handler_agent.c:e2ap_handle_subscription_request_agent()) 
- * and following O-RAN.WG3.E2AP-v01.01, $8.2.1.2 functionality expressed below:
+ * I.e. ON SUBSCRIPTION, implemented in src/agent/msg_handler_agent.c:e2ap_handle_subscription_request_agent()) 
+ * and following O-RAN.WG3.E2AP-v01.01, $8.2.1.2, the functionality is expressed below:
  * "
  * At reception of the RIC SUBSCRIPTION REQUEST message the target E2 Node shall:
  * - Determine the target function using the information in the RAN Function ID IE and configure the requested
@@ -66,8 +66,8 @@ subscribe_timer_t on_subscription_kpm_sm_ag(sm_agent_t* sm_agent, const sm_subs_
 // XXX: not sure about the logic here on action_definition. Leaving 'acd' doing nothing for the moment
   if (data->len_ad != 0){
     kpm_action_def_t acd = kpm_dec_action_def(&sm->enc, data->len_ad, data->action_def);
-    acd; 
-    printf("KPM: decoded action definition. Discarded for the moment\n");
+    (void)acd;
+    #warning "KPM: the decoded action definition is discarded for the moment"
   }
 
   return timer;
@@ -94,9 +94,8 @@ static sm_ind_data_t on_indication_kpm_sm_ag(sm_agent_t* sm_agent)
   // Fill Indication Message 
   sm_ag_if_rd_t rd_if = {0};
   rd_if.type = KPM_STATS_V0;
-  sm->base.io.read(&rd_if); // CAVEATS: hook for test framework. The read function 'sm->base.io.read()' will be modified to pass dummy data to this point.
+  sm->base.io.read(&rd_if); 
 
-// Liberate the memory if previously allocated by the RAN. It sucks
   kpm_ind_data_t* ind = &rd_if.kpm_stats;
   defer({ free_kpm_ind_hdr(&ind->hdr) ;});
   defer({ free_kpm_ind_msg(&ind->msg) ;});
@@ -111,7 +110,7 @@ static sm_ind_data_t on_indication_kpm_sm_ag(sm_agent_t* sm_agent)
 
   return ret;
 }
-// XXX: not sure about this implementation: I should encode the RAN function definition IE, while below it is a plain encoding
+
 static
 sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
 {
@@ -122,11 +121,13 @@ sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
   sm_e2_setup_t setup = {.len_rfd =0, .ran_fun_def = NULL  }; 
 
   kpm_func_def_t func_def = {0};
+  uint8_t SM_KPM_STR_buf[2];
+
   func_def.ranFunction_Name.Description.buf = SM_KPM_DESCRIPTION;
-  func_def.ranFunction_Name.Description.len = sizeof(SM_KPM_DESCRIPTION);
+  func_def.ranFunction_Name.Description.len = strlen(SM_KPM_DESCRIPTION);
   func_def.ranFunction_Name.ShortName.buf = SM_KPM_STR;
-  func_def.ranFunction_Name.ShortName.len = sizeof(SM_KPM_STR);
-  func_def.ranFunction_Name.E2SM_OID.buf = malloc(2);
+  func_def.ranFunction_Name.ShortName.len = strlen(SM_KPM_STR);
+  func_def.ranFunction_Name.E2SM_OID.buf = SM_KPM_STR_buf;
   func_def.ranFunction_Name.E2SM_OID.len = 2;
   INT16_TO_BUFFER(SM_KPM_ID, func_def.ranFunction_Name.E2SM_OID.buf);
 
@@ -134,6 +135,7 @@ sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
   setup.ran_fun_def = ba.buf;
   setup.len_rfd = ba.len;
  
+  
   return setup;
 }
 
