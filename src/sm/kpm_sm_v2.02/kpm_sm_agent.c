@@ -81,17 +81,7 @@ static sm_ind_data_t on_indication_kpm_sm_ag(sm_agent_t* sm_agent)
 
   sm_ind_data_t ret = {0};
 
-  // XXX: I filled Indication Header with dummy values for the moment. To be fixed. not sure if read() function below takes care also of the header.
-  // Cfr specifications what says.
-  kpm_ind_hdr_t hdr = {0};
-  hdr.collectStartTime.buf = (unsigned char *)"NTPD";
-  hdr.collectStartTime.len = 4;
-
-  byte_array_t ba_hdr = kpm_enc_ind_hdr(&sm->enc, &hdr);
-  ret.ind_hdr = ba_hdr.buf;
-  ret.len_hdr = ba_hdr.len;
-
-  // Fill Indication Message 
+  // Fill Indication Message  and Header
   sm_ag_if_rd_t rd_if = {0};
   rd_if.type = KPM_STATS_V0;
   sm->base.io.read(&rd_if); 
@@ -99,6 +89,10 @@ static sm_ind_data_t on_indication_kpm_sm_ag(sm_agent_t* sm_agent)
   kpm_ind_data_t* ind = &rd_if.kpm_stats;
   defer({ free_kpm_ind_hdr(&ind->hdr) ;});
   defer({ free_kpm_ind_msg(&ind->msg) ;});
+
+  byte_array_t ba_hdr = kpm_enc_ind_hdr(&sm->enc, &rd_if.kpm_stats.hdr);
+  ret.ind_hdr = ba_hdr.buf;
+  ret.len_hdr = ba_hdr.len;
 
   byte_array_t ba = kpm_enc_ind_msg(&sm->enc, &rd_if.kpm_stats.msg);
   ret.ind_msg = ba.buf;
