@@ -152,6 +152,7 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
     int fd = event_asio_iapp(&iapp->io);
     if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
 
+    fflush(stdout);
     if(net_pkt(iapp, fd) == true){
 
       sctp_msg_t rcv = e2ap_recv_msg_iapp(&iapp->ep);
@@ -194,6 +195,8 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
 
         // handle_msg(iapp, &msg);
 
+      } else {
+        printf("Waiting for the E2 agents, Connected E2 Nodes %ld, Expected E2 Nodes %ld\n", iapp->e2_nodes.node_to_rf.size, iapp->exp_e2_nodes);
       }
 
     } else {
