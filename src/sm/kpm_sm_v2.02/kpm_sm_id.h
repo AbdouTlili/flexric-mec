@@ -34,4 +34,9 @@ static const char* SM_KPM_STR = "ORAN-E2SM-KPM";
 static const char* SM_KPM_DESCRIPTION = "KPM Monitor";
 
 
+// OID spec comes from O-RAN.WG3.E2SM-v02.01.pdf, table 5.1
+// iso(1).identified-organization(3).dod(6).internet(1).private(4).enterprise(1).53148.e2(1).version2.(2).e2sm(2).e2sm-KPM-IEs(2)
+// FYI, ORAN identification `O-RAN Alliance e.V.`, is associated to number 53148.
+static const char * SM_KPM_OID = "1.3.6.1.4.1.53148.1.2.2.2";
+
 #endif

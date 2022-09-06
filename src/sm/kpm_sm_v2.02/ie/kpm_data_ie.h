@@ -225,11 +225,11 @@ bool          eq_kpm_ind_msg(kpm_ind_msg_t const* m0, kpm_ind_msg_t const* m1);
  *************************************************/
 typedef struct {
   adapter_PrintableString_t	 ShortName;   // “ORAN-E2SM-KPM” aka SM_KPM_STR
-	adapter_PrintableString_t	 E2SM_OID;    // ? probably it is SM_KPM_ID
+	adapter_PrintableString_t	 E2SM_OID;    // see cfr. O-RAN.WG3.E2SM-v02.01.pdf, table 5.1
 	adapter_PrintableString_t	 Description; // “KPM Monitor”
 	long	                     *ranFunction_Instance;	// OPTIONAL: it is suggested to be used when E2 Node declares
                                                     // multiple RAN Function ID supporting the same  E2SM specification
-} adapter_ranFunction_Name_t;
+} adapter_ranFunction_Name_t; // cfr. O-RAN.WG3.E2SM-v02.01.pdf, $6.2.2.1
 
 typedef struct {
 // TODO
@@ -241,7 +241,7 @@ typedef struct {
 
 
 typedef struct {
-  adapter_ranFunction_Name_t ranFunction_Name;
+  adapter_ranFunction_Name_t ranFunction_Name; 
 
   adapter_ric_EventTriggerStyleItem_t *ric_EventTriggerStyle_List; // OPTIONAL: used in action definition, only type 1 supported for the moment
   size_t ric_EventTriggerStyle_List_len; // 0..maxnoofRICStyles 

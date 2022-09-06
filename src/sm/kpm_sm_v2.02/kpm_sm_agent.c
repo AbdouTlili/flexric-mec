@@ -121,14 +121,13 @@ sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
   func_def.ranFunction_Name.Description.len = strlen(SM_KPM_DESCRIPTION);
   func_def.ranFunction_Name.ShortName.buf = SM_KPM_STR;
   func_def.ranFunction_Name.ShortName.len = strlen(SM_KPM_STR);
-  func_def.ranFunction_Name.E2SM_OID.buf = SM_KPM_STR_buf;
-  func_def.ranFunction_Name.E2SM_OID.len = 2;
-  INT16_TO_BUFFER(SM_KPM_ID, func_def.ranFunction_Name.E2SM_OID.buf);
-
+  
+  func_def.ranFunction_Name.E2SM_OID.buf = SM_KPM_OID;
+  func_def.ranFunction_Name.E2SM_OID.len = strlen(SM_KPM_OID);
+  
   byte_array_t ba = kpm_enc_func_def(&sm->enc, &func_def);
   setup.ran_fun_def = ba.buf;
   setup.len_rfd = ba.len;
- 
   
   return setup;
 }
