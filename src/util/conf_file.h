@@ -10,7 +10,25 @@ typedef struct {
 
 fr_args_t init_fr_args(int argc, char* argv[]);
 
-char* get_near_ric_ip(fr_args_t const*);
+char* get_conf_ip(fr_args_t const*);
+
+char* get_conf_e2port(fr_args_t const*);
+
+char* get_conf_e42port(fr_args_t const*);
+
+char* get_conf_db_dir(fr_args_t const*);
+
+char* get_conf_db_name(fr_args_t const*);
+
+char* get_conf_xappid(fr_args_t const*);
+
+char* get_conf_e2nodes(fr_args_t const*);
+
+char* get_conf_nbid(fr_args_t const*);
+
+char* get_conf_mcc(fr_args_t const*);
+
+char* get_conf_mnc(fr_args_t const*);
 
 #endif
 

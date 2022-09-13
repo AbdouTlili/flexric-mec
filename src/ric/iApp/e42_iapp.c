@@ -38,12 +38,15 @@ int64_t time_now_us(void)
 }
 
 
-e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if)
+e42_iapp_t* init_e42_iapp(fr_args_t const* args, near_ric_if_t ric_if)
 {
-  assert(addr != NULL);
-//  assert(ric != NULL);
 
   printf("[iApp]: Initializing ... \n");
+
+  char* addr = get_conf_ip(args);
+  defer({ free(addr); } );
+  int const port = atoi(get_conf_e42port(args));
+  printf("[iApp]: IP Address = %s, PORT = %d\n", addr, port);
 
   e42_iapp_t* iapp = calloc(1, sizeof(*iapp));
   assert(iapp != NULL && "Memory exhausted");
@@ -53,7 +56,6 @@ e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if)
   // Emulator
   start_near_ric_iapp_gen(iapp->ric_if.type);
 
-  uint32_t const port = 36422;
   e2ap_init_ep_iapp(&iapp->ep, addr, port);
 
   init_asio_iapp(&iapp->io); 
@@ -76,8 +78,11 @@ e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if)
 
   init_map_ric_id(&iapp->map_ric_id);
 
+  int const xapp_id = atoi(get_conf_xappid(args));
+  iapp->xapp_id = xapp_id;
 
-  iapp->xapp_id = 7;
+  int const exp_e2_nodes = atoi(get_conf_e2nodes(args));
+  iapp->exp_e2_nodes = exp_e2_nodes;
 
   iapp->stop_token = false;
   iapp->stopped = false;
@@ -156,7 +161,7 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
       defer({e2ap_msg_free_iapp(&iapp->ap, &msg); } );
 
       // TODO: need to improve
-      if (iapp->e2_nodes.node_to_rf.size > 0) {
+      if (iapp->e2_nodes.node_to_rf.size == iapp->exp_e2_nodes) {
         e2ap_msg_t ans = e2ap_msg_handle_iapp(iapp, &msg);
         defer({e2ap_msg_free_iapp(&iapp->ap, &ans);});
 

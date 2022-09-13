@@ -23,6 +23,7 @@
 
 #include "../../../src/agent/e2_agent_api.h"
 #include "../../../test/sm/common/fill_ind_data.h"
+#include "../src/util/conf_file.h"
 
 #include <assert.h>
 #include <signal.h>
@@ -30,6 +31,8 @@
 #include <stdio.h>
 #include <poll.h>
 #include <unistd.h>
+#include <string.h>
+#include <time.h>
 
 
 static
@@ -101,27 +104,28 @@ int main(int argc, char *argv[])
   signal(SIGINT, sig_handler);
 
   // Init the Agent
-  const int mcc = 505; 
-  const int mnc = 1; 
-  const int mnc_digit_len = 2;
-
-#ifdef TEST_AGENT_1
-  const int nb_id = 1;
-#elif TEST_AGENT_2
-  const int nb_id = 2;
-#elif TEST_AGENT_3
-  const int nb_id = 3;
-#elif TEST_AGENT_4
-  const int nb_id = 4;
-#elif TEST_AGENT_5
-  const int nb_id = 5;
-#else
-  static_assert( 0!=0 , "Unknown type");
-#endif
 
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
   fr_args_t args = init_fr_args(argc, argv);
 
+  srand(time(0));
+  int nb_id, mcc, mnc, mnc_digit_len = 0;
+  char* nbid_str = get_conf_nbid(&args);
+  if (strlen(nbid_str) > 0) nb_id = atoi(nbid_str);
+  else nb_id = abs(rand()%2048);
+
+  char* mcc_str = get_conf_mcc(&args);
+  if (strlen(mcc_str) > 0) mcc = atoi(mcc_str);
+  else mcc = abs(rand()%999);
+
+  char* mnc_str = get_conf_mnc(&args);
+  if (strlen(mnc_str) > 0) mnc = atoi(mnc_str);
+  else mnc = abs(rand()%999);
+
+  if (mnc%1000 < 100) mnc_digit_len = 2;
+  else mnc_digit_len = 3;
+
+  printf("[E2 AGENT]: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d\n", nb_id, mcc, mnc, mnc_digit_len);
   init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io, &args);
 
   while(1){
