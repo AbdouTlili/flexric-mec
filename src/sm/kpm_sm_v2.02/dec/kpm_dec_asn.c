@@ -204,8 +204,7 @@ kpm_ind_msg_t kpm_dec_ind_msg_asn(size_t len, uint8_t const ind_msg[len])
     for (size_t i = 0; i< (size_t)msg->measData.list.count; i++)
     {
       MeasurementDataItem_t *item = msg->measData.list.array[i]; 
-      if (item->incompleteFlag)
-        mData[i].incompleteFlag = 0;
+      mData[i].incompleteFlag = (item->incompleteFlag) ? 0 : -1;
       adapter_MeasRecord_t * rec = calloc(item->measRecord.list.count, sizeof(adapter_MeasRecord_t));
       for (size_t j = 0; j < (size_t) item->measRecord.list.count; j++){
         rec[j].type = item->measRecord.list.array[j]->present;
@@ -220,6 +219,7 @@ kpm_ind_msg_t kpm_dec_ind_msg_asn(size_t len, uint8_t const ind_msg[len])
           break;
         } 
       }
+      mData[i].measRecord_len = item->measRecord.list.count;
       mData[i].measRecord = rec;
     }
     // 2. measInfoList (OPTIONAL)

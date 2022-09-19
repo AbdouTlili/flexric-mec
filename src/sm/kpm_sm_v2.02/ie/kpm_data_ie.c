@@ -147,6 +147,8 @@ bool eq_kpm_ind_msg(kpm_ind_msg_t const* m0, kpm_ind_msg_t const* m1)
     ret &= (m0->granulPeriod ==  m1->granulPeriod);
   ret &= (m0->MeasData_len == m1->MeasData_len);
   ret &= (m0->MeasInfo_len == m1->MeasInfo_len);
+  for (int i =0; i< m0->MeasData_len ; i++)
+    ret &= (m0->MeasData[i].measRecord_len == m1->MeasData[i].measRecord_len);
   return ret;
 }
 

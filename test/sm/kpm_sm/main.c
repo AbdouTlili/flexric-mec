@@ -61,7 +61,8 @@ void check_eq_ran_function(sm_agent_t const* ag, sm_ric_t const* ric)
   assert(ag->ran_func_id == SM_KPM_ID);
   Logme ("[IE RAN function ID]: Agent and RIC are using the same RAN function ID for KPM: %d\n", SM_KPM_ID);
 
-  // TODO: check the encoding/decoding of RAN function definition
+  // TODO: check the encoding/decoding of RAN function definition. 
+  // this can't be done until the signature of `ric_on_e2_setup_kpm_sm_ric()` is not changed to return function definition data structure.
   sm_e2_setup_t data = ag->proc.on_e2_setup(ag);
   ric->proc.on_e2_setup(ric, &data);
 
