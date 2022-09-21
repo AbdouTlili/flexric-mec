@@ -230,6 +230,59 @@ void create_ue_slice_table(sqlite3* db)
 }
 
 static
+void create_kpm_table(sqlite3* db)
+{
+  assert(db != NULL);
+
+  // ToDo: PRIMARY KEY UNIQUE
+  char* sql_kpm_measRecord = "DROP TABLE IF EXISTS KPM_MeasRecord;"
+  "CREATE TABLE KPM_MeasRecord(tstamp INT," 
+                       "ngran_node INT CHECK(ngran_node >= 0 AND ngran_node < 9),"
+                       "mcc INT,"
+                       "mnc INT,"
+                       "mnc_digit_len INT,"
+                       "nb_id INT,"
+                       "incompleteFlag INT,"
+                       "val REAL CHECK(val >=0 AND val < 4294967296 )"
+                       ");";
+  create_table(db, sql_kpm_measRecord);
+
+  // ToDo: PRIMARY KEY UNIQUE
+  char* sql_kpm_labelInfo = "DROP TABLE IF EXISTS KPM_LabelInfo;"
+  "CREATE TABLE KPM_LabelInfo(tstamp INT CHECK(tstamp > 0)," 
+                       "ngran_node INT CHECK(ngran_node >= 0 AND ngran_node < 9),"
+                       "mcc INT,"
+                       "mnc INT,"
+                       "mnc_digit_len INT,"
+                       "nb_id INT,"
+                       "MeasType TEXT,"
+                       "noLabel INT CHECK(noLabel >=0 AND noLabel < 4294967296 ),"
+                       "plmnID TEXT,"
+                       "sST TEXT,"
+                       "sD TEXT,"
+                       "fiveQI  INT CHECK(fiveQI  >= 0 AND fiveQI  < 4294967296 ) ,"
+                       "qFI INT  CHECK(qFI >= 0 AND qFI < 4294967296 ),"
+                       "qCI INT  CHECK(qCI >= 0 AND qCI < 4294967296 ),"
+                       "qCImax INT  CHECK(qCImax >= 0 AND qCImax < 4294967296 ),"
+                       "qCImin INT  CHECK(qCImin >= 0 AND qCImin < 4294967296 ),"
+                       "aRPmax INT  CHECK(aRPmax >= 0 AND aRPmax < 4294967296 ),"
+                       "aRPmin INT  CHECK(aRPmin >= 0 AND aRPmin < 4294967296 ),"
+                       "bitrateRange INT  CHECK(bitrateRange >= 0 AND bitrateRange <4294967296 ),"
+                       "layerMU_MIMO INT  CHECK(layerMU_MIMO >= 0 AND layerMU_MIMO <4294967296),"
+                       "sUM INT CHECK(sUM >= 0 AND sUM <4294967296),"
+                       "distBinX INT CHECK(distBinX >= 0 AND distBinX <4294967296),"
+                       "distBinY INT CHECK(distBinY >= 0 AND distBinY <4294967296),"
+                       "distBinZ INT CHECK(distBinZ >= 0 AND distBinZ <4294967296),"
+                       "preLabelOverride INT CHECK(preLabelOverride >= 0 AND preLabelOverride <4294967296),"
+                       "startEndInd INT CHECK(startEndInd >= 0 AND startEndInd <4294967296),"
+                       "min INT CHECK(min >= 0 AND min <4294967296),"
+                       "max INT CHECK(max >= 0 AND max <4294967296),"
+                       "avg INT CHECK(avg >= 0 AND avg < 4294967296)"
+                       ");";
+  create_table(db, sql_kpm_labelInfo);
+}
+
+static
 void insert_db(sqlite3* db, char const* sql)
 {
   assert(db != NULL);
@@ -715,6 +768,115 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
 }
 
 static
+int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,  
+                                 adapter_MeasDataItem_t* kpm_measData, 
+                                 adapter_MeasRecord_t* kpm_measRecord, 
+                                 uint8_t tstamp, char* out, 
+                                 size_t out_len)
+{
+  assert(kpm_measData != NULL);
+  assert(out != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+
+  if (kpm_measRecord == NULL){
+    int const rc = snprintf(out, max,
+        "INSERT INTO KPM_MeasRecord VALUES("
+        "%u,"// tstamp
+        "%d," //ngran_node  
+        "%d," //mcc
+        "%d," //mnc
+        "%d," //mnc_digit_len   
+        "%d," //nb_id 
+        "%ld,"  //kpm_measData->incompleteFlag
+        "NULL"  //kpm_measRecord->int_val
+        ");" 
+        , tstamp
+        , id->type
+        , id->plmn.mcc
+        , id->plmn.mnc
+        , id->plmn.mnc_digit_len
+        , id->nb_id 
+        , kpm_measData->incompleteFlag
+        // , granulPeriod
+        );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    return rc;
+  } else {
+    if(kpm_measRecord->type == MeasRecord_int){
+      int const rc = snprintf(out, max,
+          "INSERT INTO KPM_MeasRecord VALUES("
+          "%u,"// tstamp
+          "%d," //ngran_node  
+          "%d," //mcc
+          "%d," //mnc
+          "%d," //mnc_digit_len   
+          "%d," //nb_id 
+          "%ld,"  //kpm_measData->incompleteFlag
+          "%ld"  //kpm_measRecord->int_val
+          ");" 
+          , tstamp
+          , id->type
+          , id->plmn.mcc
+          , id->plmn.mnc
+          , id->plmn.mnc_digit_len
+          , id->nb_id 
+          , kpm_measData->incompleteFlag
+          , kpm_measRecord->int_val
+          );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      return rc;
+    }else if (kpm_measRecord->type == MeasRecord_real){
+      int const rc = snprintf(out, max,
+          "INSERT INTO KPM_MeasRecord VALUES("
+          "%u,"// tstamp
+          "%d," //ngran_node  
+          "%d," //mcc
+          "%d," //mnc
+          "%d," //mnc_digit_len   
+          "%d," //nb_id 
+          "%ld,"  //kpm_measData->incompleteFlag
+          "%f"  //kpm_measRecord->real_val
+          ");" 
+          , tstamp
+          , id->type
+          , id->plmn.mcc
+          , id->plmn.mnc
+          , id->plmn.mnc_digit_len
+          , id->nb_id 
+          , kpm_measData->incompleteFlag
+          , kpm_measRecord->real_val
+          );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      return rc;
+    }else if (kpm_measRecord->type == MeasRecord_noval)
+    {
+      int const rc = snprintf(out, max,
+          "INSERT INTO KPM_MeasRecord VALUES("
+          "%u,"// tstamp
+          "%d," //ngran_node  
+          "%d," //mcc
+          "%d," //mnc
+          "%d," //mnc_digit_len   
+          "%d," //nb_id 
+          "%ld,"  //kpm_measData->incompleteFlag
+          "-1"  //kpm_measRecord->noVal
+          ");" 
+          , tstamp
+          , id->type
+          , id->plmn.mcc
+          , id->plmn.mnc
+          , id->plmn.mnc_digit_len
+          , id->nb_id 
+          , kpm_measData->incompleteFlag
+          );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      return rc;
+    }
+  }
+}
+
+static
 void write_mac_stats(sqlite3* db, global_e2_node_id_t const* id, mac_ind_data_t const* ind )
 {
   assert(db != NULL);
@@ -821,6 +983,38 @@ void write_slice_stats(sqlite3* db, global_e2_node_id_t const* id, slice_ind_dat
 
 }
 
+static
+void write_kpm_stats(sqlite3* db, global_e2_node_id_t const* id, kpm_ind_data_t const* ind)
+{
+  // TODO: Add granulPeriod into database
+  // TODO: Add MeasInfo and LabelInfo into database
+
+  assert(db != NULL);
+  assert(ind != NULL);
+
+  kpm_ind_msg_t const* ind_msg_kpm = &ind->msg;
+  char buffer[512] = {0};
+
+
+  for(size_t i = 0; i < ind_msg_kpm->MeasData_len; i++){
+    adapter_MeasDataItem_t* curMeasData = &ind_msg_kpm->MeasData[i];
+    if (curMeasData->measRecord_len > 0){
+      for (size_t j = 0; j < curMeasData->measRecord_len; j++){
+        adapter_MeasRecord_t* curMeasRecord = &curMeasData->measRecord[j];
+        memset(buffer, 0, sizeof(buffer));
+        to_sql_string_kpm_measRecord(id, curMeasData, curMeasRecord, *ind->hdr.collectStartTime.buf, 
+                                     buffer, 512);
+        insert_db(db, buffer);
+      }
+    } else {
+      memset(buffer, 0, sizeof(buffer));
+      to_sql_string_kpm_measRecord(id, curMeasData, NULL, *ind->hdr.collectStartTime.buf, 
+                                   buffer, 512);
+      insert_db(db, buffer);
+    }
+  }
+}
+
 void init_db_sqlite3(sqlite3** db, char const* db_filename)
 {
   assert(db != NULL);
@@ -860,6 +1054,11 @@ void init_db_sqlite3(sqlite3** db, char const* db_filename)
   //////
   create_slice_table(*db);
   create_ue_slice_table(*db);
+
+  ////
+  // KPM
+  ////
+  create_kpm_table(*db);
 }
 
 void close_db_sqlite3(sqlite3* db)
@@ -884,7 +1083,7 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
   } else if (rd->type == SLICE_STATS_V0) {
     write_slice_stats(db, id, &rd->slice_stats);
   } else if (rd->type == KPM_STATS_V0) {
-    printf("XXX: writing to db not yet implemented\n");
+    write_kpm_stats(db, id, &rd->kpm_stats);
   } else {
     assert(0!=0 && "Unknown statistics type received ");
   }

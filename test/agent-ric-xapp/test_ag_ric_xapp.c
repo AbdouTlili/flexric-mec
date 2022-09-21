@@ -43,11 +43,11 @@ void read_RAN(sm_ag_if_rd_t* data)
         data->type == KPM_STATS_V0);
 
   if(data->type == MAC_STATS_V0 ){
-      fill_mac_ind_data(&data->mac_stats);
+    fill_mac_ind_data(&data->mac_stats);
   } else if(data->type == RLC_STATS_V0) {
-      fill_rlc_ind_data(&data->rlc_stats);
+    fill_rlc_ind_data(&data->rlc_stats);
   } else if (data->type == PDCP_STATS_V0 ){
-      fill_pdcp_ind_data(&data->pdcp_stats);
+    fill_pdcp_ind_data(&data->pdcp_stats);
   } else if(data->type == SLICE_STATS_V0 ){
     fill_slice_ind_data(&data->slice_stats);
   } else if(data->type == KPM_STATS_V0 ){
@@ -98,7 +98,7 @@ void sm_cb_kpm(sm_ag_if_rd_t const* rd)
 
   int64_t now = time_now_us();
   // XXX: fix below
-  // printf("KPM ind_msg latency = %ld \n", now - rd->kpm_stats.hdr.collectStartTime.buf);
+  printf("KPM ind_msg latency = %ld \n", now - *rd->kpm_stats.hdr.collectStartTime.buf);
 }
 
 
