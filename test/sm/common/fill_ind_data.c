@@ -106,13 +106,18 @@ void fill_mac_ind_data(mac_ind_data_t* ind)
 void fill_kpm_ind_data(kpm_ind_data_t* ind)
 {
   assert(ind != NULL);
-  srand(time(0));
-
-  int64_t t = time_now_us();
+  
   ind->hdr.collectStartTime.len = 4;
   ind->hdr.collectStartTime.buf = calloc(1, 4);
   assert(ind->hdr.collectStartTime.buf != NULL && "memory exhausted");
-  memcpy(ind->hdr.collectStartTime.buf, &t , 4);
+  
+  int64_t t = time_now_us();
+  uint32_t t_truncated = t / 1000000;
+  #if BYTE_ORDER == LITTLE_ENDIAN  
+    t_truncated = __bswap_32 (t_truncated);
+  #endif
+
+  memcpy(ind->hdr.collectStartTime.buf, &t_truncated, 4);
   ind->hdr.fileFormatversion = NULL;
   ind->hdr.senderName = NULL;
   ind->hdr.senderType = NULL;
