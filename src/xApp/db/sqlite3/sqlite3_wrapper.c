@@ -849,8 +849,7 @@ int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
       return rc;
-    }else if (kpm_measRecord->type == MeasRecord_noval)
-    {
+    }else if (kpm_measRecord->type == MeasRecord_noval){
       int const rc = snprintf(out, max,
           "INSERT INTO KPM_MeasRecord VALUES("
           "%u,"// tstamp
