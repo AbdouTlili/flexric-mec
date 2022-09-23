@@ -56,3 +56,5 @@ endif()
 target_compile_definitions(test_pdcp_sm PUBLIC ${SM_ENCODING_PDCP})
 target_link_libraries(test_pdcp_sm PUBLIC -pthread)
 
+enable_testing()
+add_test(Unit_test_PDCP test_pdcp_sm)

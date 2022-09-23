@@ -56,3 +56,5 @@ endif()
 target_compile_definitions(test_rlc_sm PUBLIC ${SM_ENCODING_RLC})
 target_link_libraries(test_rlc_sm PUBLIC -pthread)
 
+enable_testing()
+add_test(Unit_test_RLC test_rlc_sm)
