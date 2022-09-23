@@ -35,7 +35,21 @@
 void free_kpm_action_def(kpm_action_def_t* src) 
 {
   assert(src != NULL);
-  assert(0!=0 && "Not implemented");
+
+  for (size_t i = 0; i<src->MeasInfo_len; i++)
+  {
+    for (size_t j = 0; j<src->MeasInfo[i].labelInfo_len; j++)
+    {
+      if (src->MeasInfo[i].labelInfo[j].noLabel)
+        free(src->MeasInfo[i].labelInfo[j].noLabel);
+    }
+    free_kpm_label_info(src->MeasInfo[i].labelInfo);
+    
+    if (src->MeasInfo[i].measType == MeasurementType_NAME)
+      free_byte_array(src->MeasInfo[i].measName);
+  }
+  
+  free(src->MeasInfo);
 }
 
 /* INDICATION*/
@@ -147,7 +161,7 @@ bool eq_kpm_ind_msg(kpm_ind_msg_t const* m0, kpm_ind_msg_t const* m1)
     ret &= (m0->granulPeriod ==  m1->granulPeriod);
   ret &= (m0->MeasData_len == m1->MeasData_len);
   ret &= (m0->MeasInfo_len == m1->MeasInfo_len);
-  for (int i =0; i< m0->MeasData_len ; i++)
+  for (size_t i =0; i< m0->MeasData_len ; i++)
     ret &= (m0->MeasData[i].measRecord_len == m1->MeasData[i].measRecord_len);
   return ret;
 }
@@ -176,8 +190,7 @@ void free_kpm_label_info(adapter_LabelInfoList_t *l)
   if (l->plmnID)
     free_byte_array(*(l->plmnID));
  
-  #warning "free_kpm_label_info(): to complete the implementation"
-	// TO BE COMPLETED
+  // TO BE COMPLETED
   // adapter_S_NSSAI_t	            *sliceID;	/* OPTIONAL */
 	// adapter_FiveQI_t	            *fiveQI;	/* OPTIONAL */
 	// adapter_QosFlowIdentifier_t	  *qFI;	    /* OPTIONAL */
@@ -197,10 +210,18 @@ void free_kpm_label_info(adapter_LabelInfoList_t *l)
 	// long	                        *min;	    /* OPTIONAL */
 	// long	                        *max;	    /* OPTIONAL */
 	// long	                        *avg;	    /* OPTIONAL */
+  free(l);
 }
+
 /* FUNCTION DEFINITION*/
 void free_kpm_func_def(kpm_func_def_t* src)
 {
   assert(src != NULL);
-  assert(0!=0 && "Not implemented");
+  
+  free(src->ric_ReportStyle_List); 
+  free(src->ric_EventTriggerStyle_List); 
+  free(src->ranFunction_Name.ranFunction_Instance);
+  free_byte_array(src->ranFunction_Name.Description);
+  free_byte_array(src->ranFunction_Name.E2SM_OID);
+  free_byte_array(src->ranFunction_Name.ShortName);
 }

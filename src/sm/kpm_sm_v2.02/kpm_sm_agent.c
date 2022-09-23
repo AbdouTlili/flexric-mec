@@ -63,13 +63,13 @@ subscribe_timer_t on_subscription_kpm_sm_ag(sm_agent_t* sm_agent, const sm_subs_
 
   subscribe_timer_t timer = {.ms = ev.ms};
 
-// XXX: not sure about the logic here on action_definition. Leaving 'acd' doing nothing for the moment
+// XXX: Leaving 'acd' doing nothing for the moment. We need to fix the logic upper layer and change 
+// the signature of this function
   if (data->len_ad != 0){
     kpm_action_def_t acd = kpm_dec_action_def(&sm->enc, data->len_ad, data->action_def);
-    (void)acd;
-    #warning "KPM: the decoded action definition is discarded for the moment"
+    free_kpm_action_def(&acd);
   }
-
+  
   return timer;
 }
 
@@ -132,6 +132,16 @@ sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
   return setup;
 }
 
+static 
+void free_e2_setup_kpm_sm_ag (void *msg)
+{
+  assert(msg != NULL);
+
+  sm_e2_setup_t * func_def  = (sm_e2_setup_t *)msg;
+
+  free(func_def->ran_fun_def);
+}
+
 static
 void on_ric_service_update_kpm_sm_ag(sm_agent_t* sm_agent, sm_ric_service_update_t const* data)
 {
@@ -158,6 +168,14 @@ sm_agent_t *make_kpm_sm_agent(sm_io_ag_t io)
 
   sm->base.io = io;
   sm->base.free_sm = free_kpm_sm_ag;
+
+  // Memory DeAllocation 
+  sm->base.alloc.free_subs_data_msg = NULL;
+  sm->base.alloc.free_ind_data = NULL;
+  sm->base.alloc.free_ctrl_req_data = NULL;
+  sm->base.alloc.free_ctrl_out_data = NULL;
+  sm->base.alloc.free_e2_setup = free_e2_setup_kpm_sm_ag; 
+  sm->base.alloc.free_ric_service_update = NULL;//free_ric_service_update_kpm_sm_ric; 
 
   // O-RAN E2SM 5 Procedures
   sm->base.proc.on_subscription       = on_subscription_kpm_sm_ag;

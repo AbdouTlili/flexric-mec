@@ -89,9 +89,11 @@ kpm_action_def_t kpm_dec_action_def_asn(size_t len, uint8_t const action_def[len
             continue;
           case MeasurementType_PR_measName:
             BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ret.MeasInfo[i].measName, adf_p->measInfoList.list.array[i]->measType.choice.measName);
+            ret.MeasInfo[i].measType = MeasurementType_NAME;
             break;
           case MeasurementType_PR_measID:
             ret.MeasInfo[i].measID = adf_p->measInfoList.list.array[i]->measType.choice.measID;
+            ret.MeasInfo[i].measType = MeasurementType_ID;
             break;
           default:
             break;

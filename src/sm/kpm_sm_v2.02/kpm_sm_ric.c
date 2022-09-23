@@ -100,14 +100,16 @@ static sm_subs_data_t on_subscription_kpm_sm_ric(sm_ric_t const* sm_ric, const c
   return data;
 }
 
-
-/*
-static void free_subs_data_kpm_sm_ric(void* msg)
+static 
+void free_subs_data_kpm_sm_ric(void* msg)
 {
   assert(msg != NULL);
-  assert(0!=0 && "Not implemented");
+
+  sm_subs_data_t *data = (sm_subs_data_t *)msg;
+  
+  free(data->action_def);
+  free(data->event_trigger);
 }
-*/
 
 static
 sm_ag_if_rd_t on_indication_kpm_sm_ric(sm_ric_t const* sm_ric, sm_ind_data_t* data)
@@ -144,7 +146,9 @@ void ric_on_e2_setup_kpm_sm_ric(sm_ric_t const* sm_ric, sm_e2_setup_t const* dat
   sm_kpm_ric_t* sm = (sm_kpm_ric_t*)sm_ric;
  
   kpm_func_def_t fdef = kpm_dec_func_def(&sm->enc, data->len_rfd, data->ran_fun_def);
-  // well .... we do nothing with that for the moment.
+  // we do nothing with function definition for the moment, so we can free here with defer()
+  free_kpm_func_def(&fdef);
+  
 }
 
 static
@@ -177,7 +181,7 @@ sm_ric_t* make_kpm_sm_ric(void /* sm_io_ric_t io */)
   sm->base.free_sm = free_kpm_sm_ric;
 
   // Memory (De)Allocation
-  sm->base.alloc.free_subs_data_msg = NULL; //free_subs_data_kpm_sm_ric; 
+  sm->base.alloc.free_subs_data_msg = free_subs_data_kpm_sm_ric; 
   sm->base.alloc.free_ind_data = free_ind_data_kpm_sm_ric ; 
   sm->base.alloc.free_ctrl_req_data = NULL;
   sm->base.alloc.free_ctrl_out_data = NULL;

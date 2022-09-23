@@ -66,6 +66,7 @@ void check_eq_ran_function(sm_agent_t const* ag, sm_ric_t const* ric)
   sm_e2_setup_t data = ag->proc.on_e2_setup(ag);
   ric->proc.on_e2_setup(ric, &data);
 
+  free_sm_e2_setup(&data);
 }
 
 /* Direction: RIC -> E2 
