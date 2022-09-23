@@ -107,6 +107,8 @@ void fill_kpm_ind_data(kpm_ind_data_t* ind)
 {
   assert(ind != NULL);
   
+  srand(time(0));
+
   ind->hdr.collectStartTime.len = 4;
   ind->hdr.collectStartTime.buf = calloc(1, 4);
   assert(ind->hdr.collectStartTime.buf != NULL && "memory exhausted");
