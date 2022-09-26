@@ -16,6 +16,7 @@
   #include "../../sm/rlc_sm/ie/rlc_data_ie.h"
   #include "../../sm/pdcp_sm/ie/pdcp_data_ie.h"
   #include "../../sm/slice_sm/ie/slice_data_ie.h"
+  #include "../../sm/gtp_sm/ie/gtp_data_ie.h"
 %}
 
 #ifdef SWIGPYTHON
@@ -81,6 +82,7 @@
 %feature("director") rlc_cb;
 %feature("director") pdcp_cb;
 %feature("director") slice_cb;
+%feature("director") gtp_cb;
 
 namespace std {
   %template(IntVector) vector<int>;
@@ -92,6 +94,7 @@ namespace std {
   %template(StringVector) vector<std::string>;
   %template(SLICE_slicesStatsVector) vector<swig_fr_slice_t>;
   %template(SLICE_UEsStatsVector) vector<ue_slice_assoc_t>;
+  %template(GTP_NGUTStatsVector) vector<gtp_ngu_t_stats_t>;
 }
 
 
@@ -109,4 +112,5 @@ namespace std {
 %include "../../sm/rlc_sm/ie/rlc_data_ie.h"
 %include "../../sm/pdcp_sm/ie/pdcp_data_ie.h"
 %include "../../sm/slice_sm/ie/slice_data_ie.h"
+%include "../../sm/gtp_sm/ie/gtp_data_ie.h"
 

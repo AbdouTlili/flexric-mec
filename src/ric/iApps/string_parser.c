@@ -409,3 +409,26 @@ void to_string_slice(slice_ind_msg_t const* slice, int64_t tstamp, char* out, si
   out[sz] = '\0';
   assert(strlen(out) < max && "Not enough space in the char array to write all the data");
 }
+
+void to_string_gtp_ngu(gtp_ngu_t_stats_t const* gtp, int64_t tstamp , char* out, size_t out_len)
+{
+  assert(gtp != NULL);
+  assert(out != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+ 
+  int const rc = snprintf(out, max,
+        "gtp_stats: tstamp=%ld,"
+        "rnti=%u,"
+        "qfi=%u,"
+        "teidgnb=%u,"
+        "teidupf=%u"
+        "\n"
+        , tstamp 
+        , gtp->rnti
+        , gtp->qfi
+        , gtp->teidgnb
+        , gtp->teidupf
+        );
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+}

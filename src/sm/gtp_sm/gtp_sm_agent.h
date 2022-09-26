@@ -20,45 +20,15 @@
  */
 
 
+#ifndef GTP_SERVICE_MODEL_AGENT_H
+#define GTP_SERVICE_MODEL_AGENT_H
 
-#ifndef SM_ANSWER_INTERFACE_H
-#define SM_ANSWER_INTERFACE_H
+#include <stddef.h>
+#include <stdint.h>
 
+#include "../sm_agent.h"
 
-#include "../../mac_sm/ie/mac_data_ie.h"
-#include "../../rlc_sm/ie/rlc_data_ie.h"
-#include "../../pdcp_sm/ie/pdcp_data_ie.h"
-#include "../../slice_sm/ie/slice_data_ie.h"
-#include "../../tc_sm/ie/tc_data_ie.h"
-#include "../../gtp_sm/ie/gtp_data_ie.h"
-
-
-
-typedef enum{
-  MAC_AGENT_IF_CTRL_ANS_V0, 
-  RLC_AGENT_IF_CTRL_ANS_V0, 
-  PDCP_AGENT_IF_CTRL_ANS_V0, 
-  SLICE_AGENT_IF_CTRL_ANS_V0, 
-  TC_AGENT_IF_CTRL_ANS_V0,
-  GTP_AGENT_IF_CTRL_ANS_V0,
-
-  SM_AGENT_IF_ANS_V0_END,
-} sm_ag_if_ans_e;
-
-typedef struct{
-  union {
-    mac_ctrl_out_t mac;
-    rlc_ctrl_out_t rlc;
-    pdcp_ctrl_out_t pdcp;
-    slice_ctrl_out_t slice;
-    tc_ctrl_out_t tc;
-    gtp_ctrl_out_t gtp;
-  };
-  sm_ag_if_ans_e type;
-} sm_ag_if_ans_t;
-
-
-
+sm_agent_t* make_gtp_sm_agent(sm_io_ag_t io);
 
 #endif
 

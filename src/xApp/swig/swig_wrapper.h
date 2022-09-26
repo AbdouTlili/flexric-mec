@@ -14,6 +14,7 @@
 #include "../../sm/rlc_sm/ie/rlc_data_ie.h"
 #include "../../sm/pdcp_sm/ie/pdcp_data_ie.h"
 #include "../../sm/slice_sm/ie/slice_data_ie.h"
+#include "../../sm/gtp_sm/ie/gtp_data_ie.h"
 
 //////////////////////////////////////
 // General    
@@ -142,6 +143,23 @@ void rm_report_slice_sm(void);
 
 void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl);
 
+//////////////////////////////////////
+// GTP SM   
+/////////////////////////////////////
+
+struct swig_gtp_ind_msg_t{
+  std::vector<gtp_ngu_t_stats_t> gtp_stats; 
+  int64_t tstamp;
+};
+
+struct gtp_cb {
+    virtual void handle(swig_gtp_ind_msg_t* a) = 0;
+    virtual ~gtp_cb() {}
+};
+
+void report_gtp_sm(global_e2_node_id_t* id, Interval inter, gtp_cb* handler);
+
+void rm_report_gtp_sm(void);
 
 #endif
 

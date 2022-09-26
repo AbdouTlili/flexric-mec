@@ -21,44 +21,37 @@
 
 
 
-#ifndef SM_ANSWER_INTERFACE_H
-#define SM_ANSWER_INTERFACE_H
+#ifndef GTP_ENCRYPTION_PLAIN_H
+#define GTP_ENCRYPTION_PLAIN_H 
+
+#include "../../../util/byte_array.h"
+#include "../ie/gtp_data_ie.h"
 
 
-#include "../../mac_sm/ie/mac_data_ie.h"
-#include "../../rlc_sm/ie/rlc_data_ie.h"
-#include "../../pdcp_sm/ie/pdcp_data_ie.h"
-#include "../../slice_sm/ie/slice_data_ie.h"
-#include "../../tc_sm/ie/tc_data_ie.h"
-#include "../../gtp_sm/ie/gtp_data_ie.h"
-
-
-
-typedef enum{
-  MAC_AGENT_IF_CTRL_ANS_V0, 
-  RLC_AGENT_IF_CTRL_ANS_V0, 
-  PDCP_AGENT_IF_CTRL_ANS_V0, 
-  SLICE_AGENT_IF_CTRL_ANS_V0, 
-  TC_AGENT_IF_CTRL_ANS_V0,
-  GTP_AGENT_IF_CTRL_ANS_V0,
-
-  SM_AGENT_IF_ANS_V0_END,
-} sm_ag_if_ans_e;
-
+// Used for static polymorphism. 
+// View gtp_enc_generic file
 typedef struct{
-  union {
-    mac_ctrl_out_t mac;
-    rlc_ctrl_out_t rlc;
-    pdcp_ctrl_out_t pdcp;
-    slice_ctrl_out_t slice;
-    tc_ctrl_out_t tc;
-    gtp_ctrl_out_t gtp;
-  };
-  sm_ag_if_ans_e type;
-} sm_ag_if_ans_t;
+
+} gtp_enc_plain_t;
 
 
+byte_array_t gtp_enc_event_trigger_plain(gtp_event_trigger_t const* event_trigger);
 
+byte_array_t gtp_enc_action_def_plain(gtp_action_def_t const*);
+
+byte_array_t gtp_enc_ind_hdr_plain(gtp_ind_hdr_t const*); 
+
+byte_array_t gtp_enc_ind_msg_plain(gtp_ind_msg_t const*); 
+
+byte_array_t gtp_enc_call_proc_id_plain(gtp_call_proc_id_t const*); 
+
+byte_array_t gtp_enc_ctrl_hdr_plain(gtp_ctrl_hdr_t const*); 
+
+byte_array_t gtp_enc_ctrl_msg_plain(gtp_ctrl_msg_t const*); 
+
+byte_array_t gtp_enc_ctrl_out_plain(gtp_ctrl_out_t const*); 
+
+byte_array_t gtp_enc_func_def_plain(gtp_func_def_t const*);
 
 #endif
 

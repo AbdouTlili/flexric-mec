@@ -67,7 +67,7 @@ void init_udp_socket()
 void notify_influx_listener(sm_ag_if_rd_t const* data)
 {
   assert(data != NULL);
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == GTP_STATS_V0);
   pthread_once(&init_socket, init_udp_socket);
 
 //  printf("Influx db data called!!!\n");
@@ -111,7 +111,18 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
     to_string_slice(slice, slice->tstamp, stats, 512);
     int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
     assert(rc != -1);
-  } else {
+  } else if (data->type == GTP_STATS_V0){
+    gtp_ind_msg_t const* gtp = &data->gtp_stats.msg;
+
+    for(uint32_t i = 0; i < gtp->len; ++i){
+      char stats[512] = {0};
+      gtp_ngu_t_stats_t* ngut = &gtp->ngut[i];
+
+      to_string_gtp_ngu(ngut, gtp->tstamp, stats, 512);
+      int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+      assert(rc != -1);
+    }
+  }  else {
     assert(0 != 0 || "invalid data type ");
   }
 

@@ -10,6 +10,7 @@
 #include "../../sm/mac_sm/mac_sm_id.h"
 #include "../../sm/rlc_sm/rlc_sm_id.h"
 #include "../../sm/pdcp_sm/pdcp_sm_id.h"
+#include "../../sm/gtp_sm/gtp_sm_id.h"
 
 #include "../../sm/slice_sm/slice_sm_id.h"
 
@@ -590,3 +591,89 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
   control_sm_xapp_api(id, SM_SLICE_ID,  &wr);
 }
 
+//////////////////////////////////////
+// GTP SM   
+/////////////////////////////////////
+
+//static
+//pthread_t t_gtp;
+
+static 
+gtp_cb* hndlr_gtp_cb; 
+
+static
+sm_ans_xapp_t hndlr_gtp_ans;
+
+static
+void sm_cb_gtp(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == GTP_STATS_V0);
+  assert(hndlr_gtp_cb != NULL);
+
+  gtp_ind_data_t const* data = &rd->gtp_stats; 
+
+  swig_gtp_ind_msg_t ind;
+  ind.tstamp = data->msg.tstamp;
+
+  for(uint32_t i = 0; i < data->msg.len; ++i){
+    gtp_ngu_t_stats_t tmp = data->msg.ngut[i];
+    ind.gtp_stats.push_back(tmp);
+  }
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+    hndlr_gtp_cb->handle(&ind);
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_Release(gstate);
+#endif
+
+}
+
+void report_gtp_sm(global_e2_node_id_t* id, Interval inter_arg, gtp_cb* handler)
+{
+
+  assert(id != NULL);
+  assert(handler != NULL);
+
+  hndlr_gtp_cb = handler;
+
+  inter_xapp_e i;
+  if(inter_arg == Interval::ms_1 ){
+    i = ms_1;
+  } else if (inter_arg == Interval::ms_2) {
+    i = ms_2;
+  } else if(inter_arg == Interval::ms_5) {
+    i = ms_5;
+  } else if(inter_arg == Interval::ms_10) {
+    i = ms_10;
+  } else {
+    assert(0 != 0 && "Unknown type");
+  }
+
+  sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_GTP_ID, i, sm_cb_gtp);
+  assert(ans.success == true); 
+  hndlr_gtp_ans = ans;
+
+}
+
+void rm_report_gtp_sm(void)
+{
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+#endif
+
+  assert(hndlr_gtp_ans.u.handle != 0);
+  rm_report_sm_xapp_api(hndlr_gtp_ans.u.handle);
+
+#ifdef XAPP_LANG_PYTHON
+    PyGILState_Release(gstate);
+#endif
+
+}
