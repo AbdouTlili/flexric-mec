@@ -20,45 +20,21 @@
  */
 
 
-
-#ifndef SM_ANSWER_INTERFACE_H
-#define SM_ANSWER_INTERFACE_H
-
-
-#include "../../mac_sm/ie/mac_data_ie.h"
-#include "../../rlc_sm/ie/rlc_data_ie.h"
-#include "../../pdcp_sm/ie/pdcp_data_ie.h"
-#include "../../slice_sm/ie/slice_data_ie.h"
-#include "../../tc_sm/ie/tc_data_ie.h"
-#include "../../gtp_sm/ie/gtp_data_ie.h"
+#ifndef GTP_SERVICE_MODEL_ID_H
+#define GTP_SERVICE_MODEL_ID_H 
 
 
+/*
+ * Service Model ID needed for the agent as well as for the ric to ensure that they match. 
+ */
 
-typedef enum{
-  MAC_AGENT_IF_CTRL_ANS_V0, 
-  RLC_AGENT_IF_CTRL_ANS_V0, 
-  PDCP_AGENT_IF_CTRL_ANS_V0, 
-  SLICE_AGENT_IF_CTRL_ANS_V0, 
-  TC_AGENT_IF_CTRL_ANS_V0,
-  GTP_AGENT_IF_CTRL_ANS_V0,
+#include <stdint.h>
 
-  SM_AGENT_IF_ANS_V0_END,
-} sm_ag_if_ans_e;
+static
+const uint16_t SM_GTP_ID = 148; 
 
-typedef struct{
-  union {
-    mac_ctrl_out_t mac;
-    rlc_ctrl_out_t rlc;
-    pdcp_ctrl_out_t pdcp;
-    slice_ctrl_out_t slice;
-    tc_ctrl_out_t tc;
-    gtp_ctrl_out_t gtp;
-  };
-  sm_ag_if_ans_e type;
-} sm_ag_if_ans_t;
-
-
-
+__attribute__((unused)) static
+const char* SM_GTP_STR = "GTP_STATS_V0"; 
 
 #endif
 

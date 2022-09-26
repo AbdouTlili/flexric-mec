@@ -7,6 +7,7 @@ add_executable(xapp_tc_all
                 ../../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
+                ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
                 )
 
 target_link_libraries(xapp_tc_all
@@ -26,6 +27,7 @@ add_executable(xapp_tc_codel
                 ../../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
+                ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
                 )
 
 target_link_libraries(xapp_tc_codel
@@ -44,6 +46,7 @@ add_executable(xapp_tc_partition
                 ../../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
+                ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
                 )
 
 target_link_libraries(xapp_tc_partition
@@ -63,6 +66,7 @@ add_executable(xapp_tc_ecn
                 ../../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
+                ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
                 )
 
 target_link_libraries(xapp_tc_ecn
@@ -82,6 +86,7 @@ add_executable(xapp_tc_osi_codel
                 ../../../../src/sm/pdcp_sm/ie/pdcp_data_ie.c
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
+                ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
                 )
 
 target_link_libraries(xapp_tc_osi_codel

@@ -230,6 +230,28 @@ void create_ue_slice_table(sqlite3* db)
 }
 
 static
+void create_gtp_table(sqlite3* db)
+{
+  assert(db != NULL);
+
+  // ToDo: PRIMARY KEY UNIQUE
+  char* sql_gtp = "DROP TABLE IF EXISTS GTP_NGUT;"
+  "CREATE TABLE GTP_NGUT(tstamp INT CHECK(tstamp > 0)," 
+                            "ngran_node INT CHECK(ngran_node >= 0 AND ngran_node < 9),"
+                            "mcc INT,"
+                            "mnc INT,"
+                            "mnc_digit_len INT,"
+                            "nb_id INT,"
+                            "teidgnb INT ," // 1 << 32 = 4294967296 
+                            "rnti INT ,"
+                            "qfi  INT ,"
+                            "teidupf INT "
+                            ");";
+
+  create_table(db, sql_gtp);
+}
+
+static
 void insert_db(sqlite3* db, char const* sql)
 {
   assert(db != NULL);
@@ -715,6 +737,42 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
 }
 
 static
+int to_sql_string_gtp_NGUT(global_e2_node_id_t const* id,gtp_ngu_t_stats_t* gtp, int64_t tstamp, char* out, size_t out_len)
+{
+  assert(gtp != NULL);
+  assert(out != NULL);
+  const size_t max = 1024;
+  assert(out_len >= max);
+
+  int const rc = snprintf(out, max,
+        "INSERT INTO GTP_NGUT VALUES("
+        "%ld," //tstamp         
+        "%d," //ngran_node  
+        "%d," //mcc
+        "%d," //mnc
+        "%d," //mnc_digit_len   
+        "%d," //nb_id 
+        "%u," //teidgnb    
+        "%u," //rnti
+        "%u," // qfi   
+        "%u" //teidupf
+        ");"
+        , tstamp               
+        , id->type
+        , id->plmn.mcc
+        , id->plmn.mnc
+        , id->plmn.mnc_digit_len
+        , id->nb_id 
+        , gtp->teidgnb
+        , gtp->rnti   
+        , gtp->qfi    
+        , gtp->teidupf    
+        );      
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  return rc;
+}
+
+static
 void write_mac_stats(sqlite3* db, global_e2_node_id_t const* id, mac_ind_data_t const* ind )
 {
   assert(db != NULL);
@@ -821,6 +879,24 @@ void write_slice_stats(sqlite3* db, global_e2_node_id_t const* id, slice_ind_dat
 
 }
 
+static
+void write_gtp_stats(sqlite3* db, global_e2_node_id_t const* id, gtp_ind_data_t const* ind)
+{
+  assert(db != NULL);
+  assert(ind != NULL);
+
+  gtp_ind_msg_t const* ind_msg_gtp = &ind->msg; 
+
+  char buffer[2048] = {0};
+  int pos = 0;
+  for(size_t i = 0; i < ind_msg_gtp->len; ++i){
+    pos += to_sql_string_gtp_NGUT(id, &ind_msg_gtp->ngut[i], ind_msg_gtp->tstamp, buffer + pos, 2048 - pos);
+  }
+
+  insert_db(db, buffer);
+
+}
+
 void init_db_sqlite3(sqlite3** db, char const* db_filename)
 {
   assert(db != NULL);
@@ -860,6 +936,11 @@ void init_db_sqlite3(sqlite3** db, char const* db_filename)
   //////
   create_slice_table(*db);
   create_ue_slice_table(*db);
+
+  ////
+  // GTP
+  ////
+  create_gtp_table(*db);
 }
 
 void close_db_sqlite3(sqlite3* db)
@@ -873,7 +954,7 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
 {
   assert(db != NULL);
   assert(rd != NULL);
-  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0);
+  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0 ||rd->type ==GTP_STATS_V0);
 
   if(rd->type == MAC_STATS_V0){
     write_mac_stats(db, id, &rd->mac_stats);
@@ -883,9 +964,10 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
     write_pdcp_stats(db, id, &rd->pdcp_stats);
   } else if (rd->type == SLICE_STATS_V0) {
     write_slice_stats(db, id, &rd->slice_stats);
+  } else if (rd->type == GTP_STATS_V0) {
+    write_gtp_stats(db, id, &rd->gtp_stats);
   } else {
     assert(0!=0 && "Unknown statistics type received ");
   }
-
 }
 

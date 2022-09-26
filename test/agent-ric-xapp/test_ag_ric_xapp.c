@@ -23,6 +23,7 @@
 #include "../../src/ric/near_ric_api.h"
 #include "../../src/xApp/e42_xapp_api.h"
 #include "../../src/sm/slice_sm/slice_sm_id.h"
+#include "../../src/sm/gtp_sm/gtp_sm_id.h"
 #include "../../src/util/alg_ds/alg/defer.h"
 #include "../../src/util/time_now_us.h"
 #include "../sm/common/fill_ind_data.h"
@@ -35,7 +36,7 @@
 static
 void read_RAN(sm_ag_if_rd_t* data)
 {
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == GTP_STATS_V0);
 
   if(data->type == MAC_STATS_V0 ){
       fill_mac_ind_data(&data->mac_stats);
@@ -45,6 +46,8 @@ void read_RAN(sm_ag_if_rd_t* data)
       fill_pdcp_ind_data(&data->pdcp_stats);
   } else if(data->type == SLICE_STATS_V0 ){
     fill_slice_ind_data(&data->slice_stats);
+  } else if(data->type == GTP_STATS_V0 ){
+    fill_gtp_ind_data(&data->gtp_stats);
   } else {
     assert("Invalid data type");
   }
@@ -104,7 +107,15 @@ void sm_cb_rlc(sm_ag_if_rd_t const* rd)
   printf("RLC ind_msg latency = %ld \n", now - rd->rlc_stats.msg.tstamp);
 }
 
+static
+void sm_cb_gtp(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == GTP_STATS_V0); 
 
+  int64_t now = time_now_us();
+  printf("GTP ind_msg latency = %ld \n", now - rd->gtp_stats.msg.tstamp);
+}
 
 static
 sm_ag_if_wr_t create_add_slice(void)
@@ -198,6 +209,12 @@ int main(int argc, char *argv[])
   assert(h_2.success == true);
   sleep(2);
 
+  inter_xapp_e i_3 = ms_1;
+  // returns a handle
+  sm_ans_xapp_t h_3 = report_sm_xapp_api(&nodes.n[0].id, SM_GTP_ID, i_3, sm_cb_gtp);
+  assert(h_3.success == true);
+  sleep(2);
+
   // Control ADD slice
   sm_ag_if_wr_t ctrl_msg_add = create_add_slice();
   control_sm_xapp_api(&nodes.n[0].id, SM_SLICE_ID, &ctrl_msg_add);
@@ -218,6 +235,9 @@ int main(int argc, char *argv[])
 
   // Remove the handle previously returned
   rm_report_sm_xapp_api(h_2.u.handle);
+
+  // Remove the handle previously returned
+  rm_report_sm_xapp_api(h_3.u.handle);
 
   sleep(1);
 

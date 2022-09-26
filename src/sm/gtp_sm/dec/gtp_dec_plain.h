@@ -20,45 +20,31 @@
  */
 
 
+#ifndef GTP_DECRYPTION_PLAIN_H
+#define GTP_DECRYPTION_PLAIN_H
 
-#ifndef SM_ANSWER_INTERFACE_H
-#define SM_ANSWER_INTERFACE_H
-
-
-#include "../../mac_sm/ie/mac_data_ie.h"
-#include "../../rlc_sm/ie/rlc_data_ie.h"
-#include "../../pdcp_sm/ie/pdcp_data_ie.h"
-#include "../../slice_sm/ie/slice_data_ie.h"
-#include "../../tc_sm/ie/tc_data_ie.h"
-#include "../../gtp_sm/ie/gtp_data_ie.h"
+#include <stddef.h>
+#include "../ie/gtp_data_ie.h"
 
 
+gtp_event_trigger_t gtp_dec_event_trigger_plain(size_t len, uint8_t const ev_tr[len]);
 
-typedef enum{
-  MAC_AGENT_IF_CTRL_ANS_V0, 
-  RLC_AGENT_IF_CTRL_ANS_V0, 
-  PDCP_AGENT_IF_CTRL_ANS_V0, 
-  SLICE_AGENT_IF_CTRL_ANS_V0, 
-  TC_AGENT_IF_CTRL_ANS_V0,
-  GTP_AGENT_IF_CTRL_ANS_V0,
+gtp_action_def_t gtp_dec_action_def_plain(size_t len, uint8_t const action_def[len]);
 
-  SM_AGENT_IF_ANS_V0_END,
-} sm_ag_if_ans_e;
+gtp_ind_hdr_t gtp_dec_ind_hdr_plain(size_t len, uint8_t const ind_hdr[len]); 
 
-typedef struct{
-  union {
-    mac_ctrl_out_t mac;
-    rlc_ctrl_out_t rlc;
-    pdcp_ctrl_out_t pdcp;
-    slice_ctrl_out_t slice;
-    tc_ctrl_out_t tc;
-    gtp_ctrl_out_t gtp;
-  };
-  sm_ag_if_ans_e type;
-} sm_ag_if_ans_t;
+gtp_ind_msg_t gtp_dec_ind_msg_plain(size_t len, uint8_t const ind_msg[len]); 
 
+gtp_call_proc_id_t gtp_dec_call_proc_id_plain(size_t len, uint8_t const call_proc_id[len]);
 
+gtp_ctrl_hdr_t gtp_dec_ctrl_hdr_plain(size_t len, uint8_t const ctrl_hdr[len]); 
 
+gtp_ctrl_msg_t gtp_dec_ctrl_msg_plain(size_t len, uint8_t const ctrl_msg[len]); 
+
+gtp_ctrl_out_t gtp_dec_ctrl_out_plain(size_t len, uint8_t const ctrl_out[len]); 
+
+gtp_func_def_t gtp_dec_func_def_plain(size_t len, uint8_t const func_def[len]);
 
 #endif
+
 

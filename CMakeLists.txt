@@ -135,8 +135,10 @@ set(SM_ENCODING_SLICE "PLAIN" CACHE STRING "The SLICE SM encoding to use")
 set_property(CACHE SM_ENCODING_SLICE PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
 message(STATUS "Selected SLICE SM_ENCODING: ${SM_ENCODING_SLICE}")
 
-
-
+# GTP Service Model
+set(SM_ENCODING_GTP "PLAIN" CACHE STRING "The GTP SM encoding to use")
+set_property(CACHE SM_ENCODING_GTP PROPERTY STRINGS "PLAIN")
+message(STATUS "Selected GTP SM_ENCODING: ${SM_ENCODING_GTP}")
 
 ########
 ### Flatbuffer 
@@ -183,6 +185,7 @@ install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 
 ###
 # Install the configuration file
