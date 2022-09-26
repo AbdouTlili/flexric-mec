@@ -46,6 +46,7 @@
 #include "../sm/slice_sm/slice_sm_id.h"
 #include "../sm/tc_sm/tc_sm_id.h"
 #include "../sm/gtp_sm/gtp_sm_id.h"
+#include "../sm/kpm_sm_v2.02/kpm_sm_id.h"
 
 
 #include <assert.h>
@@ -339,6 +340,7 @@ bool valid_ran_func_id(uint16_t ran_func_id)\
       || ran_func_id == SM_PDCP_ID
       || ran_func_id == SM_TC_ID
       || ran_func_id == SM_GTP_ID
+      || ran_func_id == SM_KPM_ID
     )
     return true;
 

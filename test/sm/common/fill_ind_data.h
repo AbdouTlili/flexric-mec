@@ -28,6 +28,7 @@
 #include "../../../src/sm/slice_sm/ie/slice_data_ie.h"
 #include "../../../src/sm/tc_sm/ie/tc_data_ie.h"
 #include "../../../src/sm/gtp_sm/ie/gtp_data_ie.h"
+#include "../../../src/sm/kpm_sm_v2.02/ie/kpm_data_ie.h"
 
 void fill_mac_ind_data(mac_ind_data_t* ind);
 
@@ -44,6 +45,7 @@ void fill_tc_ind_data(tc_ind_data_t* ind_msg);
 void fill_tc_ctrl(tc_ctrl_req_data_t* ctrl);
 
 void fill_gtp_ind_data(gtp_ind_data_t* ind);
+void fill_kpm_ind_data(kpm_ind_data_t* ind);
 
 #endif
 

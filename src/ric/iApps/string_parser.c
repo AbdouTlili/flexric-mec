@@ -29,6 +29,7 @@
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_radio_b...
 #include "ric/iApps/../../sm/rlc_sm/ie/rlc_data_ie.h"    // for rlc_radio_be...
 #include "ric/iApps/../../sm/slice_sm/ie/slice_data_ie.h"
+#include "ric/iApps/../../sm/kpm_sm_v2.02/ie/kpm_data_ie.h"
 
 
 void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* out, size_t out_len)
@@ -431,4 +432,95 @@ void to_string_gtp_ngu(gtp_ngu_t_stats_t const* gtp, int64_t tstamp , char* out,
         , gtp->teidupf
         );
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
+}
+void to_string_kpm_labelInfo(adapter_LabelInfoList_t const* labelInfo, char*out, size_t out_len)
+{
+  assert(labelInfo != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+
+  int rc = snprintf(out, out_len,
+                        ",labelInfo"
+                        ",noLabel=%ld"
+                        ",plmnID->len=%zu"
+                        ",plmnID->buf=%u"
+                        ",sliceID->sD->len=%zu"
+                        ",sliceID->sD->buf=%u"
+                        ",sliceID->sST->len=%zu"
+                        ",sliceID->sST->buf=%u"
+                        ",fiveQI=%ld"
+                        ",qFI=%ld"
+                        ",qCI=%ld"
+                        ",qFI=%ld"
+                        ",qCImax=%ld"
+                        ",qCImin=%ld"
+                        ",aRPmax=%ld"
+                        ",aRPmin=%ld"
+                        ",bitrateRange=%ld"
+                        ",layerMU_MIMO=%ld"
+                        ",sUM=%ld"
+                        ",distBinX=%ld"
+                        ",distBinY=%ld"
+                        ",distBinZ=%ld"
+                        ",preLabelOverride=%ld"
+                        ",startEndInd=%ld"
+                        ",min=%ld"
+                        ",max=%ld"
+                        ",avg=%ld"
+                        , *labelInfo->noLabel
+                        , labelInfo->plmnID->len
+                        , *labelInfo->plmnID->buf
+                        , labelInfo->sliceID->sD->len
+                        , *labelInfo->sliceID->sD->buf
+                        , labelInfo->sliceID->sST.len
+                        , *labelInfo->sliceID->sST.buf
+                        , *labelInfo->fiveQI
+                        , *labelInfo->qFI
+                        , *labelInfo->qCI
+                        , *labelInfo->qFI
+                        , *labelInfo->qCImax
+                        , *labelInfo->qCImin
+                        , *labelInfo->aRPmax
+                        , *labelInfo->aRPmin
+                        , *labelInfo->bitrateRange
+                        , *labelInfo->layerMU_MIMO
+                        , *labelInfo->sUM
+                        , *labelInfo->distBinX
+                        , *labelInfo->distBinY
+                        , *labelInfo->distBinZ
+                        , *labelInfo->preLabelOverride
+                        , *labelInfo->startEndInd
+                        , *labelInfo->min
+                        , *labelInfo->max
+                        , *labelInfo->avg
+                        );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+}
+
+void to_string_kpm_measRecord(adapter_MeasRecord_t const* measRecord, char*out, size_t out_len)
+{
+  assert(measRecord != NULL);
+  const size_t max = 512;
+  assert(out_len >= max);
+
+  if (measRecord->type == MeasRecord_int){
+    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
+                    ",type=int"
+                    ",value=%ld"
+                    , measRecord->int_val
+                    );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  } else if(measRecord->type == MeasRecord_real){
+    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
+                    ",type=real"
+                    ",value=%ld"
+                    , measRecord->int_val
+                    );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  } else {
+    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
+                        ",type=null"
+                        );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  }
 }

@@ -107,4 +107,5 @@ target_link_libraries(test_tc_sm PUBLIC -pthread)
 endif()
 
 
-
+enable_testing()
+add_test(Unit_test_TC test_tc_sm)

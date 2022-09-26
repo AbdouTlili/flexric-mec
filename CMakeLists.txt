@@ -56,12 +56,15 @@ set(SANITIZER "NONE" CACHE STRING "Sanitizers")
 set_property(CACHE SANITIZER PROPERTY STRINGS "NONE" "ADDRESS" "THREAD")
 message(STATUS "Selected SANITIZER TYPE: ${SANITIZER}")
 
-if(SANITIZER STREQUAL "ADDRESS")
+if(${SANITIZER} STREQUAL "ADDRESS")
    add_compile_options("-fno-omit-frame-pointer;-fsanitize=address")
    add_link_options("-fsanitize=address")
-elseif(SANITIZER STREQUAL "THREAD")
+elseif(${SANITIZER} STREQUAL "THREAD")
   add_compile_options("-fsanitize=thread;-g;")
   add_link_options("-fsanitize=thread")
+elseif(${SANITIZER} STREQUAL "STACK") 
+  add_compile_options("-fstack-protector-all")
+  add_link_options("-fstack-protector-all")
 endif()
 
 option(CODE_COVERAGE "Code coverage" OFF)
@@ -114,6 +117,11 @@ message(STATUS "Selected E2AP_ENCODING: ${E2AP_ENCODING}")
 #######
 
 add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}/")
+
+# KPM service Model encoding definitions
+set(SM_ENCODING_KPM "ASN" CACHE STRING "The KPM SM encoding to use")
+set_property(CACHE SM_ENCODING_KPM PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
+message(STATUS "Selected KPM SM_ENCODING: ${SM_ENCODING_KPM}")
 
 # MAC Service Model
 set(SM_ENCODING_MAC "PLAIN" CACHE STRING "The MAC SM encoding to use")
@@ -186,9 +194,11 @@ install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 
 ###
 # Install the configuration file
 ###
 
 install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+enable_testing()

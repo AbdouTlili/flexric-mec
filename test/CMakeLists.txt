@@ -2,4 +2,4 @@ add_subdirectory(agent-ric-xapp)
 add_subdirectory(agent-ric)
 add_subdirectory(encode_decode)
 add_subdirectory(sm)
-
+enable_testing() 

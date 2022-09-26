@@ -24,6 +24,7 @@
 #include "../../src/xApp/e42_xapp_api.h"
 #include "../../src/sm/slice_sm/slice_sm_id.h"
 #include "../../src/sm/gtp_sm/gtp_sm_id.h"
+#include "../../src/sm/kpm_sm_v2.02/kpm_sm_id.h"
 #include "../../src/util/alg_ds/alg/defer.h"
 #include "../../src/util/time_now_us.h"
 #include "../sm/common/fill_ind_data.h"
@@ -36,18 +37,25 @@
 static
 void read_RAN(sm_ag_if_rd_t* data)
 {
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == GTP_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || 
+        data->type == RLC_STATS_V0 ||  
+        data->type == PDCP_STATS_V0 || 
+        data->type == SLICE_STATS_V0 || 
+        data->type == KPM_STATS_V0 ||
+        data->type == GTP_STATS_V0);
 
   if(data->type == MAC_STATS_V0 ){
-      fill_mac_ind_data(&data->mac_stats);
+    fill_mac_ind_data(&data->mac_stats);
   } else if(data->type == RLC_STATS_V0) {
-      fill_rlc_ind_data(&data->rlc_stats);
+    fill_rlc_ind_data(&data->rlc_stats);
   } else if (data->type == PDCP_STATS_V0 ){
-      fill_pdcp_ind_data(&data->pdcp_stats);
+    fill_pdcp_ind_data(&data->pdcp_stats);
   } else if(data->type == SLICE_STATS_V0 ){
     fill_slice_ind_data(&data->slice_stats);
   } else if(data->type == GTP_STATS_V0 ){
     fill_gtp_ind_data(&data->gtp_stats);
+  } else if(data->type == KPM_STATS_V0 ){
+    fill_kpm_ind_data(&data->kpm_stats);
   } else {
     assert("Invalid data type");
   }
@@ -85,6 +93,26 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
   sm_ag_if_ans_t ans = {0};
   return ans;
 }
+
+static
+void sm_cb_kpm(sm_ag_if_rd_t const* rd)
+{
+  assert(rd != NULL);
+  assert(rd->type == KPM_STATS_V0); 
+
+  int64_t now = time_now_us();
+  // XXX: fix below
+
+  u_int32_t rcv_tstamp;
+  memcpy(&rcv_tstamp, rd->kpm_stats.hdr.collectStartTime.buf, 4);
+  #if BYTE_ORDER == LITTLE_ENDIAN  
+    rcv_tstamp = __bswap_32 (rcv_tstamp);
+  #endif
+  int64_t rcv_tstampfull = (int64_t)rcv_tstamp * 1000000;
+  
+  printf("KPM ind_msg latency = %ld \n", now - rcv_tstampfull);
+}
+
 
 static
 void sm_cb_mac(sm_ag_if_rd_t const* rd)
@@ -198,8 +226,13 @@ int main(int argc, char *argv[])
     printf("Registered ran func id = %d \n ", n->ack_rf[i].id );
 
   inter_xapp_e i = ms_1;
+  // returns a handle for KPM
+  sm_ans_xapp_t h = report_sm_xapp_api(&nodes.n[0].id, SM_KPM_ID, i, sm_cb_kpm);
+  assert(h.success == true);
+  sleep(2);
+
   // returns a handle
-  sm_ans_xapp_t h = report_sm_xapp_api(&nodes.n[0].id, n->ack_rf[0].id, i, sm_cb_mac);
+  h = report_sm_xapp_api(&nodes.n[0].id, n->ack_rf[0].id, i, sm_cb_mac);
   assert(h.success == true);
   sleep(2);
 

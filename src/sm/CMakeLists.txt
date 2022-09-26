@@ -1,3 +1,4 @@
+add_subdirectory(kpm_sm_v2.02)
 add_subdirectory(mac_sm)
 add_subdirectory(rlc_sm)
 add_subdirectory(pdcp_sm)

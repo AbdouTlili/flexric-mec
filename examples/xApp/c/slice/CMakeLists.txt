@@ -8,6 +8,7 @@ add_executable(xapp_slice_moni_ctrl
                 ../../../../src/sm/slice_sm/ie/slice_data_ie.c
                 ../../../../src/sm/tc_sm/ie/tc_data_ie.c
                 ../../../../src/sm/gtp_sm/ie/gtp_data_ie.c
+                ../../../../src/sm/kpm_sm_v2.02/ie/kpm_data_ie.c
                 )
 
 target_link_libraries(xapp_slice_moni_ctrl

@@ -35,18 +35,21 @@
 static
 void read_RAN(sm_ag_if_rd_t* data)
 {
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == GTP_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == KPM_STATS_V0 || data->type == KPM_STATS_V0);
+
 
   if(data->type == MAC_STATS_V0 ){
-      fill_mac_ind_data(&data->mac_stats);
+    fill_mac_ind_data(&data->mac_stats);
   } else if(data->type == RLC_STATS_V0) {
-      fill_rlc_ind_data(&data->rlc_stats);
+    fill_rlc_ind_data(&data->rlc_stats);
   } else if (data->type == PDCP_STATS_V0 ){
-      fill_pdcp_ind_data(&data->pdcp_stats);
+    fill_pdcp_ind_data(&data->pdcp_stats);
   } else if(data->type == SLICE_STATS_V0 ){
     fill_slice_ind_data(&data->slice_stats);
   } else if(data->type == GTP_STATS_V0 ){
     fill_gtp_ind_data(&data->gtp_stats);
+  } else if(data->type == KPM_STATS_V0 ){
+    fill_kpm_ind_data(&data->kpm_stats);
   } else {
     assert("Invalid data type");
   }
