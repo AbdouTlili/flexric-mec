@@ -1,6 +1,6 @@
 
-add_executable(xapp_mac_rlc_pdcp_moni 
-		xapp_mac_rlc_pdcp_moni.c
+add_executable(xapp_monitor_all
+		xapp_monitor_all.c
                 ../../../../src/util/alg_ds/alg/defer.c
                 ../../../../src/sm/mac_sm/ie/mac_data_ie.c
                 ../../../../src/sm/rlc_sm/ie/rlc_data_ie.c
@@ -11,7 +11,7 @@ add_executable(xapp_mac_rlc_pdcp_moni
                 ../../../../src/sm/kpm_sm_v2.02/ie/kpm_data_ie.c
                 )
 
-target_link_libraries(xapp_mac_rlc_pdcp_moni
+target_link_libraries(xapp_monitor_all
                       PUBLIC
                       e42_xapp
                       -pthread

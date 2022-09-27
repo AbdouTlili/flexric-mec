@@ -145,8 +145,8 @@ void print_slice_stats(slice_ind_msg_t const* slice)
   if(fp == NULL)
     init_fp(&fp, file_path);
 
-  char stats[512] = {0};
-  to_string_slice(slice, slice->tstamp, stats, 512); 
+  char stats[2048] = {0};
+  to_string_slice(slice, slice->tstamp, stats, 2048);
 
   int const rc = fputs(stats , fp);
   // Edit: The C99 standard §7.19.1.3 states:

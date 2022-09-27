@@ -10,14 +10,15 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "alg_ds/alg/defer.h"
 
 static
-const char* default_conf_file = "/usr/local/flexric/flexric.conf";
+const char* default_conf_file = "/usr/local/etc/flexric/flexric.conf";
 
 static
-const char* default_libs_dir = "/usr/local/flexric/";
+const char* default_libs_dir = "/usr/local/lib/flexric/";
 
 /*
 #include <assert.h>
@@ -235,6 +236,17 @@ bool valid_ip(const char* ip)
 }
 
 static
+bool valid_port(const char* port)
+{
+  assert(port != NULL);
+  char* e2_port = "36421";
+  char* e42_port = "36422";
+  if (!strcmp (port, e2_port) && !strcmp (port, e42_port))
+    return false;
+  return true;
+}
+
+static
 char *ltrim(char *s)
 {
     while(isspace(*s)) s++;
@@ -384,7 +396,7 @@ fr_args_t init_fr_args(int argc, char* argv[])
   load_default_val(&args);
   
   if(argc > 1){
-    assert(argc < 4 && "Only -h -c -p flags supported");
+    assert(argc < 6 && "Only -h -c -p flags supported");
     assert(argv != NULL);
     parse_args(argc, argv, &args);
   }
@@ -397,7 +409,7 @@ fr_args_t init_fr_args(int argc, char* argv[])
   return args;
 }
 
-char* get_near_ric_ip(fr_args_t const* args)
+char* get_conf_ip(fr_args_t const* args)
 {
   char* line = NULL;
   defer({free(line);});
@@ -421,6 +433,7 @@ char* get_near_ric_ip(fr_args_t const* args)
       ans += strlen(needle); 
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(ip_addr));
       memcpy(ip_addr, ans , strlen(ans)); // \n character
       break;
     }    
@@ -434,3 +447,402 @@ char* get_near_ric_ip(fr_args_t const* args)
   return strdup(ip_addr);
 }
 
+char* get_conf_e2port(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char port[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "E2_PORT =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(port));
+      memcpy(port, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  if(valid_port(port) == false){
+    printf("E2 port string invalid = %s Check the config file\n",port);
+    exit(EXIT_FAILURE);
+  }
+
+  return strdup(port);
+}
+
+char* get_conf_e42port(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char port[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "E42_PORT =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(port));
+      memcpy(port, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  if(valid_port(port) == false){
+    printf("E42 port string invalid = %s Check the config file\n",port);
+    exit(EXIT_FAILURE);
+  }
+
+  return strdup(port);
+}
+
+char* get_conf_db_dir(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char db_dir[PATH_MAX] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "DB_DIR =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_dir));
+      memcpy(db_dir, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_path()
+
+  return strdup(db_dir);
+}
+
+char* get_conf_db_name(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char db_name[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "DB_NAME =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_name));
+      memcpy(db_name, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_db_name()
+
+  return strdup(db_name);
+}
+
+char* get_conf_xappid(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char xappid[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "XAPP_ID =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(xappid));
+      memcpy(xappid, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_num_e2nodes()
+
+  return strdup(xappid);
+}
+
+char* get_conf_e2nodes(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char num_e2nodes[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "EMU_E2_NODES =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(num_e2nodes));
+      memcpy(num_e2nodes, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_num_e2nodes()
+
+  return strdup(num_e2nodes);
+}
+
+char* get_conf_nbid(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char nbid[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "NB_ID =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(nbid));
+      memcpy(nbid, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_nbid()
+
+  return strdup(nbid);
+}
+
+char* get_conf_mcc(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char mcc[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "MCC =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(mcc));
+      memcpy(mcc, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_mcc()
+
+  return strdup(mcc);
+}
+
+char* get_conf_mnc(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char mnc[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "MNC =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(mnc));
+      memcpy(mnc, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_mnc()
+
+  return strdup(mnc);
+}
+
+ngran_node_t get_conf_rantype(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char type[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "RAN_TYPE =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(type));
+      memcpy(type, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_type()
+  char* type_str = strdup(type);
+  ngran_node_t type_enum = ngran_gNB; // assume is gNB in the beginning (need to fix)
+  if (!strcmp(type_str, "gNB"))
+    return type_enum;
+  else if (!strcmp(type_str, "eNB"))
+    type_enum = ngran_eNB;
+  else if (!strcmp(type_str, "gNB_CU"))
+    type_enum = ngran_gNB_CU;
+  else if (!strcmp(type_str, "gNB_DU"))
+    type_enum = ngran_gNB_DU;
+  return -1;
+}
+
+char* get_conf_cu_du_id(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char cu_du_id[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "CU_DU_ID =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(cu_du_id));
+      memcpy(cu_du_id, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_cu_du_id()
+
+  return strdup(cu_du_id);
+}

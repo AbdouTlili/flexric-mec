@@ -48,12 +48,11 @@ void* static_start_iapp(void* a)
   return NULL;
 }
 
-void init_iapp_api(const char* addr, near_ric_if_t ric_if)
+void init_iapp_api(fr_args_t const* args, near_ric_if_t ric_if)
 {
   assert(iapp == NULL);
 
-  printf("[iApp]: IP Address = %s\n", addr);
-  iapp = init_e42_iapp(addr, ric_if);
+  iapp = init_e42_iapp(args, ric_if);
   assert(iapp->io.efd < 1024);
 
   // Spawn a new thread for the iapp

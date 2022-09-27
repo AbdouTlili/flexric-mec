@@ -374,7 +374,7 @@ E2nodeComponentConfigUpdate_ItemIEs_t* copy_e2_node_component_conf_update(const 
 byte_array_t e2ap_enc_asn_pdu_ba(struct E2AP_PDU* pdu)
 {
   assert(pdu != NULL);
-  byte_array_t ba = {.buf = malloc(2048), .len = 2048};
+  byte_array_t ba = {.buf = malloc(16384), .len = 16384};
   const bool success = encode(&ba, pdu);
   assert(success);
   return ba;
@@ -1317,7 +1317,6 @@ byte_array_t e2ap_enc_setup_request_asn_msg(const e2ap_msg_t* msg)
 
 E2AP_PDU_t* e2ap_enc_setup_request_asn_pdu(const e2_setup_request_t* sr)
 {
-  assert(sr->id.type == ngran_gNB); // only this type supported
   assert(sr->len_rf <= (size_t)MAX_NUM_RAN_FUNC_ID);
 
   // Message Type. Mandatory
@@ -1335,16 +1334,41 @@ E2AP_PDU_t* e2ap_enc_setup_request_asn_pdu(const e2_setup_request_t* sr)
   setup_rid->id = ProtocolIE_ID_id_GlobalE2node_ID;
   setup_rid->criticality = Criticality_reject;
   setup_rid->value.present = E2setupRequestIEs__value_PR_GlobalE2node_ID;
-  setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
 
-  GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
-  e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
-  const plmn_t* plmn = &sr->id.plmn;
-  MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
-  MACRO_GNB_ID_TO_BIT_STRING(sr->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
-  setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
-  int rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
-  assert(rc == 0);
+  int rc = 0;
+  if (sr->id.type != 0) {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+
+    GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
+    e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
+    if (sr->id.type == 5) { // ngran_gNB_CU = 5
+      GNB_CU_UP_ID_t *e2gnb_cu_up_id = calloc(1, sizeof(GNB_CU_UP_ID_t));
+      asn_uint642INTEGER(e2gnb_cu_up_id, sr->id.cu_du_id);
+      e2gnb->gNB_CU_UP_ID = e2gnb_cu_up_id;
+    }
+    if (sr->id.type == 7) { // ngran_gNB_DU = 7
+      GNB_DU_ID_t *e2gnb_du_id = calloc(1, sizeof(GNB_DU_ID_t));
+      asn_uint642INTEGER(e2gnb_du_id, sr->id.cu_du_id);
+      e2gnb->gNB_DU_ID = e2gnb_du_id;
+    }
+
+    const plmn_t* plmn = &sr->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
+    MACRO_GNB_ID_TO_BIT_STRING(sr->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  } else {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_eNB;
+    GlobalE2node_eNB_ID_t *e2enb = calloc(1, sizeof(GlobalE2node_eNB_ID_t));
+    e2enb->global_eNB_ID.eNB_ID.present = ENB_ID_PR_macro_eNB_ID;
+    const plmn_t* plmn = &sr->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2enb->global_eNB_ID.pLMN_Identity);
+    MACRO_ENB_ID_TO_BIT_STRING(sr->id.nb_id, &e2enb->global_eNB_ID.eNB_ID.choice.macro_eNB_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.eNB = e2enb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  }
 
   if(sr->len_rf > 0){
   // List of RAN Functions Added
@@ -2486,16 +2510,40 @@ struct E2AP_PDU* e2ap_enc_e42_subscription_request_asn_pdu(const e42_ric_subscri
   setup_rid->id = ProtocolIE_ID_id_GlobalE2node_ID;
   setup_rid->criticality = Criticality_reject;
   setup_rid->value.present = E42RICsubscriptionRequest_IEs__value_PR_GlobalE2node_ID;
-  setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
 
-  GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
-  e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
-  const plmn_t* plmn = &e42_sr->id.plmn;
-  MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
-  MACRO_GNB_ID_TO_BIT_STRING(e42_sr->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
-  setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
-  rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
-  assert(rc == 0);
+  if (e42_sr->id.type != 0) {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+
+    GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
+    e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
+    if (e42_sr->id.type == 5) { // ngran_gNB_CU = 5
+      GNB_CU_UP_ID_t *e2gnb_cu_up_id = calloc(1, sizeof(GNB_CU_UP_ID_t));
+      asn_uint642INTEGER(e2gnb_cu_up_id, e42_sr->id.cu_du_id);
+      e2gnb->gNB_CU_UP_ID = e2gnb_cu_up_id;
+    }
+    if (e42_sr->id.type == 7) { // ngran_gNB_DU = 7
+      GNB_DU_ID_t *e2gnb_du_id = calloc(1, sizeof(GNB_DU_ID_t));
+      asn_uint642INTEGER(e2gnb_du_id, e42_sr->id.cu_du_id);
+      e2gnb->gNB_DU_ID = e2gnb_du_id;
+    }
+
+    const plmn_t *plmn = &e42_sr->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
+    MACRO_GNB_ID_TO_BIT_STRING(e42_sr->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  } else {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_eNB;
+    GlobalE2node_eNB_ID_t *e2enb = calloc(1, sizeof(GlobalE2node_eNB_ID_t));
+    e2enb->global_eNB_ID.eNB_ID.present = ENB_ID_PR_macro_eNB_ID;
+    const plmn_t* plmn = &e42_sr->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2enb->global_eNB_ID.pLMN_Identity);
+    MACRO_ENB_ID_TO_BIT_STRING(e42_sr->id.nb_id, &e2enb->global_eNB_ID.eNB_ID.choice.macro_eNB_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.eNB = e2enb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  }
 
   // RIC Request ID. Mandatory.
 E42RICsubscriptionRequest_IEs_t* sub_req = calloc(1, sizeof(E42RICsubscriptionRequest_IEs_t));
@@ -2674,18 +2722,42 @@ struct E2AP_PDU* e2ap_enc_e42_setup_response_asn_pdu(const e42_setup_response_t*
     conn_item->value.present = E2nodeConnected_ItemIEs__value_PR_GlobalE2node_ID;
 
     global_e2_node_id_t const* src_id = &sr->nodes[i].id;
-    assert(src_id->type == ngran_gNB); // only this type supported
-    GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
-    e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
-    const plmn_t* plmn = &src_id->plmn;
-    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
-    MACRO_GNB_ID_TO_BIT_STRING(src_id->nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
 
-    conn_item->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
-    conn_item->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
+    if (src_id->type != 0) {
+      GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
+      e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
+      if (src_id->type == 5) { // ngran_gNB_CU = 5
+        GNB_CU_UP_ID_t *e2gnb_cu_up_id = calloc(1, sizeof(GNB_CU_UP_ID_t));
+        asn_uint642INTEGER(e2gnb_cu_up_id, src_id->cu_du_id);
+        e2gnb->gNB_CU_UP_ID = e2gnb_cu_up_id;
+      }
+      if (src_id->type == 7) { // ngran_gNB_DU = 7
+        GNB_DU_ID_t *e2gnb_du_id = calloc(1, sizeof(GNB_DU_ID_t));
+        asn_uint642INTEGER(e2gnb_du_id, src_id->cu_du_id);
+        e2gnb->gNB_DU_ID = e2gnb_du_id;
+      }
 
-    rc = ASN_SEQUENCE_ADD(&conn_list->value.choice.E2nodeConnected_List.protocolIEs.list, conn_item);
-    assert(rc == 0);
+      const plmn_t* plmn = &src_id->plmn;
+      MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
+      MACRO_GNB_ID_TO_BIT_STRING(src_id->nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
+
+      conn_item->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+      conn_item->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
+
+      rc = ASN_SEQUENCE_ADD(&conn_list->value.choice.E2nodeConnected_List.protocolIEs.list, conn_item);
+      assert(rc == 0);
+    } else {
+      GlobalE2node_eNB_ID_t *e2enb = calloc(1, sizeof(GlobalE2node_eNB_ID_t));
+      e2enb->global_eNB_ID.eNB_ID.present = ENB_ID_PR_macro_eNB_ID;
+      const plmn_t* plmn = &src_id->plmn;
+      MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2enb->global_eNB_ID.pLMN_Identity);
+      MACRO_ENB_ID_TO_BIT_STRING(src_id->nb_id, &e2enb->global_eNB_ID.eNB_ID.choice.macro_eNB_ID);
+
+      conn_item->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_eNB;
+      conn_item->value.choice.GlobalE2node_ID.choice.eNB = e2enb;
+      rc = ASN_SEQUENCE_ADD(&conn_list->value.choice.E2nodeConnected_List.protocolIEs.list, conn_item);
+      assert(rc == 0);
+    }
 
     // RAN functions
     E2nodeConnected_ItemIEs_t* conn_rf = calloc(1, sizeof(E2nodeConnected_ItemIEs_t));
@@ -2839,16 +2911,40 @@ E2AP_PDU_t* e2ap_enc_e42_control_request_asn_pdu(const e42_ric_control_request_t
   setup_rid->id = ProtocolIE_ID_id_GlobalE2node_ID;
   setup_rid->criticality = Criticality_reject;
   setup_rid->value.present = E42RICcontrolRequest_IEs__value_PR_GlobalE2node_ID;
-  setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+  if (e42_ric_req->id.type != 0) {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+    GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
+    e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
+    if (e42_ric_req->id.type == 5) { // ngran_gNB_CU = 5
+      GNB_CU_UP_ID_t *e2gnb_cu_up_id = calloc(1, sizeof(GNB_CU_UP_ID_t));
+      asn_uint642INTEGER(e2gnb_cu_up_id, e42_ric_req->id.cu_du_id);
+      e2gnb->gNB_CU_UP_ID = e2gnb_cu_up_id;
+    }
+    if (e42_ric_req->id.type == 7) { // ngran_gNB_DU = 7
+      GNB_DU_ID_t *e2gnb_du_id = calloc(1, sizeof(GNB_DU_ID_t));
+      asn_uint642INTEGER(e2gnb_du_id, e42_ric_req->id.cu_du_id);
+      e2gnb->gNB_DU_ID = e2gnb_du_id;
+    }
 
-  GlobalE2node_gNB_ID_t *e2gnb = calloc(1, sizeof(GlobalE2node_gNB_ID_t));
-  e2gnb->global_gNB_ID.gnb_id.present = GNB_ID_Choice_PR_gnb_ID;
-  const plmn_t* plmn = &e42_ric_req->id.plmn;
-  MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
-  MACRO_GNB_ID_TO_BIT_STRING(e42_ric_req->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
-  setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
-  rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
-  assert(rc == 0);
+    const plmn_t* plmn = &e42_ric_req->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2gnb->global_gNB_ID.plmn_id);
+    MACRO_GNB_ID_TO_BIT_STRING(e42_ric_req->id.nb_id, &e2gnb->global_gNB_ID.gnb_id.choice.gnb_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.gNB = e2gnb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  } else {
+    setup_rid->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_eNB;
+    GlobalE2node_eNB_ID_t *e2enb = calloc(1, sizeof(GlobalE2node_eNB_ID_t));
+    e2enb->global_eNB_ID.eNB_ID.present = ENB_ID_PR_macro_eNB_ID;
+    const plmn_t* plmn = &e42_ric_req->id.plmn;
+    MCC_MNC_TO_PLMNID(plmn->mcc, plmn->mnc, plmn->mnc_digit_len, &e2enb->global_eNB_ID.pLMN_Identity);
+    MACRO_ENB_ID_TO_BIT_STRING(e42_ric_req->id.nb_id, &e2enb->global_eNB_ID.eNB_ID.choice.macro_eNB_ID);
+    setup_rid->value.choice.GlobalE2node_ID.choice.eNB = e2enb;
+    rc = ASN_SEQUENCE_ADD(&out->protocolIEs.list, setup_rid);
+    assert(rc == 0);
+  }
+
+
 
   // RIC request id. Mandatory
   E42RICcontrolRequest_IEs_t* sub_req = calloc(1,sizeof(E42RICcontrolRequest_IEs_t)); 

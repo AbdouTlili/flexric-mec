@@ -33,6 +33,7 @@
 
 #include "../near_ric.h"
 #include "near_ric_if.h"
+#include "../../util/conf_file.h"
 //#include "../../../test/iapp-xapp/near_ric_emulator.h"
 
 #include "asio_iapp.h"
@@ -60,6 +61,9 @@ typedef struct e42_iapp_s
   // Registered E2 Nodes 
   reg_e2_nodes_t e2_nodes;
 
+  // Expected E2 Nodes
+  size_t exp_e2_nodes;
+
   map_ric_id_t map_ric_id;
 
   near_ric_if_t ric_if;
@@ -68,7 +72,7 @@ typedef struct e42_iapp_s
   atomic_bool stopped;
 } e42_iapp_t;
 
-e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if); //, int port);
+e42_iapp_t* init_e42_iapp(fr_args_t const* args, near_ric_if_t ric_if); //, int port);
 
 // Blocking call
 void start_e42_iapp(e42_iapp_t* iapp);

@@ -107,9 +107,9 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
   } else if(data->type == SLICE_STATS_V0){
     slice_ind_msg_t const* slice = &data->slice_stats.msg;
 
-    char stats[512] = {0};
+    char stats[2048] = {0};
 
-    to_string_slice(slice, slice->tstamp, stats, 512);
+    to_string_slice(slice, slice->tstamp, stats, 2048);
     int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
     assert(rc != -1);
   } else if (data->type == GTP_STATS_V0){

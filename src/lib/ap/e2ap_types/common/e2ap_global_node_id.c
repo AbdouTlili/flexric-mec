@@ -37,6 +37,8 @@ bool eq_global_e2_node_id(const global_e2_node_id_t* m0, const global_e2_node_id
   if(m0->nb_id != m1->nb_id)
     return false;
 
+  if(m0->cu_du_id != m1->cu_du_id) return false;
+
   if(eq_plmn(&m0->plmn, &m1->plmn) == false)
     return false;
 
@@ -52,6 +54,7 @@ global_e2_node_id_t cp_global_e2_node_id(global_e2_node_id_t const* src)
   dst.type = src->type;
   dst.plmn = cp_plmn(&src->plmn);
   dst.nb_id = src->nb_id;
+  dst.cu_du_id = src->cu_du_id;
 
   return dst;
 }
@@ -85,6 +88,12 @@ int cmp_global_e2_node_id(const global_e2_node_id_t* m0, const global_e2_node_id
     return -1;
   else if(m0->nb_id > m1->nb_id)
     return 1;
+
+  if (m0->cu_du_id < m1->cu_du_id)
+    return -1;
+  else if(m0->cu_du_id > m1->cu_du_id)
+    return 1;
+
 
   return 0;
 }
