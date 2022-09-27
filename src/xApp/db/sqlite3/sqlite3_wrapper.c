@@ -1052,6 +1052,7 @@ void write_gtp_stats(sqlite3* db, global_e2_node_id_t const* id, gtp_ind_data_t 
   }
 
   insert_db(db, buffer);
+}
 
 void write_kpm_stats(sqlite3* db, global_e2_node_id_t const* id, kpm_ind_data_t const* ind)
 {
@@ -1144,7 +1145,7 @@ void write_db_sqlite3(sqlite3* db, global_e2_node_id_t const* id, sm_ag_if_rd_t 
 {
   assert(db != NULL);
   assert(rd != NULL);
-  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0 ||rd->type ==KPM_STATS_V0 ||rd->type ==GTP_STATS_V0);
+  assert(rd->type == MAC_STATS_V0 || rd->type == RLC_STATS_V0|| rd->type == PDCP_STATS_V0 || rd->type == SLICE_STATS_V0 ||rd->type ==KPM_STATS_V0 ||rd->type == GTP_STATS_V0);
 
   if(rd->type == MAC_STATS_V0){
     write_mac_stats(db, id, &rd->mac_stats);

@@ -72,13 +72,10 @@ sm_ag_if_rd_t cp_sm_ag_if_rd(sm_ag_if_rd_t const* d)
     ans.slice_stats = cp_slice_ind_data(&d->slice_stats);
   } else if(ans.type == TC_STATS_V0) {
     ans.tc_stats = cp_tc_ind_data(&d->tc_stats);
-<<<<<<< HEAD
   } else if(ans.type == GTP_STATS_V0) {
     ans.gtp_stats = cp_gtp_ind_data(&d->gtp_stats);
-=======
   } else if(ans.type == KPM_STATS_V0) {
     ans.kpm_stats = cp_kpm_ind_data(&d->kpm_stats);
->>>>>>> kpm_v2
   } else {
     assert("Unknown type or not implemented");
   }
