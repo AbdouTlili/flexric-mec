@@ -433,6 +433,7 @@ char* get_conf_ip(fr_args_t const* args)
       ans += strlen(needle); 
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(ip_addr));
       memcpy(ip_addr, ans , strlen(ans)); // \n character
       break;
     }    
@@ -470,6 +471,7 @@ char* get_conf_e2port(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(port));
       memcpy(port, ans , strlen(ans)); // \n character
       break;
     }
@@ -507,6 +509,7 @@ char* get_conf_e42port(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(port));
       memcpy(port, ans , strlen(ans)); // \n character
       break;
     }
@@ -544,6 +547,7 @@ char* get_conf_db_dir(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_dir));
       memcpy(db_dir, ans , strlen(ans)); // \n character
       break;
     }
@@ -578,6 +582,7 @@ char* get_conf_db_name(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_name));
       memcpy(db_name, ans , strlen(ans)); // \n character
       break;
     }
@@ -612,6 +617,7 @@ char* get_conf_xappid(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(xappid));
       memcpy(xappid, ans , strlen(ans)); // \n character
       break;
     }
@@ -646,6 +652,7 @@ char* get_conf_e2nodes(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(num_e2nodes));
       memcpy(num_e2nodes, ans , strlen(ans)); // \n character
       break;
     }
@@ -680,6 +687,7 @@ char* get_conf_nbid(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(nbid));
       memcpy(nbid, ans , strlen(ans)); // \n character
       break;
     }
@@ -714,6 +722,7 @@ char* get_conf_mcc(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(mcc));
       memcpy(mcc, ans , strlen(ans)); // \n character
       break;
     }
@@ -748,6 +757,7 @@ char* get_conf_mnc(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(mnc));
       memcpy(mnc, ans , strlen(ans)); // \n character
       break;
     }
@@ -782,6 +792,7 @@ ngran_node_t get_conf_rantype(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(type));
       memcpy(type, ans , strlen(ans)); // \n character
       break;
     }
@@ -825,6 +836,7 @@ char* get_conf_cu_du_id(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(cu_du_id));
       memcpy(cu_du_id, ans , strlen(ans)); // \n character
       break;
     }
