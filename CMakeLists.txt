@@ -235,7 +235,7 @@ endif ()
 # Install Emulator Agent
 ###
 if (XAPP_C)
-  install(TARGETS xapp_monitor_all xapp_slice DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(TARGETS xapp_monitor_all xapp_slice xapp_hw DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 

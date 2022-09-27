@@ -87,7 +87,7 @@ if(XAPP_TARGET_LANGUAGE STREQUAL "PYTHON_LANG")
     "${CMAKE_SOURCE_DIR}/examples/xApp/python3/watch_slice_stats" "${CMAKE_BINARY_DIR}/examples/xApp/python3/watch_slice_stats" )
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_BINARY_DIR}/../../../../examples/xApp/python3/xapp_gtp_moni.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../examples/xApp/python3/xapp_gtp_moni.py" )
+    "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_gtp_moni.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_gtp_moni.py" )
 
 # I do not like this solution at all but it is not my code ...
 target_compile_options(xapp_sdk PRIVATE -Wno-missing-field-initializers -Wno-unused-parameter )
