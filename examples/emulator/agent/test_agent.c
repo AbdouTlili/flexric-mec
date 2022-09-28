@@ -38,7 +38,7 @@
 static
 void read_RAN(sm_ag_if_rd_t* data)
 {
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == KPM_STATS_V0 || data->type == KPM_STATS_V0);
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 ||  data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == KPM_STATS_V0 || data->type == GTP_STATS_V0);
 
 
   if(data->type == MAC_STATS_V0 ){
