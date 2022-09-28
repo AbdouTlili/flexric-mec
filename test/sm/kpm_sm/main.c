@@ -53,7 +53,7 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
  * XXX: This should be extended to check IE Ran Function definition
  */
 static
-void check_eq_ran_function(sm_agent_t const* ag, sm_ric_t const* ric)
+void check_eq_ran_function(sm_agent_t * ag, sm_ric_t const* ric)
 {
   assert(ag != NULL);
   assert(ric != NULL);

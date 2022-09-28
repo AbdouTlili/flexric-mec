@@ -115,14 +115,13 @@ sm_e2_setup_t on_e2_setup_kpm_sm_ag(sm_agent_t* sm_agent)
   sm_e2_setup_t setup = {.len_rfd =0, .ran_fun_def = NULL  }; 
 
   kpm_func_def_t func_def = {0};
-  uint8_t SM_KPM_STR_buf[2];
-
-  func_def.ranFunction_Name.Description.buf = SM_KPM_DESCRIPTION;
+  
+  func_def.ranFunction_Name.Description.buf = (uint8_t *)SM_KPM_DESCRIPTION;
   func_def.ranFunction_Name.Description.len = strlen(SM_KPM_DESCRIPTION);
-  func_def.ranFunction_Name.ShortName.buf = SM_KPM_STR;
+  func_def.ranFunction_Name.ShortName.buf = (uint8_t *)SM_KPM_STR;
   func_def.ranFunction_Name.ShortName.len = strlen(SM_KPM_STR);
   
-  func_def.ranFunction_Name.E2SM_OID.buf = SM_KPM_OID;
+  func_def.ranFunction_Name.E2SM_OID.buf = (uint8_t *)SM_KPM_OID;
   func_def.ranFunction_Name.E2SM_OID.len = strlen(SM_KPM_OID);
   
   byte_array_t ba = kpm_enc_func_def(&sm->enc, &func_def);

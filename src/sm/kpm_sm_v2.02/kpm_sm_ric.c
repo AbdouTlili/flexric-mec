@@ -75,7 +75,6 @@ static sm_subs_data_t on_subscription_kpm_sm_ric(sm_ric_t const* sm_ric, const c
   data.len_et = ba.len;
 
   // Action Definition IE
-  #warning "Hook for action definition in function signature is missing. Using some dummy defaults"
   long noLabelnum = 0; 
 	adapter_LabelInfoList_t	dummylabelInfo = {.noLabel = &noLabelnum}; 
   MeasInfo_t dummy_MeasInfo = { 
