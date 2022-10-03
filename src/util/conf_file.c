@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "alg_ds/alg/defer.h"
 
@@ -435,3 +436,72 @@ char* get_near_ric_ip(fr_args_t const* args)
   return strdup(ip_addr);
 }
 
+char* get_conf_db_dir(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char db_dir[PATH_MAX] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "DB_DIR =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_dir));
+      memcpy(db_dir, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_path()
+
+  return strdup(db_dir);
+}
+
+char* get_conf_db_name(fr_args_t const* args)
+{
+  char* line = NULL;
+  defer({free(line);});
+  size_t len = 0;
+  ssize_t read;
+
+  FILE * fp = fopen(args->conf_file, "r");
+
+  if (fp == NULL){
+    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
+    exit(EXIT_FAILURE);
+  }
+
+  defer({fclose(fp); } );
+
+  char db_name[24] = {0};
+  while ((read = getline(&line, &len, fp)) != -1) {
+    const char* needle = "DB_NAME =";
+    char* ans = strstr(line, needle);
+    if(ans != NULL){
+      ans += strlen(needle);
+      ans = ltrim(ans);
+      ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(db_name));
+      memcpy(db_name, ans , strlen(ans)); // \n character
+      break;
+    }
+  }
+
+  // TODO: valid_db_name()
+
+  return strdup(db_name);
+}

@@ -173,17 +173,32 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
 
   init_msg_dispatcher(&xapp->msg_disp);
 
-  const char* dir = XAPP_DB_DIR; // + "xapp_db.sqlite3"; //  XAPP_DB_DIR; // + "/xapp_db";
-  assert(strlen(dir) < 128 && "String too large" );
+  char* dir = get_conf_db_dir(args);
+  assert(strlen(dir) < 128 && "String too large");
+  char* db_name = get_conf_db_name(args);
+  assert(strlen(db_name) < 128 && "String too large");
+  const char* default_dir = XAPP_DB_DIR;
+  assert(strlen(default_dir) < 128 && "String too large");
 
-  int64_t const now = time_now_us(); 
   char filename[256] = {0};
-  int n = snprintf(filename, 255, "%s_%ld", dir, now);
+  int n = 0;
+  if (strlen(dir)) {
+    if (strlen(db_name))
+      n = snprintf(filename, 255, "%s%s", dir, db_name);
+    else
+      n = snprintf(filename, 255, "%s%s", default_dir, db_name);
+  } else {
+    int64_t const now = time_now_us();
+    n = snprintf(filename, 255, "%sxapp_db_%ld", default_dir, now);
+  }
   assert(n < 256 && "Overflow");
 
   printf("Filename = %s \n ", filename );
 
   init_db_xapp(&xapp->db, filename);
+
+  free(dir);
+  free(db_name);
 
   xapp->connected = false;
   xapp->stop_token = false;
