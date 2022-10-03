@@ -447,6 +447,9 @@ void rm_report_sm_sync_xapp(e42_xapp_t* xapp, int ric_req_id)
   // Answer arrived
   printf("[xApp]: Successfully received SUBSCRIPTION-DELETE-RESPONSE \n");
 
+  // Remove the value of the active procedure
+  free_global_e2_node_id(&ans.val.e2_node);
+
   // Remove the active procedure  
   rm_act_proc(&xapp->act_proc, ric_req_id ); 
 }
@@ -496,7 +499,16 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
 
   // Answer received
   printf("[xApp]: Successfully received CONTROL-ACK \n");
- 
+
+  // Remove the value of the active procedure
+  act_proc_ans_t act_ans = find_act_proc(&xapp->act_proc, ric_id.ric_req_id);
+  if(act_ans.ok == false){
+    printf("%s \n", act_ans.error);
+    assert(0!=0 && "ric_req_id not registered");
+    exit(-1);
+  }
+  free_global_e2_node_id(&act_ans.val.e2_node);
+
   // Remove the active procedure, control request  
   rm_act_proc(&xapp->act_proc, ric_id.ric_req_id ); 
  

@@ -555,8 +555,10 @@ ul_dl_slice_conf_t cpy_ul_dl_slice_conf(ul_dl_slice_conf_t const* src)
     memcpy(dst.sched_name, src->sched_name, src->len_sched_name);
   }
 
-  dst.slices = calloc(src->len_slices, sizeof(fr_slice_t));
-  assert(dst.slices != NULL && "Memory exhausted");
+  if (src->len_slices > 0) {
+    dst.slices = calloc(src->len_slices, sizeof(fr_slice_t));
+    assert(dst.slices != NULL && "Memory exhausted");
+  }
 
   for(size_t i = 0; i < src->len_slices; ++i){
     dst.slices[i] = cpy_slice(&src->slices[i]); 

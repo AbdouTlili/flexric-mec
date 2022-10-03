@@ -165,5 +165,7 @@ void write_db_xapp(db_xapp_t* db, global_e2_node_id_t const* id, sm_ag_if_rd_t c
                         .id = cp_global_e2_node_id(id) };
 
   push_tsq(&db->q, &d, sizeof(d) );
+
+  free_global_e2_node_id(&d.id);
 }
 

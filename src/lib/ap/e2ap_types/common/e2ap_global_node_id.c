@@ -87,10 +87,16 @@ global_e2_node_id_t cp_global_e2_node_id(global_e2_node_id_t const* src)
   if (src->cu_du_id != NULL) {
     dst.cu_du_id = calloc(1, sizeof(uint64_t));
     assert(dst.cu_du_id != NULL && "memory exhausted");
-    dst.cu_du_id[0] = src->cu_du_id[0];
+    *dst.cu_du_id = *src->cu_du_id;
   }
 
   return dst;
+}
+
+void free_global_e2_node_id(global_e2_node_id_t const* src)
+{
+  if (src->cu_du_id != NULL)
+    free (src->cu_du_id);
 }
 
 bool eq_global_e2_node_id_wrapper(const void* m0_v, const void* m1_v)

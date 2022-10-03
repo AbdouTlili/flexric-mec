@@ -53,6 +53,9 @@ void free_e2_nodes(void* key, void* value)
   seq_free_func f =  free_ran_function_pointer; 
   seq_arr_free(arr_node, f);
   free(arr_node);
+
+  global_e2_node_id_t* e2node = (global_e2_node_id_t*) key;
+  free_global_e2_node_id(e2node);
 }
 
 
