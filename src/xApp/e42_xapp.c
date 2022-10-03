@@ -147,7 +147,7 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
   char* addr = get_near_ric_ip(args);
   defer({ free(addr); } );
 
-  printf("[xApp]: RIC IP Address = %s\n", addr);
+  printf("[xApp]: nearRT-RIC IP Address = %s, PORT = %d\n", addr, port);
 
   e2ap_init_ep_xapp(&xapp->ep, addr, port);
 

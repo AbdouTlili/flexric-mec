@@ -229,7 +229,7 @@ endif ()
 # Install Emulator Agent
 ###
 if (EMU_AGENT)
-  install(TARGETS agent1 agent2 agent3 agent4 agent5 DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(TARGETS emu_agent_gnb emu_agent_gnb_cu emu_agent_gnb_du emu_agent_enb DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 ###

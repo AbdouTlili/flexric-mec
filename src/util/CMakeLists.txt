@@ -32,5 +32,9 @@ add_library(e2_time_obj OBJECT
                         time_now_us.c
                         )
 
+add_library(e2_ngran_obj OBJECT
+                         ngran_type.c
+                         )
+
 
 

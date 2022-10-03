@@ -106,20 +106,34 @@ int main(int argc, char *argv[])
   signal(SIGINT, sig_handler);
 
   // Init the Agent
-  const int mcc = 505; 
-  const int mnc = 1; 
+#ifdef TEST_AGENT_GNB
+  const ngran_node_t ran_type = ngran_gNB;
+  const int mcc = 505;
+  const int mnc = 1;
   const int mnc_digit_len = 2;
-
-#ifdef TEST_AGENT_1
   const int nb_id = 1;
-#elif TEST_AGENT_2
+  const int cu_du_id = 0;
+#elif TEST_AGENT_GNB_CU
+  const ngran_node_t ran_type = ngran_gNB_CU;
+  const int mcc = 505;
+  const int mnc = 1;
+  const int mnc_digit_len = 2;
   const int nb_id = 2;
-#elif TEST_AGENT_3
-  const int nb_id = 3;
-#elif TEST_AGENT_4
+  const int cu_du_id = 21;
+#elif TEST_AGENT_GNB_DU
+  const ngran_node_t ran_type = ngran_gNB_DU;
+  const int mcc = 505;
+  const int mnc = 1;
+  const int mnc_digit_len = 2;
+  const int nb_id = 2;
+  const int cu_du_id = 22;
+#elif TEST_AGENT_ENB
+  const ngran_node_t ran_type = ngran_eNB;
+  const int mcc = 208;
+  const int mnc = 94;
+  const int mnc_digit_len = 2;
   const int nb_id = 4;
-#elif TEST_AGENT_5
-  const int nb_id = 5;
+  const int cu_du_id = 0;
 #else
   static_assert( 0!=0 , "Unknown type");
 #endif
@@ -127,7 +141,11 @@ int main(int argc, char *argv[])
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
   fr_args_t args = init_fr_args(argc, argv);
 
-  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io, &args);
+  if (NODE_IS_MONOLITHIC(ran_type))
+    printf("[E2 AGENT]: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d, ran_type %s\n", nb_id, mcc, mnc, mnc_digit_len, get_ngran_name(ran_type));
+  else
+    printf("[E2 AGENT]: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d, ran_type %s, cu_du_id %d\n", nb_id, mcc, mnc, mnc_digit_len, get_ngran_name(ran_type), cu_du_id);
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, cu_du_id, ran_type, io, &args);
 
   while(1){
     poll(NULL, 0, 1000);

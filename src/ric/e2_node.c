@@ -29,7 +29,14 @@
 void init_e2_node(e2_node_t* n, global_e2_node_id_t const* id, size_t len_acc, accepted_ran_function_t accepted[len_acc])
 {
   assert(n != NULL);
-  n->id = *id;
+  n->id.type = id->type;
+  n->id.plmn = id->plmn;
+  n->id.nb_id = id->nb_id;
+  if (id->cu_du_id) {
+    n->id.cu_du_id = calloc(1, sizeof(uint64_t));
+    assert(n->id.cu_du_id != NULL && "memory exhausted");
+    *n->id.cu_du_id = *id->cu_du_id;
+  }
   n->len_acc = len_acc;
   n->accepted = calloc(len_acc, sizeof(accepted_ran_function_t) );
 

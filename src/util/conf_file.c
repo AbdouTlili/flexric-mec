@@ -421,6 +421,7 @@ char* get_near_ric_ip(fr_args_t const* args)
       ans += strlen(needle); 
       ans = ltrim(ans);
       ans = rtrim(ans);
+      assert(strlen(ans) <= sizeof(ip_addr));
       memcpy(ip_addr, ans , strlen(ans)); // \n character
       break;
     }    
