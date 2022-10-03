@@ -162,12 +162,27 @@ if(E2AP_ENCODING STREQUAL "FLATBUFFERS")
     )
 endif()
 
-
+###
+# set install options
+###
+set(NEAR_RIC "TRUE" CACHE STRING "NEAR real time RIC install selection")
+set_property(CACHE NEAR_RIC PROPERTY STRINGS "TRUE" "FALSE")
+set(EMU_AGENT "TRUE" CACHE STRING "emulator of E2 agent")
+set_property(CACHE EMU_AGENT PROPERTY STRINGS "TRUE" "FALSE")
+set(XAPP_C "TRUE" CACHE STRING "XAPP in C install selection")
+set_property(CACHE XAPP_C PROPERTY STRINGS "TRUE" "FALSE")
+set(UNIT_TEST "TRUE" CACHE STRING "build test cases")
+set_property(CACHE UNIT_TEST PROPERTY STRINGS "TRUE" "FALSE")
 
 include_directories(src)
 add_subdirectory(src)
-add_subdirectory(test)
 add_subdirectory(examples)
+
+if (UNIT_TEST)
+  add_subdirectory(test)
+endif ()
+
+
 
 # Build SWIG interface
 #add_subdirectory(src/xApp/swig)
@@ -187,18 +202,51 @@ ENDIF()
 ###
 
 message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}/flexric")
-
-install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+include(GNUInstallDirs)
+install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/flexric)
 enable_testing()
+
+###
+# Install Near real-time RIC
+###
+if (NEAR_RIC)
+  install(TARGETS nearRT-RIC DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+###
+# Install Emulator Agent
+###
+if (EMU_AGENT)
+  install(TARGETS agent1 agent2 agent3 agent4 agent5 DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+###
+# Install Emulator Agent
+###
+if (XAPP_C)
+  install(TARGETS xapp_mac_rlc_pdcp_moni xapp_slice_moni_ctrl xapp_kpm_moni xapp_gtp_moni DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+
+# make uninstall
+add_custom_target("uninstall" COMMENT "Uninstall installed files")
+add_custom_command(
+        TARGET "uninstall"
+        POST_BUILD
+        COMMENT "Uninstall files with install_manifest.txt"
+        COMMAND xargs rm -vf < install_manifest.txt || echo Nothing in
+        install_manifest.txt to be uninstalled!
+)
+
