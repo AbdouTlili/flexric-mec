@@ -171,7 +171,7 @@ set(EMU_AGENT "TRUE" CACHE STRING "emulator of E2 agent")
 set_property(CACHE EMU_AGENT PROPERTY STRINGS "TRUE" "FALSE")
 set(XAPP_C "TRUE" CACHE STRING "XAPP in C install selection")
 set_property(CACHE XAPP_C PROPERTY STRINGS "TRUE" "FALSE")
-set(UNIT_TEST "TRUE" CACHE STRING "build test cases")
+set(UNIT_TEST "FALSE" CACHE STRING "build test cases")
 set_property(CACHE UNIT_TEST PROPERTY STRINGS "TRUE" "FALSE")
 
 include_directories(src)
