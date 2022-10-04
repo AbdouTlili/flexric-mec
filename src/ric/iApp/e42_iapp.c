@@ -155,41 +155,37 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
       e2ap_msg_t msg = e2ap_msg_dec_iapp(&iapp->ap, rcv.ba); 
       defer({e2ap_msg_free_iapp(&iapp->ap, &msg); } );
 
-      // TODO: need to improve
-      if (iapp->e2_nodes.node_to_rf.size > 0) {
-        e2ap_msg_t ans = e2ap_msg_handle_iapp(iapp, &msg);
-        defer({e2ap_msg_free_iapp(&iapp->ap, &ans);});
+      e2ap_msg_t ans = e2ap_msg_handle_iapp(iapp, &msg);
+      defer({ e2ap_msg_free_iapp(&iapp->ap, &ans);} );
 
-        if(ans.type == E42_SETUP_RESPONSE ){
-          const uint16_t xapp_id = ans.u_msgs.e42_stp_resp.xapp_id;
-          e2ap_reg_sock_addr_iapp(&iapp->ep, xapp_id, &rcv.info);;
-        }
-
-
-        if(ans.type != NONE_E2_MSG_TYPE ){
-
-          sctp_msg_t sctp_msg = { .info.addr = rcv.info.addr,
-                  .info.sri = rcv.info.sri,
-          };
-
-          sctp_msg.ba = e2ap_msg_enc_iapp(&iapp->ap, &ans);
-          defer({ free_sctp_msg(&sctp_msg); } );
-
-          // Get the endpoint for the appropiate xApp
-          e2ap_send_sctp_msg_iapp(&iapp->ep, &sctp_msg);
-
-          if(ans.type == RIC_SUBSCRIPTION_DELETE_RESPONSE)
-            printf("RIC_SUBSCRIPTION_DELETE_RESPONSE sent with size = %ld \n", sctp_msg.ba.len);
-          if(ans.type ==  RIC_INDICATION ){
-            int64_t now = time_now_us();
-            printf("Time diff at iapp after sending = %ld \n", now - msg.tstamp);
-            // assert(0!=0);
-          }
-        }
-
-        // handle_msg(iapp, &msg);
-
+      if(ans.type == E42_SETUP_RESPONSE ){
+        const uint16_t xapp_id = ans.u_msgs.e42_stp_resp.xapp_id;
+        e2ap_reg_sock_addr_iapp(&iapp->ep, xapp_id, &rcv.info);;
       }
+
+
+      if(ans.type != NONE_E2_MSG_TYPE ){
+
+        sctp_msg_t sctp_msg = { .info.addr = rcv.info.addr,
+                                .info.sri = rcv.info.sri,
+                                 };
+
+        sctp_msg.ba = e2ap_msg_enc_iapp(&iapp->ap, &ans); 
+        defer({ free_sctp_msg(&sctp_msg); } );
+       
+        // Get the endpoint for the appropiate xApp
+        e2ap_send_sctp_msg_iapp(&iapp->ep, &sctp_msg);
+
+        if(ans.type == RIC_SUBSCRIPTION_DELETE_RESPONSE)
+          printf("RIC_SUBSCRIPTION_DELETE_RESPONSE sent with size = %ld \n", sctp_msg.ba.len);
+        if(ans.type ==  RIC_INDICATION ){
+          int64_t now = time_now_us();
+          printf("Time diff at iapp after sending = %ld \n", now - msg.tstamp);
+          // assert(0!=0);
+        }
+      }
+
+      // handle_msg(iapp, &msg);
 
     } else {
       printf("Pending event timeout happened. Communication lost?\n");
