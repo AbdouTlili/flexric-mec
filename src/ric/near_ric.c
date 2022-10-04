@@ -219,14 +219,12 @@ near_ric_t* init_near_ric(fr_args_t const* args)
   near_ric_t* ric = calloc(1, sizeof(near_ric_t));
   assert(ric != NULL);
 
-  char* addr = get_conf_ip(args);
+  char* addr = get_near_ric_ip(args);
   defer({ free(addr); } );
 
-  char* e2port = get_conf_e2port(args);
-  defer({ free(e2port); } );
-  int const port = atoi(e2port);
+  printf("[nearRT-RIC]: RIC IP Address = %s\n", addr);
 
-  printf("[nearRT-RIC]: RIC IP Address = %s, PORT = %d\n", addr, port);
+  const int port = 36421;
   e2ap_init_ep_ric(&ric->ep, addr, port);
 
   init_asio_ric(&ric->io); 
@@ -248,7 +246,7 @@ near_ric_t* init_near_ric(fr_args_t const* args)
   init_pending_events(ric);
 
   near_ric_if_t ric_if = {.type = ric};
-  init_iapp_api(args, ric_if);
+  init_iapp_api(addr, ric_if);
 
   ric->req_id = 1021; // 0 could be a sign of a bug
   ric->stop_token = false;
