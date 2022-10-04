@@ -226,7 +226,6 @@ void e2_event_loop_xapp(e42_xapp_t* xapp)
 
     assert(e.type != UNKNOWN_EVENT && "Unknown event triggered ");
 
-    fflush(stdout);
     if(e.type == NETWORK_EVENT){ 
 
       byte_array_t ba = e2ap_recv_msg_xapp(&xapp->ep);
