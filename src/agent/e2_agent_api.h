@@ -39,9 +39,8 @@ void init_agent_api(int mcc,
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,
-                    ngran_node_t ran_type,
                     sm_io_ag_t io,
-                    fr_args_t const* args);
+		                fr_args_t const* args);
 
 
 void stop_agent_api(void);

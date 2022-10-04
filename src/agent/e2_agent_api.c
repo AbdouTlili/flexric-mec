@@ -53,9 +53,8 @@ void init_agent_api(int mcc,
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,
-                    ngran_node_t ran_type,
                     sm_io_ag_t io,
-                    fr_args_t const* args)
+		                fr_args_t const* args)
 {
   assert(agent == NULL);
   assert(nb_id > 0);
@@ -65,24 +64,22 @@ void init_agent_api(int mcc,
 
   char* server_ip_str = get_conf_ip(args);
   char* server_port_str = get_conf_e2port(args);
-  // TODO: fix the type from config
-  // ngran_node_t rantype = get_conf_rantype(args);
+  ngran_node_t rantype = get_conf_rantype(args);
   uint64_t cu_du_id = 0;
-  if (ran_type == ngran_gNB_DU || ran_type == ngran_gNB_CU || ran_type == ngran_gNB || ran_type == ngran_eNB) {
-    // TODO: fix the CU/DU id from config
-    // char* cu_du_id_str = get_conf_cu_du_id(args);
-    // cu_du_id = atoi(cu_du_id_str);
-    if (ran_type == ngran_gNB_DU || ran_type == ngran_gNB_CU)
-      cu_du_id = abs(rand()%9999);
-    uint64_t id = 0;
-    if (ran_type == ngran_gNB) id = nb_id;
-    else id = cu_du_id;
-    printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %s, RAN type = %d, nb_id = %ld\n", server_ip_str, server_port_str, ran_type, id);
-  } else {
-    assert(0 != 0 && "not support RAN type\n");
-  }
+  if (rantype == 5 || rantype == 7) {
+    char* cu_du_id_str = get_conf_cu_du_id(args);
+    if (rantype == 5)
+      printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %s, RAN type = %d(gNB_CU), CU/DU id = %s\n", server_ip_str, server_port_str, rantype, cu_du_id_str);
+    else
+      printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %s, RAN type = %d(gNB_DU), CU/DU id = %s\n", server_ip_str, server_port_str, rantype, cu_du_id_str);
+    cu_du_id = atoi(cu_du_id_str);
+  } else if (rantype == 0) {
+    printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %s, RAN type = %d(eNB)\n", server_ip_str, server_port_str, rantype);
+  } else
+    printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %s, RAN type = %d(gNB)\n", server_ip_str, server_port_str, rantype);
+
   const plmn_t plmn = {.mcc = mcc, .mnc = mnc, .mnc_digit_len = mnc_digit_len};
-  const global_e2_node_id_t ge2ni = {.type = ran_type, .plmn = plmn, .nb_id = nb_id, .cu_du_id = cu_du_id};
+  const global_e2_node_id_t ge2ni = {.type = rantype, .plmn = plmn, .nb_id = nb_id, .cu_du_id = cu_du_id};
   const int e2ap_server_port = atoi(server_port_str);
 
   agent = e2_init_agent(server_ip_str, e2ap_server_port, ge2ni, io, args);

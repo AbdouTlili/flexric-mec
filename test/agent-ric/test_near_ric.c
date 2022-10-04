@@ -73,11 +73,10 @@ int main(int argc, char *argv[])
   const int mnc = 92; 
   const int mnc_digit_len = 2;
   const int nb_id = 42;
-  ngran_node_t ran_type = ngran_gNB;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
   fr_args_t args = init_fr_args(argc, argv);
   // Parse arguments
-  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, ran_type, io, &args);
+  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io, &args);
   sleep(1);
 
   // Init the RIC

@@ -800,16 +800,18 @@ ngran_node_t get_conf_rantype(fr_args_t const* args)
 
   // TODO: valid_type()
   char* type_str = strdup(type);
-  ngran_node_t type_enum = ngran_gNB; // assume is gNB in the beginning (need to fix)
+  ngran_node_t type_enum = 2; // assume is gNB in the beginning (need to fix)
   if (!strcmp(type_str, "gNB"))
     return type_enum;
   else if (!strcmp(type_str, "eNB"))
-    type_enum = ngran_eNB;
+    type_enum = 0;
   else if (!strcmp(type_str, "gNB_CU"))
-    type_enum = ngran_gNB_CU;
+    type_enum = 5;
   else if (!strcmp(type_str, "gNB_DU"))
-    type_enum = ngran_gNB_DU;
-  return -1;
+    type_enum = 7;
+  else
+    printf("Not support RAN type = %s\n", type_str);
+  return type_enum;
 }
 
 char* get_conf_cu_du_id(fr_args_t const* args)

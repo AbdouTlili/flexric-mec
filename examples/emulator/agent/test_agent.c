@@ -130,14 +130,8 @@ int main(int argc, char *argv[])
   if (mnc%1000 < 100) mnc_digit_len = 2;
   else mnc_digit_len = 3;
 
-  ngran_node_t ran_type = get_conf_rantype(&args);
-  if (ran_type != ngran_gNB_DU && ran_type != ngran_gNB_CU && ran_type != ngran_gNB && ran_type != ngran_eNB) {
-    printf("not config RAN type, set RAN type as gNB\n");
-    ran_type = ngran_gNB;
-  }
-
-  printf("[E2 AGENT]: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d, ran_type %d\n", nb_id, mcc, mnc, mnc_digit_len, ran_type);
-  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, ran_type, io, &args);
+  printf("[E2 AGENT]: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d\n", nb_id, mcc, mnc, mnc_digit_len);
+  init_agent_api(mcc, mnc, mnc_digit_len, nb_id, io, &args);
 
   while(1){
     poll(NULL, 0, 1000);
