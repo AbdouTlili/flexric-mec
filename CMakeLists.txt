@@ -216,36 +216,3 @@ install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 ###
 
 install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
-enable_testing()
-###
-# Install Near real-time RIC
-###
-if (NEAR_RIC)
-  install(TARGETS nearRT-RIC DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif ()
-
-###
-# Install Emulator Agent
-###
-if (EMU_AGENT)
-  install(TARGETS emu_agent1 emu_agent2 emu_agent3 DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif ()
-
-###
-# Install Emulator Agent
-###
-if (XAPP_C)
-  install(TARGETS xapp_monitor_all xapp_slice DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif ()
-
-
-# make uninstall
-add_custom_target("uninstall" COMMENT "Uninstall installed files")
-add_custom_command(
-        TARGET "uninstall"
-        POST_BUILD
-        COMMENT "Uninstall files with install_manifest.txt"
-        COMMAND xargs rm -vf < install_manifest.txt || echo Nothing in
-        install_manifest.txt to be uninstalled!
-)
-
