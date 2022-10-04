@@ -11,7 +11,7 @@ to use [this PPA](https://apt.kitware.com/) to install an up-to-date version.
 Download the required dependencies. 
 
 ```bash
-sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev python-dev
+sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev 
 ```
 
 We use SWIG (i.e., > 4.0) as an interface generator to enable the multi-language feature (i.e., C/C++ and Python) for the xApps.
@@ -26,12 +26,6 @@ $ ./configure --prefix=/usr/
 $ make -j $(nproc)
 $ make install
 ```
-
-We used `asn1c` as an generator tool for auto creating new enc/dec files
-```bash
-sudo apt-get -y install asn1c
-```
-
 
 You can now clone the FlexRIC project and build it. 
 
@@ -48,13 +42,13 @@ sudo make install
 
 By default they will be installed in the path /usr/local/flexric
 
-Check that all-in-one test is working correctly by running:
+Check that everything is working correctly by running. 
 
 ```bash
-$ ./test/agent-ric-xapp/test_ag_ric_xapp # located in the /path/to/flexric/build
+$ ./build/test/test_near_ric # located in the /path/to/flexric/build
 ```
 
-Before starting the nearRT-RIC, check that the IP address where your nearRT-RIC will be listening is the desired one at `/usr/local/flexric/flexric.conf`. You can now start the nearRT-RIC.
+Before starting the nearRT-RIC, check that the IP address where your nearRT-RIC will be listening is the desired one at /usr/local/flexric/flexric.conf. You can now start the nearRT-RIC. 
 
 ```bash
 $ ./build/examples/ric/nearRT-RIC
@@ -99,7 +93,7 @@ Please, check the example folder for other working xApp use cases.
 ```bash
 $ git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git oai
 $ cd oai/
-$ git checkout develop
+$ git checkout nr-mac-rlc-pdcp-stats
 $ git am path/to/flexric/multiRAT/oai/oai.patch --whitespace=nowarn
 $ source oaienv
 $ cd cmake_targets
