@@ -14,10 +14,10 @@
 #include "alg_ds/alg/defer.h"
 
 static
-const char* default_conf_file = "/usr/local/etc/flexric/flexric.conf";
+const char* default_conf_file = "/usr/local/flexric/flexric.conf";
 
 static
-const char* default_libs_dir = "/usr/local/lib/flexric/";
+const char* default_libs_dir = "/usr/local/flexric/";
 
 /*
 #include <assert.h>

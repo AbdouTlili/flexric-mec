@@ -62,7 +62,7 @@ if(${SANITIZER} STREQUAL "ADDRESS")
 elseif(${SANITIZER} STREQUAL "THREAD")
   add_compile_options("-fsanitize=thread;-g;")
   add_link_options("-fsanitize=thread")
-elseif(${SANITIZER} STREQUAL "STACK") 
+elseif(${SANITIZER} STREQUAL "STACK")
   add_compile_options("-fstack-protector-all")
   add_link_options("-fstack-protector-all")
 endif()
@@ -202,20 +202,20 @@ ENDIF()
 ###
 
 message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}/flexric")
-include(GNUInstallDirs)
-install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
-install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+
+install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/flexric)
+install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 enable_testing()
 ###
 # Install Near real-time RIC
@@ -235,7 +235,7 @@ endif ()
 # Install Emulator Agent
 ###
 if (XAPP_C)
-  install(TARGETS xapp_monitor_all xapp_slice xapp_hw DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(TARGETS xapp_monitor_all xapp_slice DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 
