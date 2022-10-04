@@ -162,27 +162,12 @@ if(E2AP_ENCODING STREQUAL "FLATBUFFERS")
     )
 endif()
 
-###
-# set install options
-###
-set(NEAR_RIC "TRUE" CACHE STRING "NEAR real time RIC install selection")
-set_property(CACHE NEAR_RIC PROPERTY STRINGS "TRUE" "FALSE")
-set(EMU_AGENT "TRUE" CACHE STRING "emulator of E2 agent")
-set_property(CACHE EMU_AGENT PROPERTY STRINGS "TRUE" "FALSE")
-set(XAPP_C "TRUE" CACHE STRING "XAPP in C install selection")
-set_property(CACHE XAPP_C PROPERTY STRINGS "TRUE" "FALSE")
-set(UNIT_TEST "FALSE" CACHE STRING "build test cases")
-set_property(CACHE UNIT_TEST PROPERTY STRINGS "TRUE" "FALSE")
+
 
 include_directories(src)
 add_subdirectory(src)
+add_subdirectory(test)
 add_subdirectory(examples)
-
-if (UNIT_TEST)
-  add_subdirectory(test)
-endif ()
-
-
 
 # Build SWIG interface
 #add_subdirectory(src/xApp/swig)
