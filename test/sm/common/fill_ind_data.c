@@ -360,7 +360,8 @@ void fill_ul_dl_slice(ul_dl_slice_conf_t* slice)
   assert(slice->sched_name != NULL && "memory exhausted");
   memcpy(slice->sched_name, name, strlen(name));
 
-  slice->len_slices = abs(rand()%4);
+  slice->len_slices = 1; 
+  //slice->len_slices = abs(rand()%8);
 
   if(slice->len_slices > 0){
     slice->slices = calloc(slice->len_slices, sizeof(fr_slice_t));
@@ -385,9 +386,11 @@ void fill_ul_dl_slice(ul_dl_slice_conf_t* slice)
 
     uint32_t type = abs(rand()% SLICE_ALG_SM_V0_END);
 
-    if(type == SLICE_ALG_SM_V0_NONE || SLICE_ALG_SM_V0_SCN19)
+    if(type == SLICE_ALG_SM_V0_NONE || SLICE_ALG_SM_V0_EDF)
       type = SLICE_ALG_SM_V0_STATIC; 
 
+ //   type = SLICE_ALG_SM_V0_STATIC; 
+ //   type = SLICE_ALG_SM_V0_SCN19;
 
     if(type == SLICE_ALG_SM_V0_NONE ){
       s->params.type =SLICE_ALG_SM_V0_NONE; 
@@ -425,7 +428,7 @@ void fill_ue_slice_conf(ue_slice_conf_t* conf)
   conf->len_ue_slice = abs(rand()%10);
   if(conf->len_ue_slice > 0){
     conf->ues = calloc(conf->len_ue_slice, sizeof(ue_slice_assoc_t));
-    assert(conf->ues != NULL && "memory exhausted");
+    assert(conf->ues);
   }
 
   for(uint32_t i = 0; i < conf->len_ue_slice; ++i){
@@ -443,22 +446,13 @@ void fill_slice_del(del_slice_conf_t* conf)
 
   uint32_t const len_dl = rand()%5;
   conf->len_dl = len_dl;
-  if (conf->len_dl > 0) {
+  if(conf->len_dl > 0)
     conf->dl = calloc(len_dl, sizeof(uint32_t));
-    assert(conf->dl != NULL && "memory exhausted");
-  }
-  for (uint32_t i = 0; i < conf->len_dl; ++i)
-    conf->dl[i] = abs(rand()%16);
 
   uint32_t const len_ul = rand()%5;
   conf->len_ul = len_ul;
-  if (conf->len_ul > 0) {
+  if(conf->len_ul > 0)
     conf->ul = calloc(len_ul, sizeof(uint32_t));
-    assert(conf->ul != NULL && "memory exhausted");
-  }
-  for (uint32_t i = 0; i < conf->len_ul; ++i)
-    conf->ul[i] = abs(rand()%16);
-
 }
 
 void fill_slice_ind_data(slice_ind_data_t* ind_msg)
