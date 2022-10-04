@@ -433,7 +433,6 @@ char* get_conf_ip(fr_args_t const* args)
       ans += strlen(needle); 
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(ip_addr));
       memcpy(ip_addr, ans , strlen(ans)); // \n character
       break;
     }    
@@ -471,7 +470,6 @@ char* get_conf_e2port(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(port));
       memcpy(port, ans , strlen(ans)); // \n character
       break;
     }
@@ -509,7 +507,6 @@ char* get_conf_e42port(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(port));
       memcpy(port, ans , strlen(ans)); // \n character
       break;
     }
@@ -547,7 +544,6 @@ char* get_conf_db_dir(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(db_dir));
       memcpy(db_dir, ans , strlen(ans)); // \n character
       break;
     }
@@ -582,7 +578,6 @@ char* get_conf_db_name(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(db_name));
       memcpy(db_name, ans , strlen(ans)); // \n character
       break;
     }
@@ -617,7 +612,6 @@ char* get_conf_xappid(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(xappid));
       memcpy(xappid, ans , strlen(ans)); // \n character
       break;
     }
@@ -652,7 +646,6 @@ char* get_conf_e2nodes(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(num_e2nodes));
       memcpy(num_e2nodes, ans , strlen(ans)); // \n character
       break;
     }
@@ -687,7 +680,6 @@ char* get_conf_nbid(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(nbid));
       memcpy(nbid, ans , strlen(ans)); // \n character
       break;
     }
@@ -722,7 +714,6 @@ char* get_conf_mcc(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(mcc));
       memcpy(mcc, ans , strlen(ans)); // \n character
       break;
     }
@@ -757,7 +748,6 @@ char* get_conf_mnc(fr_args_t const* args)
       ans += strlen(needle);
       ans = ltrim(ans);
       ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(mnc));
       memcpy(mnc, ans , strlen(ans)); // \n character
       break;
     }
@@ -766,85 +756,4 @@ char* get_conf_mnc(fr_args_t const* args)
   // TODO: valid_mnc()
 
   return strdup(mnc);
-}
-
-ngran_node_t get_conf_rantype(fr_args_t const* args)
-{
-  char* line = NULL;
-  defer({free(line);});
-  size_t len = 0;
-  ssize_t read;
-
-  FILE * fp = fopen(args->conf_file, "r");
-
-  if (fp == NULL){
-    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
-    exit(EXIT_FAILURE);
-  }
-
-  defer({fclose(fp); } );
-
-  char type[24] = {0};
-  while ((read = getline(&line, &len, fp)) != -1) {
-    const char* needle = "RAN_TYPE =";
-    char* ans = strstr(line, needle);
-    if(ans != NULL){
-      ans += strlen(needle);
-      ans = ltrim(ans);
-      ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(type));
-      memcpy(type, ans , strlen(ans)); // \n character
-      break;
-    }
-  }
-
-  // TODO: valid_type()
-  char* type_str = strdup(type);
-  ngran_node_t type_enum = 2; // assume is gNB in the beginning (need to fix)
-  if (!strcmp(type_str, "gNB"))
-    return type_enum;
-  else if (!strcmp(type_str, "eNB"))
-    type_enum = 0;
-  else if (!strcmp(type_str, "gNB_CU"))
-    type_enum = 5;
-  else if (!strcmp(type_str, "gNB_DU"))
-    type_enum = 7;
-  else
-    printf("Not support RAN type = %s\n", type_str);
-  return type_enum;
-}
-
-char* get_conf_cu_du_id(fr_args_t const* args)
-{
-  char* line = NULL;
-  defer({free(line);});
-  size_t len = 0;
-  ssize_t read;
-
-  FILE * fp = fopen(args->conf_file, "r");
-
-  if (fp == NULL){
-    printf("%s not found. Did you forget to sudo make install?\n", args->conf_file);
-    exit(EXIT_FAILURE);
-  }
-
-  defer({fclose(fp); } );
-
-  char cu_du_id[24] = {0};
-  while ((read = getline(&line, &len, fp)) != -1) {
-    const char* needle = "CU_DU_ID =";
-    char* ans = strstr(line, needle);
-    if(ans != NULL){
-      ans += strlen(needle);
-      ans = ltrim(ans);
-      ans = rtrim(ans);
-      assert(strlen(ans) <= sizeof(cu_du_id));
-      memcpy(cu_du_id, ans , strlen(ans)); // \n character
-      break;
-    }
-  }
-
-  // TODO: valid_cu_du_id()
-
-  return strdup(cu_du_id);
 }
