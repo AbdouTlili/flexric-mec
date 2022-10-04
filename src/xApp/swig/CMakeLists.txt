@@ -77,14 +77,17 @@ if(XAPP_TARGET_LANGUAGE STREQUAL "PYTHON_LANG")
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/xapp_sdk.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../examples/xApp/python3/xapp_sdk.py" )
 
-   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-     "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" )
+   #   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+   #  "${CMAKE_CURRENT_BINARY_DIR}/../../../../src/xApp/swig/test.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../test/xApp/python3/test.py" )
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-     "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_slice_moni_ctrl.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_slice_moni_ctrl.py" )
+     "${CMAKE_CURRENT_BINARY_DIR}/../../../../examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" )
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/examples/xApp/python3/watch_slice_stats" "${CMAKE_BINARY_DIR}/examples/xApp/python3/watch_slice_stats" )
+     "${CMAKE_CURRENT_BINARY_DIR}/../../../../examples/xApp/python3/xapp_slice_moni_ctrl.py" "${CMAKE_CURRENT_BINARY_DIR}/../../../examples/xApp/python3/xapp_slice_moni_ctrl.py" )
+
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_BINARY_DIR}/../../../../examples/xApp/python3/watch_slice_stats" "${CMAKE_CURRENT_BINARY_DIR}/../../../examples/xApp/python3/watch_slice_stats" )
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_gtp_moni.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_gtp_moni.py" )
@@ -117,8 +120,8 @@ endif()
 #Comment this line to build it from the directory
 ADD_DEPENDENCIES(xapp_sdk e42_xapp_shared)
 
-SWIG_LINK_LIBRARIES(xapp_sdk
-                    e42_xapp_shared
+SWIG_LINK_LIBRARIES(xapp_sdk 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/src/xApp/libe42_xapp_shared.so
                     -ldl
                     -lsctp
                     -lpthread)
