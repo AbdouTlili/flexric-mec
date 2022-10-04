@@ -201,3 +201,4 @@ install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
 ###
 
 install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_PREFIX}/flexric)
+enable_testing()
