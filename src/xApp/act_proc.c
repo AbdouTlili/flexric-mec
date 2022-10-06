@@ -52,6 +52,13 @@ void free_act_proc(act_proc_t* p)
   assert(rc == 0);
 }
 
+void free_act_proc_val(void* value)
+{
+  assert(value != NULL);
+  act_proc_val_t* v = (act_proc_val_t*) value;
+  free_global_e2_node_id(&v->e2_node);
+}
+
 static
 bool valid_proc_type(act_proc_val_e type)
 {
@@ -92,7 +99,7 @@ void rm_act_proc(act_proc_t* p, uint16_t ric_req_id )
   it = find_reg(&p->reg, it, end, ric_req_id );
   assert(it != end && "ric_req_id key value not found in the registry" );
   void* next = assoc_reg_next(&p->reg, it);
-  assoc_reg_erase(&p->reg, it, next);
+  assoc_reg_erase(&p->reg, it, next, free_act_proc_val);
 }
 
 act_proc_ans_t find_act_proc(act_proc_t* act, uint16_t ric_req_id)

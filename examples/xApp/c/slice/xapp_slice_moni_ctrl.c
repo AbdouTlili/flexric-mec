@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
       printf("Registered ran func id = %d \n ", n->ack_rf[j].id);
 
     slice_handle[i] = report_sm_xapp_api(&nodes.n[i].id, n->ack_rf[3].id, inter_t, sm_cb_slice);
-    assert(slice_handle[0].success == true);
+    assert(slice_handle[i].success == true);
     sleep(2);
 
     // Control ADD slice

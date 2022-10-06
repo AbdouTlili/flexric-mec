@@ -93,7 +93,7 @@ global_e2_node_id_t cp_global_e2_node_id(global_e2_node_id_t const* src)
   return dst;
 }
 
-void free_global_e2_node_id(global_e2_node_id_t const* src)
+void free_global_e2_node_id(global_e2_node_id_t* src)
 {
   if (src->cu_du_id != NULL)
     free (src->cu_du_id);

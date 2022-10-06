@@ -64,6 +64,8 @@ void init_act_proc(act_proc_t* proc);
 
 void free_act_proc(act_proc_t* proc);
 
+void free_act_proc_val(void* val);
+
 uint32_t add_act_proc(act_proc_t* proc, act_proc_val_e type, ric_gen_id_t id, global_e2_node_id_t const* e2_node, void(*sm_cb)(sm_ag_if_rd_t const *));
 
 void rm_act_proc(act_proc_t* act, uint16_t ric_req_id );
