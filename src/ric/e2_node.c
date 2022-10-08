@@ -38,19 +38,25 @@ void init_e2_node(e2_node_t* n, global_e2_node_id_t const* id, size_t len_acc, a
     *n->id.cu_du_id = *id->cu_du_id;
   }
   n->len_acc = len_acc;
-  n->accepted = calloc(len_acc, sizeof(accepted_ran_function_t) );
+  if (n->len_acc > 0) {
+    n->accepted = calloc(len_acc, sizeof(accepted_ran_function_t));
+    assert(n->accepted != NULL);
 
-  assert(n->accepted != NULL);
-  memcpy(n->accepted, accepted, len_acc*sizeof(accepted_ran_function_t) );
+    memcpy(n->accepted, accepted, len_acc * sizeof(accepted_ran_function_t));
+  }
 }
 
 void free_e2_node(e2_node_t* n)
 {
   assert(n!= NULL);
 
+  free_global_e2_node_id(&n->id);
+
   if(n->len_acc > 0)
     free(n->accepted);
 }
+
+void free_e2_node_void(void *n) { free_e2_node((e2_node_t *)n); }
 
 e2_node_t cp_e2_node(e2_node_t const* src)
 {

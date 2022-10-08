@@ -99,6 +99,24 @@ void seq_arr_erase(seq_arr_t* arr, void* start_it, void* end_it)
   maybe_shrink(arr);
 }
 
+/*
+void seq_arr_erase_free(seq_arr_t *arr, void *start_it, void *end_it,
+                        void (*free_func)(void *)) {
+  assert(arr != NULL);
+  assert(start_it != NULL);
+  assert(end_it != NULL);
+  assert(end_it >= start_it);
+  assert(free_func != NULL && "Use seq_arr_erase instead ");
+
+  while (start_it != end_it) {
+    free_func(start_it);
+    start_it = seq_arr_next(arr, start_it);
+  }
+
+  seq_arr_erase(arr, start_it, end_it);
+}
+*/
+
 size_t seq_arr_size(seq_arr_t* arr)
 {
   assert(arr != NULL);

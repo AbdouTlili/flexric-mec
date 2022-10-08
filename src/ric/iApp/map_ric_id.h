@@ -31,8 +31,7 @@
 typedef struct{
   global_e2_node_id_t e2_node_id;
   uint16_t ric_req_id;
-}  e2_node_ric_req_t;
-
+} e2_node_ric_req_t;
 
 typedef struct
 {

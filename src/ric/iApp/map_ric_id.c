@@ -51,20 +51,6 @@ void free_xapp_ric_gen_id(void* key, void* value)
   free(id);
 }
 
-/*
-static
-void free_ric_id(void* key, void* value)
-{
-  assert(key != NULL);
-  assert(value != NULL);
-
-  (void)key;
-
-  uint16_t* id = (uint16_t*)value;
-  free(id);
-}
-*/
-
 static
 void free_e2_node_ric_req(void* key, void* value)
 {
@@ -74,6 +60,8 @@ void free_e2_node_ric_req(void* key, void* value)
   (void)key;
 
   e2_node_ric_req_t* n = ( e2_node_ric_req_t* )value;
+
+  free_global_e2_node_id(&n->e2_node_id);
   free(n);
 }
 
@@ -105,7 +93,7 @@ void init_map_ric_id(map_ric_id_t* map)
   size_t key_sz_1 = sizeof(e2_node_ric_req_t);
   size_t key_sz_2 = sizeof(xapp_ric_id_t); //);
 
-  bi_map_init(&map->bimap, key_sz_1, key_sz_2, cmp_e2_node_ric_req_wrapper, cmp_xapp_ric_gen_id_wrapper, free_e2_node_ric_req, free_xapp_ric_gen_id);
+  bi_map_init(&map->bimap, key_sz_1, key_sz_2, cmp_e2_node_ric_req_wrapper, cmp_xapp_ric_gen_id_wrapper, free_xapp_ric_gen_id, free_e2_node_ric_req);
 }
 
 void free_map_ric_id(map_ric_id_t* map)
@@ -165,6 +153,7 @@ void rm_map_ric_id(map_ric_id_t* map, e2_node_ric_req_t* node)
 
   xapp_ric_id_t* id = bi_map_extract_left(&map->bimap, node, sizeof( e2_node_ric_req_t )); //  &ric_req_id, sizeof(uint16_t));
 //  xapp_ric_id_t* id = assoc_extract(&map->tree ,&ric_req_id);
+
   free(id);
 }
 

@@ -43,6 +43,8 @@ void init_e2_node(e2_node_t* n, global_e2_node_id_t const* id, size_t len_acc, a
 
 void free_e2_node(e2_node_t* n);
 
+void free_e2_node_void(void *n);
+
 e2_node_t cp_e2_node(e2_node_t const* n);
 
 #endif

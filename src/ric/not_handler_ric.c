@@ -39,8 +39,17 @@ void notification_handle_ric(near_ric_t* ric, sctp_msg_t const* msg)
 
   it = find_if(&ric->conn_e2_nodes, it, end, id, eq_global_e2_node_id_e2_node);
   assert(it != end && "E2 Node not found!");
-  void* it_next = seq_next(&ric->conn_e2_nodes, it); 
+
+  // ASan does not like memmove.
+  // seq_erase_free(&ric->conn_e2_nodes, it, it_next, free_e2_node_void);
+  // Therefore, this nasty solution adopted
+  e2_node_t *n = (e2_node_t *)it;
+  free_e2_node(n);
+
+  void* it_next = seq_next(&ric->conn_e2_nodes, it);
+
   seq_erase(&ric->conn_e2_nodes, it, it_next);
+  //  seq_erase_free(&ric->conn_e2_nodes, it, it_next, free_e2_node_void);
   }
 
   // delete it from the iApp

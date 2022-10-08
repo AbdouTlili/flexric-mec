@@ -481,15 +481,12 @@ void free_near_ric(near_ric_t* ric)
   int rc = pthread_mutex_destroy(&ric->conn_e2_nodes_mtx);
   assert(rc == 0);
 
-//  seq_free(&ric->act_req, NULL);
-
   rc = pthread_mutex_destroy(&ric->pend_mtx);
   assert(rc == 0);
 
   bi_map_free(&ric->pending);
 
   stop_iapp_api();
-
 
   free(ric);
 }
