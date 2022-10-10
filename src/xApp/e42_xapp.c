@@ -179,16 +179,15 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
   assert(strlen(db_name) < 128 && "String too large");
   const char* default_dir = XAPP_DB_DIR;
   assert(strlen(default_dir) < 128 && "String too large");
-
   char filename[256] = {0};
   int n = 0;
+  int64_t const now = time_now_us();
   if (strlen(dir)) {
     if (strlen(db_name))
       n = snprintf(filename, 255, "%s%s", dir, db_name);
     else
-      n = snprintf(filename, 255, "%s%s", default_dir, db_name);
+      n = snprintf(filename, 255, "%sxapp_db_%ld", dir, now);
   } else {
-    int64_t const now = time_now_us();
     n = snprintf(filename, 255, "%sxapp_db_%ld", default_dir, now);
   }
   assert(n < 256 && "Overflow");
