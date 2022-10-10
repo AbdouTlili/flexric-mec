@@ -32,8 +32,6 @@ typedef struct e42_setup_response {
   e2_node_connected_t* nodes;
 } e42_setup_response_t;
 
-void free_e42_setup_response(e42_setup_response_t *src);
-
 e42_setup_response_t cp_e42_setup_response(const e42_setup_response_t* src);
 
 bool eq_e42_setup_response(const e42_setup_response_t* m0, const e42_setup_response_t* m1);

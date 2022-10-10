@@ -47,15 +47,6 @@ e42_setup_response_t cp_e42_setup_response(const e42_setup_response_t* src)
   return dst;
 }
 
-void free_e42_setup_response(e42_setup_response_t *src){
-
-  assert(src != NULL);
-
-  for (size_t i = 0; i < src->len_e2_nodes_conn; ++i) {
-    free_e2_node_connected(&src->nodes[i]);
-  }
-};
-
 bool eq_e42_setup_response(const e42_setup_response_t* m0, const e42_setup_response_t* m1)
 {
   if(m0 == m1)
