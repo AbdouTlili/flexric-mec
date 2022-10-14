@@ -56,3 +56,5 @@ endif()
 target_compile_definitions(test_gtp_sm PUBLIC ${SM_ENCODING_GTP})
 target_link_libraries(test_gtp_sm PUBLIC -pthread)
 
+enable_testing()
+add_test(Unit_test_GTP test_gtp_sm)  

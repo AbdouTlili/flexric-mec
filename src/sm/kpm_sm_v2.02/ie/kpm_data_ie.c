@@ -39,12 +39,9 @@ void free_kpm_action_def(kpm_action_def_t* src)
   for (size_t i = 0; i<src->MeasInfo_len; i++)
   {
     for (size_t j = 0; j<src->MeasInfo[i].labelInfo_len; j++)
-    {
-      if (src->MeasInfo[i].labelInfo[j].noLabel)
-        free(src->MeasInfo[i].labelInfo[j].noLabel);
-    }
-    free_kpm_label_info(src->MeasInfo[i].labelInfo);
-    
+      free_label_info(&src->MeasInfo[i].labelInfo[j]);
+    free(src->MeasInfo[i].labelInfo);
+        
     if (src->MeasInfo[i].measType == MeasurementType_NAME)
       free_byte_array(src->MeasInfo[i].measName);
   }
@@ -56,7 +53,6 @@ void free_kpm_action_def(kpm_action_def_t* src)
 void free_kpm_ind_hdr(kpm_ind_hdr_t* src)
 {
   assert(src != NULL);
-  free_byte_array(src->collectStartTime);
   if (src->fileFormatversion != NULL)
     free_byte_array(*(src->fileFormatversion));
   if (src->senderName != NULL)
@@ -79,9 +75,15 @@ void free_kpm_ind_msg(kpm_ind_msg_t* src)
   
   /*OPTIONAL fields below*/
   if (src->MeasInfo != NULL){
-    for (i=0; i<src->MeasData_len; i++)
-      for (size_t j=0; i<src->MeasInfo_len; j++)
-        free_kpm_label_info(&(src->MeasInfo[i].labelInfo[j]));
+    for (i=0; i<src->MeasInfo_len; i++)
+    {
+      if (src->MeasInfo[i].measType == MeasurementType_NAME)
+        free_byte_array(src->MeasInfo[i].measName);
+      for (size_t j = 0; j< src->MeasInfo[i].labelInfo_len; j++)
+        free_label_info(&src->MeasInfo[i].labelInfo[j]);
+      free(src->MeasInfo[i].labelInfo);
+    }
+    free(src->MeasInfo);
   }
 
   if (src->granulPeriod != NULL)
@@ -93,7 +95,7 @@ kpm_ind_hdr_t cp_kpm_ind_hdr(kpm_ind_hdr_t const* src)
   assert(src != NULL);
   kpm_ind_hdr_t ret = {0};
 
-  ret.collectStartTime = copy_byte_array(src->collectStartTime);
+  ret.collectStartTime = src->collectStartTime;
   
   if (src->fileFormatversion){
     ret.fileFormatversion = calloc (1, sizeof(adapter_PrintableString_t));
@@ -134,15 +136,24 @@ kpm_ind_msg_t cp_kpm_ind_msg(kpm_ind_msg_t const* src) {
     }
   }
 
-  if (src->MeasInfo_len){
+  if (src->MeasInfo_len) {
     ret.MeasInfo_len = src->MeasInfo_len;
     ret.MeasInfo = calloc(src->MeasInfo_len, sizeof(MeasInfo_t));
     memcpy (ret.MeasInfo, src->MeasInfo, src->MeasInfo_len * sizeof(MeasInfo_t));
-    for (size_t i = 0; i<ret.MeasInfo_len; i++){
-      ret.MeasInfo[i].labelInfo = calloc(src->MeasInfo[i].labelInfo_len, sizeof(adapter_LabelInfoList_t));
-      memcpy (ret.MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo_len * sizeof(adapter_LabelInfoList_t));
-      // XXX: deep copy of adapter_MeasurementTypeName_t structure (byte_array)
-      // XXX: deep copy of LabelInfo items.
+    for (size_t i = 0; i<ret.MeasInfo_len; i++)
+    {
+      ret.MeasInfo[i].labelInfo_len = src->MeasInfo[i].labelInfo_len;
+      ret.MeasInfo[i].labelInfo = calloc(src->MeasInfo[i].labelInfo_len, sizeof(adapter_LabelInfoItem_t));
+      memcpy (ret.MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo_len * sizeof(adapter_LabelInfoItem_t));
+      for (size_t j = 0; j < src->MeasInfo[i].labelInfo_len; j++)
+      {
+        ret.MeasInfo[i].measType = src->MeasInfo[i].measType;
+        if (ret.MeasInfo[i].measType == MeasurementType_NAME)
+          ret.MeasInfo[i].measName = copy_byte_array(src->MeasInfo[i].measName);
+        else 
+          ret.MeasInfo[i].measID = src->MeasInfo[i].measID;
+        cp_label_info(&ret.MeasInfo[i].labelInfo[j], &src->MeasInfo[i].labelInfo[j]);
+      }  
     }
   }
   
@@ -182,11 +193,50 @@ kpm_ind_data_t cp_kpm_ind_data(kpm_ind_data_t const* src)
   return ret;
 }
 
-/* GENERIC */
-void free_kpm_label_info(adapter_LabelInfoList_t *l) 
+/* FUNCTION DEFINITION*/
+void free_kpm_func_def(kpm_func_def_t* src)
 {
-  if (l->aRPmax)
-    free (l->aRPmax);
+  assert(src != NULL);
+  
+  free(src->ric_ReportStyle_List); 
+  free(src->ric_EventTriggerStyle_List); 
+  free(src->ranFunction_Name.ranFunction_Instance);
+  free_byte_array(src->ranFunction_Name.Description);
+  free_byte_array(src->ranFunction_Name.E2SM_OID);
+  free_byte_array(src->ranFunction_Name.ShortName);
+}
+
+/* GENERICS: 
+ * - adapter_LabelInfoItem_t 
+ * ... more to be added in the future
+ */
+
+void cp_label_info(adapter_LabelInfoItem_t *dst, adapter_LabelInfoItem_t const *src) 
+{
+  assert(src != NULL);
+  assert(dst != NULL);
+
+  if (src->noLabel){
+    dst->noLabel = malloc(sizeof(*(dst->noLabel)));
+    assert (dst->noLabel != NULL && "Memory exhausted");
+    *(dst->noLabel) = *(src->noLabel);
+    return;
+  }
+  if (src->plmnID != NULL) {
+    dst->plmnID = malloc(sizeof(*(dst->plmnID)));
+    copy_byte_array(*(src->plmnID));
+  } else {
+    assert (0!=0 && "Programming error: should be null as the remaining fileds have not been implemented yet");
+  }
+  // TO BE COMPLETED with the other fields
+}
+
+void free_label_info(adapter_LabelInfoItem_t *l) 
+{
+  assert(l != NULL);
+
+  if (l->noLabel)
+    free (l->noLabel);
   if (l->plmnID)
     free_byte_array(*(l->plmnID));
  
@@ -210,18 +260,4 @@ void free_kpm_label_info(adapter_LabelInfoList_t *l)
 	// long	                        *min;	    /* OPTIONAL */
 	// long	                        *max;	    /* OPTIONAL */
 	// long	                        *avg;	    /* OPTIONAL */
-  free(l);
-}
-
-/* FUNCTION DEFINITION*/
-void free_kpm_func_def(kpm_func_def_t* src)
-{
-  assert(src != NULL);
-  
-  free(src->ric_ReportStyle_List); 
-  free(src->ric_EventTriggerStyle_List); 
-  free(src->ranFunction_Name.ranFunction_Instance);
-  free_byte_array(src->ranFunction_Name.Description);
-  free_byte_array(src->ranFunction_Name.E2SM_OID);
-  free_byte_array(src->ranFunction_Name.ShortName);
 }

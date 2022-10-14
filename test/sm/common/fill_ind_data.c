@@ -109,42 +109,85 @@ void fill_kpm_ind_data(kpm_ind_data_t* ind)
   
   srand(time(0));
 
-  ind->hdr.collectStartTime.len = 4;
-  ind->hdr.collectStartTime.buf = calloc(1, 4);
-  assert(ind->hdr.collectStartTime.buf != NULL && "memory exhausted");
-  
   int64_t t = time_now_us();
-  uint32_t t_truncated = t / 1000000;
-  #if BYTE_ORDER == LITTLE_ENDIAN  
-    t_truncated = __bswap_32 (t_truncated);
-  #endif
-
-  memcpy(ind->hdr.collectStartTime.buf, &t_truncated, 4);
+  ind->hdr.collectStartTime = t / 1000000; // needs to be truncated to 32 bits to arrive to a resolution of seconds
   ind->hdr.fileFormatversion = NULL;
   ind->hdr.senderName = NULL;
   ind->hdr.senderType = NULL;
   ind->hdr.vendorName = NULL;
 
+  if (rand()%100 == 0)
+  {
+    adapter_MeasDataItem_t *KPMData = calloc(1, sizeof(adapter_MeasDataItem_t));
+    KPMData[0].measRecord_len = 1;
+    KPMData[0].incompleteFlag = 0;
 
-  adapter_MeasDataItem_t *KPMData = calloc(1, sizeof(adapter_MeasDataItem_t));
-  KPMData[0].measRecord_len = rand()%100;
-  KPMData[0].incompleteFlag =  -1;
-  
-  adapter_MeasRecord_t * KPMRecord = calloc(KPMData[0].measRecord_len, sizeof(adapter_MeasRecord_t));
-  KPMData[0].measRecord = KPMRecord;
-  for (size_t i=0; i<KPMData[0].measRecord_len ; i++){
-    KPMRecord[i].type = MeasRecord_int;
-    KPMRecord[i].int_val = rand();
+    adapter_MeasRecord_t * KPMRecord = calloc(KPMData[0].measRecord_len, sizeof(adapter_MeasRecord_t));
+    KPMData[0].measRecord = KPMRecord;
+    for (size_t i=0; i<KPMData[0].measRecord_len ; i++){
+      KPMRecord[i].type = MeasRecord_int;
+      KPMRecord[i].int_val = 0;
+    }
+
+    ind->msg.MeasData = KPMData;
+    ind->msg.MeasData_len = 1;
+
+    ind->msg.MeasInfo_len = 0;
+    ind->msg.MeasInfo = NULL;
+    ind->msg.granulPeriod = NULL;
+
+  } else {
+
+    adapter_MeasDataItem_t *KPMData = calloc(1, sizeof(adapter_MeasDataItem_t));
+    KPMData[0].measRecord_len = rand()%100;
+    KPMData[0].incompleteFlag =  -1;
+    
+    adapter_MeasRecord_t * KPMRecord = calloc(KPMData[0].measRecord_len, sizeof(adapter_MeasRecord_t));
+    KPMData[0].measRecord = KPMRecord;
+    for (size_t i=0; i<KPMData[0].measRecord_len ; i++){
+      KPMRecord[i].type = MeasRecord_int;
+      KPMRecord[i].int_val = rand();
+    }
+    
+
+    ind->msg.MeasData = KPMData;
+    ind->msg.MeasData_len = 1;
+
+    ind->msg.granulPeriod = NULL;
+    
+    ind->msg.MeasInfo_len = 2;
+    ind->msg.MeasInfo = calloc(ind->msg.MeasInfo_len, sizeof(MeasInfo_t));
+    assert(ind->msg.MeasInfo != NULL && "Memory exhausted" );
+    
+    MeasInfo_t* info1 = &ind->msg.MeasInfo[0];
+    assert(info1 != NULL && "memory exhausted");
+    info1->measType = MeasurementType_NAME;
+    char* measName = "PrbDlUsage";
+    info1->measName.len = strlen(measName) + 1;
+    info1->measName.buf = malloc(strlen(measName)+1) ;
+    assert(info1->measName.buf != NULL && "memory exhausted");
+    memcpy(info1->measName.buf, measName, strlen(measName) );
+    info1->measName.buf[strlen(measName)] = '\0';
+    info1->labelInfo_len = 1;
+    info1->labelInfo = calloc(info1->labelInfo_len, sizeof(adapter_LabelInfoItem_t));
+    assert(info1->labelInfo != NULL && "memory exhausted");
+    adapter_LabelInfoItem_t* label1 = &info1->labelInfo[0];
+    label1->noLabel = calloc(1, sizeof(long));
+    assert(label1->noLabel != NULL && "memory exhausted");
+    *(label1->noLabel) = 0;
+
+    MeasInfo_t* info2 = &ind->msg.MeasInfo[1];
+    assert(info2 != NULL && "memory exhausted");
+    info2->measType = MeasurementType_ID;
+    info2->measID = 1L;
+    info2->labelInfo_len = 1;
+    info2->labelInfo = calloc(info2->labelInfo_len, sizeof(adapter_LabelInfoItem_t));
+    assert(info2->labelInfo != NULL && "memory exhausted");
+    adapter_LabelInfoItem_t* label2 = &info2->labelInfo[0];
+    label2->noLabel = calloc(1, sizeof(long));
+    assert(label2->noLabel != NULL && "memory exhausted");
+    *(label2->noLabel) = 0;
   }
-  
-
-  ind->msg.MeasData = KPMData;
-  ind->msg.MeasData_len = 1;
-
-  ind->msg.granulPeriod = NULL;
-  ind->msg.MeasInfo = NULL;
-  ind->msg.MeasInfo_len = 0;
-
 }
 
 void fill_rlc_ind_data(rlc_ind_data_t* ind)

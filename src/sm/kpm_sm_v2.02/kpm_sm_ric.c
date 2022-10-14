@@ -76,7 +76,7 @@ static sm_subs_data_t on_subscription_kpm_sm_ric(sm_ric_t const* sm_ric, const c
 
   // Action Definition IE
   long noLabelnum = 0; 
-	adapter_LabelInfoList_t	dummylabelInfo = {.noLabel = &noLabelnum}; 
+	adapter_LabelInfoItem_t	dummylabelInfo = {.noLabel = &noLabelnum}; 
   MeasInfo_t dummy_MeasInfo = { 
     .measType = MeasurementType_NAME, 
     .measName = {.buf = (unsigned char *)"test", .len = 5}, 

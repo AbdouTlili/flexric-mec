@@ -53,3 +53,6 @@ endif()
 else()
   message(FATAL_ERROR "Only E2AP_ENCODING allowed ")
 endif()
+
+enable_testing()
+add_test(test-All-in-one test_ag_ric_xapp) 
