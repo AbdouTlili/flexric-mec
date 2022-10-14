@@ -94,6 +94,7 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
   return ans;
 }
 
+
 static
 void sm_cb_kpm(sm_ag_if_rd_t const* rd)
 {
@@ -101,16 +102,10 @@ void sm_cb_kpm(sm_ag_if_rd_t const* rd)
   assert(rd->type == KPM_STATS_V0); 
 
   int64_t now = time_now_us();
-  // XXX: fix below
-
-  u_int32_t rcv_tstamp;
-  memcpy(&rcv_tstamp, rd->kpm_stats.hdr.collectStartTime.buf, 4);
-  #if BYTE_ORDER == LITTLE_ENDIAN  
-    rcv_tstamp = __bswap_32 (rcv_tstamp);
-  #endif
-  int64_t rcv_tstampfull = (int64_t)rcv_tstamp * 1000000;
   
-  printf("KPM ind_msg latency = %ld \n", now - rcv_tstampfull);
+  // Note that KPM has 1 second resolution in its indication header, while `now` is in microseconds. 
+  // Only reasonable latency value to print is a rounded one to seconds.
+  printf("KPM ind_msg latency > %ld s\n", now/1000000 - (int64_t)rd->kpm_stats.hdr.collectStartTime);
 }
 
 
@@ -121,7 +116,7 @@ void sm_cb_mac(sm_ag_if_rd_t const* rd)
   assert(rd->type == MAC_STATS_V0); 
 
   int64_t now = time_now_us();
-  printf("MAC ind_msg latency = %ld \n", now - rd->mac_stats.msg.tstamp);
+  printf("MAC ind_msg latency = %ld μs\n", now - rd->mac_stats.msg.tstamp);
 }
 
 static
@@ -132,7 +127,7 @@ void sm_cb_rlc(sm_ag_if_rd_t const* rd)
 
   int64_t now = time_now_us();
 
-  printf("RLC ind_msg latency = %ld \n", now - rd->rlc_stats.msg.tstamp);
+  printf("RLC ind_msg latency = %ld μs\n", now - rd->rlc_stats.msg.tstamp);
 }
 
 static
@@ -142,7 +137,7 @@ void sm_cb_gtp(sm_ag_if_rd_t const* rd)
   assert(rd->type == GTP_STATS_V0); 
 
   int64_t now = time_now_us();
-  printf("GTP ind_msg latency = %ld \n", now - rd->gtp_stats.msg.tstamp);
+  printf("GTP ind_msg latency = %ld μs\n", now - rd->gtp_stats.msg.tstamp);
 }
 
 static

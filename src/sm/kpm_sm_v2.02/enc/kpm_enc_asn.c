@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+static LabelInfoItem_t * cp_label_info_item_into_asn(adapter_LabelInfoItem_t const *src);
+
 /** Direction of the message: RIC --> E2 Node */
 byte_array_t kpm_enc_event_trigger_asn(kpm_event_trigger_t const* event_trigger) {
 
@@ -107,50 +109,7 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
         
         for (size_t j = 0; j<action_def->MeasInfo[i].labelInfo_len; j++)
         {
-          LabelInfoItem_t *labels = calloc(1, sizeof(LabelInfoItem_t));
-          assert (labels != NULL && "Memory exhausted");
-          
-          if (action_def->MeasInfo[i].labelInfo[j].noLabel != NULL) {
-            labels->measLabel.noLabel = malloc (sizeof(*(labels->measLabel.noLabel)));
-            assert (labels->measLabel.noLabel != NULL && "Memory exhausted");
-            *(labels->measLabel.noLabel) = *(action_def->MeasInfo[i].labelInfo[j].noLabel); 
-          
-            int rc1 = ASN_SEQUENCE_ADD(&mInfo->labelInfoList.list, labels);
-            assert(rc1 == 0);
-            /* 
-             * specification mentions that if 'noLabel' is included, other elements in the same datastructure 
-             * 'LabelInfoItem_t' shall not be included.
-             */
-            continue; 
-          }
-          if (action_def->MeasInfo[i].labelInfo[j].plmnID != NULL){
-            labels->measLabel.plmnID = OCTET_STRING_new_fromBuf (&asn_DEF_PLMNIdentity, 
-                                                                (const char *)action_def->MeasInfo[i].labelInfo[j].plmnID->buf, 
-                                                                action_def->MeasInfo[i].labelInfo[j].plmnID->len);
-            assert(labels->measLabel.plmnID != NULL);
-          }
-          #if 0
-          // To complete with below fields.
-          // internal_S_NSSAI_t	          *sliceID;	/* OPTIONAL */
-          // internal_FiveQI_t	          *fiveQI;	/* OPTIONAL */
-          // internal_QosFlowIdentifier_t	*qFI;	    /* OPTIONAL */
-          // internal_QCI_t	              *qCI;	    /* OPTIONAL */
-          // internal_QCI_t	              *qCImax;	/* OPTIONAL */
-          // internal_QCI_t	              *qCImin;	/* OPTIONAL */
-          // long	              *aRPmax;	/* OPTIONAL */
-          // long	              *aRPmin;	/* OPTIONAL */
-          // long	              *bitrateRange;/* OPTIONAL */
-          // long	              *layerMU_MIMO;/* OPTIONAL */
-          // long	              *sUM;	    /* OPTIONAL */
-          // long	              *distBinX;/* OPTIONAL */
-          // long	              *distBinY;/* OPTIONAL */
-          // long	              *distBinZ;/* OPTIONAL */
-          // long	              *preLabelOverride;/* OPTIONAL */
-          // long	              *startEndInd;	/* OPTIONAL */
-          // long	              *min;	    /* OPTIONAL */
-          // long	              *max;	    /* OPTIONAL */
-          // long	              *avg;	    /* OPTIONAL */
-          #endif
+          LabelInfoItem_t * labels = cp_label_info_item_into_asn(&action_def->MeasInfo[i].labelInfo[j]);
           int rc1 = ASN_SEQUENCE_ADD(&mInfo->labelInfoList.list, labels);
           assert(rc1 == 0);
         }
@@ -219,11 +178,10 @@ byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
   pdu->indicationHeader_formats.present = E2SM_KPM_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
   pdu->indicationHeader_formats.choice.indicationHeader_Format1 = calloc(1, sizeof(E2SM_KPM_IndicationHeader_Format1_t));
   E2SM_KPM_IndicationHeader_Format1_t *ih_p = pdu->indicationHeader_formats.choice.indicationHeader_Format1;
-  int ret = OCTET_STRING_fromBuf(&ih_p->colletStartTime, 
-                                  (const char *)ind_hdr->collectStartTime.buf, 
-                                  ind_hdr->collectStartTime.len);
-  assert(ret == 0);
   
+  uint32_t ts = htonl(ind_hdr->collectStartTime);
+  INT32_TO_OCTET_STRING(ts, &ih_p->colletStartTime);
+  int ret;
   if (ind_hdr->fileFormatversion != NULL){
     ret = OCTET_STRING_fromBuf(ih_p->fileFormatversion, 
                               (const char *)ind_hdr->fileFormatversion->buf, 
@@ -324,12 +282,44 @@ byte_array_t kpm_enc_ind_msg_asn(kpm_ind_msg_t const* ind_msg)
   }
 
   // 2. measInfoList (OPTIONAL)
-  // TODO: for now let's put it NULL
-  msg->measInfoList = NULL;
+  if (ind_msg->MeasInfo_len > 0){
+    assert((ind_msg->MeasInfo_len <= maxnoofMeasurementInfo) && "Number of records not allowed");
+    msg->measInfoList = calloc(1, sizeof(MeasurementInfoList_t));
+    for (size_t i = 0; i<ind_msg->MeasInfo_len; i++) 
+    {
+      MeasurementInfoItem_t *mInfo = calloc(1, sizeof(MeasurementInfoItem_t));
+      assert (mInfo != NULL && "Memory exhausted");
+      int ret1;
+      switch (ind_msg->MeasInfo[i].measType){
+        case MeasurementType_NAME:
+          ret1 = OCTET_STRING_fromBuf(&mInfo->measType.choice.measName, 
+                                          (const char *)ind_msg->MeasInfo[i].measName.buf, 
+                                          ind_msg->MeasInfo[i].measName.len);
+          assert(ret1 == 0);
+          break;
+        case MeasurementType_ID:
+          mInfo->measType.choice.measID = ind_msg->MeasInfo[i].measID;
+          break;
+        default:
+            assert(0!= 0 && "unexpected Measurement type");
+      }
+      mInfo->measType.present = ind_msg->MeasInfo[i].measType;
+      for (size_t j=0; j<ind_msg->MeasInfo[i].labelInfo_len; j++)
+      {
+        LabelInfoItem_t *lInfo = cp_label_info_item_into_asn(&ind_msg->MeasInfo[i].labelInfo[j]);
+        int rc1 = ASN_SEQUENCE_ADD(&mInfo->labelInfoList.list, lInfo);    
+        assert(rc1 == 0);
+      }
 
+      int rc2 = ASN_SEQUENCE_ADD(&msg->measInfoList->list, mInfo);
+      assert(rc2 == 0);
+    }
+  }
   // 3. granulPeriod (OPTIONAL)
-  // TODO
-  msg->granulPeriod = NULL;
+  if (ind_msg->granulPeriod) {
+    msg->granulPeriod = malloc(sizeof(*(msg->granulPeriod)));
+    *(msg->granulPeriod)=*(ind_msg->granulPeriod);
+  }
 
   byte_array_t  ba = {.buf = malloc(2048), .len = 2048};
   const enum asn_transfer_syntax syntax = ATS_ALIGNED_BASIC_PER;
@@ -386,3 +376,50 @@ byte_array_t kpm_enc_func_def_asn(kpm_func_def_t const* func_def)
 
   return ba;
 }
+
+// beware that this function allocates dynamic memory.
+static LabelInfoItem_t * cp_label_info_item_into_asn(adapter_LabelInfoItem_t const *src)
+{
+
+  LabelInfoItem_t * dst = calloc(1, sizeof(LabelInfoItem_t));
+  assert (dst != NULL && "Memory exhausted");
+
+  if (src->noLabel != NULL) {
+    dst->measLabel.noLabel = malloc (sizeof(*(dst->measLabel.noLabel)));
+    assert (dst->measLabel.noLabel != NULL && "Memory exhausted");
+    *(dst->measLabel.noLabel) = *(src->noLabel); 
+    /* 
+     * specification mentions that if 'noLabel' is included, other elements in the same datastructure 
+     * 'LabelInfoItem_t' shall not be included.
+     */
+    return dst;
+  }      
+
+  if (src->plmnID != NULL){
+    dst->measLabel.plmnID = OCTET_STRING_new_fromBuf (&asn_DEF_PLMNIdentity, (const char *)src->plmnID->buf, src->plmnID->len);
+    assert(dst->measLabel.plmnID != NULL);
+  }
+
+          // To complete with below fields.
+          // internal_S_NSSAI_t	          *sliceID;	/* OPTIONAL */
+          // internal_FiveQI_t	          *fiveQI;	/* OPTIONAL */
+          // internal_QosFlowIdentifier_t	*qFI;	    /* OPTIONAL */
+          // internal_QCI_t	              *qCI;	    /* OPTIONAL */
+          // internal_QCI_t	              *qCImax;	/* OPTIONAL */
+          // internal_QCI_t	              *qCImin;	/* OPTIONAL */
+          // long	              *aRPmax;	/* OPTIONAL */
+          // long	              *aRPmin;	/* OPTIONAL */
+          // long	              *bitrateRange;/* OPTIONAL */
+          // long	              *layerMU_MIMO;/* OPTIONAL */
+          // long	              *sUM;	    /* OPTIONAL */
+          // long	              *distBinX;/* OPTIONAL */
+          // long	              *distBinY;/* OPTIONAL */
+          // long	              *distBinZ;/* OPTIONAL */
+          // long	              *preLabelOverride;/* OPTIONAL */
+          // long	              *startEndInd;	/* OPTIONAL */
+          // long	              *min;	    /* OPTIONAL */
+          // long	              *max;	    /* OPTIONAL */
+          // long	              *avg;	    /* OPTIONAL */
+
+  return dst;
+} 

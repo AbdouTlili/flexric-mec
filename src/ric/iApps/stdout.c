@@ -191,14 +191,13 @@ void print_kpm_stats(kpm_ind_data_t const* kpm)
 
   for(size_t i = 0; i < kpm->msg.MeasData_len; i++){
     adapter_MeasDataItem_t* curMeasData = &kpm->msg.MeasData[i];
-
+    uint64_t truncated_ts = (uint64_t)kpm->hdr.collectStartTime * 1000000;
     if (i == 0 && kpm->msg.granulPeriod){
       int rc = snprintf(stats, max,  "kpm_stats: "
-                      "tstamp=%u"
+                      "tstamp=%lu"
                       ",granulPeriod=%lu"
-                      ",kpm_MeasData"
-                      ",kpm->MeasData_len=%zu"
-                      , *(kpm->hdr.collectStartTime.buf)
+                      ",MeasData_len=%zu"
+                      , truncated_ts
                       , *(kpm->msg.granulPeriod)
                       , kpm->msg.MeasData_len
                       );
@@ -207,11 +206,10 @@ void print_kpm_stats(kpm_ind_data_t const* kpm)
       assert(rc > -1);
     }else if(i == 0 && kpm->msg.granulPeriod == NULL){
       int rc = snprintf(stats, max,  "kpm_stats: "
-                      "tstamp=%u"
-                      ",granulPeriod="
-                      ",kpm_MeasData"
-                      ",kpm->MeasData_len=%zu"
-                      , *(kpm->hdr.collectStartTime.buf)
+                      "tstamp=%lu"
+                      ",granulPeriod=NULL"
+                      ",MeasData_len=%zu"
+                      , truncated_ts
                       , kpm->msg.MeasData_len
                       );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
@@ -220,14 +218,8 @@ void print_kpm_stats(kpm_ind_data_t const* kpm)
     }
 
     memset(stats, 0, sizeof(stats));
-    int rc = snprintf(stats, max,
-                      ",kpm_measData[%zu]"
-                      ",MeasData->incompleteFlag=%ld"
-                      ",MeasData->measRecord_len=%zu"
-                      , i
-                      , curMeasData->incompleteFlag
-                      , curMeasData->measRecord_len
-                      );
+    int rc = snprintf(stats, max,",MeasData[%zu]=(incompleteFlag=%ld, Record_len=%zu ",
+                                  i, curMeasData->incompleteFlag, curMeasData->measRecord_len);
     assert(rc < (int)max && "Not enough space in the char array to write all the data");
     rc = fputs(stats , fp);
     assert(rc > -1);
@@ -235,64 +227,43 @@ void print_kpm_stats(kpm_ind_data_t const* kpm)
     for(size_t j = 0; j < curMeasData->measRecord_len; j++){
       adapter_MeasRecord_t* curMeasRecord = &(curMeasData->measRecord[j]);
       memset(stats, 0, sizeof(stats));
-      to_string_kpm_measRecord(curMeasRecord, stats, max);
+      to_string_kpm_measRecord(curMeasRecord, j, stats, max);
       int rc = fputs(stats , fp);
       assert(rc > -1);
     }
   }
+  int rc = snprintf(stats, max, ",MeasInfo_len=%zu", kpm->msg.MeasInfo_len);
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  rc = fputs(stats , fp);
+  assert(rc > -1);
 
   for(size_t i = 0; i < kpm->msg.MeasInfo_len; i++){
     MeasInfo_t* curMeasInfo = &kpm->msg.MeasInfo[i];
-    if (i == 0){
-      memset(stats, 0, sizeof(stats));
-      int rc = snprintf(stats, max,
-                      ",kpm_MeasInfo"
-                      ",kpm->MeasInfo_len=%zu",
-                      i
-                      );
-      assert(rc < (int)max && "Not enough space in the char array to write all the data");
-      rc = fputs(stats , fp);
-      assert(rc > -1);
-    }
 
     if (curMeasInfo->measType == MeasurementType_ID){
       memset(stats, 0, sizeof(stats));
-      int rc = snprintf(stats, max,
-                        ",MeasInfo[%zu]"
-                        ",measType=%d"
-                        ",measID=%ld"
-                        , i
-                        , curMeasInfo->measType
-                        , curMeasInfo->measID
-                        );
+      int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=ID, content=%ld)", i, curMeasInfo->measID);
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
       rc = fputs(stats , fp);
       assert(rc > -1);
     } else if (curMeasInfo->measType == MeasurementType_NAME){
       memset(stats, 0, sizeof(stats));
-      int rc = snprintf(stats, max,
-                        ",MeasInfo[%zu]"
-                        ",measType=%d"
-                        ",measName->len=%zu"
-                        ",measName->buf=%u"
-                        , i
-                        , curMeasInfo->measType
-                        , curMeasInfo->measName.len
-                        , *curMeasInfo->measName.buf
-                        );
+      int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=NAME, content=%s)", i, curMeasInfo->measName.buf);
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
       rc = fputs(stats , fp);
       assert(rc > -1);
     }
 
     for(size_t j = 0; j < curMeasInfo->labelInfo_len; ++j){
-      adapter_LabelInfoList_t* curLabelInfo = &curMeasInfo->labelInfo[j];
+      adapter_LabelInfoItem_t* curLabelInfo = &curMeasInfo->labelInfo[j];
       memset(stats, 0, sizeof(stats));
-      to_string_kpm_labelInfo(curLabelInfo, stats, max);
-      int rc = fputs(stats , fp);
+      to_string_kpm_labelInfo(curLabelInfo, j, stats, max);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
       assert(rc > -1);
     }
   }
+  fputs("\n", fp);
 }
 
 void notify_stdout_listener(sm_ag_if_rd_t const* data)

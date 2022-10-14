@@ -433,13 +433,27 @@ void to_string_gtp_ngu(gtp_ngu_t_stats_t const* gtp, int64_t tstamp , char* out,
         );
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
 }
-void to_string_kpm_labelInfo(adapter_LabelInfoList_t const* labelInfo, char*out, size_t out_len)
+
+void to_string_kpm_labelInfo(adapter_LabelInfoItem_t const* labelInfo, size_t idx,  char *out, size_t out_len)
 {
   assert(labelInfo != NULL);
-  const size_t max = 512;
-  assert(out_len >= max);
+  
+  size_t avail = out_len;
+  char *begp = out;
+  
+  int nprinted = snprintf(begp, avail, ", labelInfo[%lu]=", idx);
+  assert((nprinted > 0) && ((size_t) nprinted < avail) && "Not enough space in the char array to write all the data");
+  avail -= nprinted;
+  begp += nprinted;
 
-  int rc = snprintf(out, out_len,
+  if (labelInfo->noLabel) {
+    nprinted = snprintf(begp, avail, "(noLabel = %ld)", *(labelInfo->noLabel));
+    assert((nprinted > 0) && ((size_t) nprinted < avail) && "Not enough space in the char array to write all the data");
+    avail -= nprinted;
+    begp += nprinted;
+  }
+/*
+  nprinted = snprintf(out, out_len,
                         ",labelInfo"
                         ",noLabel=%ld"
                         ",plmnID->len=%zu"
@@ -494,33 +508,22 @@ void to_string_kpm_labelInfo(adapter_LabelInfoList_t const* labelInfo, char*out,
                         , *labelInfo->max
                         , *labelInfo->avg
                         );
-    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+    assert(rc < (int)out_len && "Not enough space in the char array to write all the data");
+    */
 }
 
-void to_string_kpm_measRecord(adapter_MeasRecord_t const* measRecord, char*out, size_t out_len)
+void to_string_kpm_measRecord(adapter_MeasRecord_t const* measRecord, size_t idx, char *out, size_t out_len)
 {
   assert(measRecord != NULL);
-  const size_t max = 512;
-  assert(out_len >= max);
-
+  int rc = 0;
   if (measRecord->type == MeasRecord_int){
-    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
-                    ",type=int"
-                    ",value=%ld"
-                    , measRecord->int_val
-                    );
-    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    rc = snprintf(out, out_len, ",Record[%lu]=%ld", idx, measRecord->int_val);
   } else if(measRecord->type == MeasRecord_real){
-    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
-                    ",type=real"
-                    ",value=%ld"
-                    , measRecord->int_val
-                    );
-    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    rc = snprintf(out, out_len, ",Record[%lu]=%ld", idx, measRecord->int_val);
   } else {
-    int rc = snprintf(out, out_len,  "kpm_stats_measRecord: "
-                        ",type=null"
-                        );
-    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    rc = snprintf(out, out_len, ",Record[%lu]=nulltype", idx); 
   }
+
+  assert(rc < (int)out_len && "Not enough space in the char array to write all the data");
 }

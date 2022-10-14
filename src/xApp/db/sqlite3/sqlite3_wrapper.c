@@ -823,10 +823,11 @@ int to_sql_string_gtp_NGUT(global_e2_node_id_t const* id,gtp_ngu_t_stats_t* gtp,
 }
 
 static
-int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,  
+void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,  
                                  adapter_MeasDataItem_t* kpm_measData, 
                                  adapter_MeasRecord_t* kpm_measRecord, 
-                                 uint8_t tstamp, char* out, 
+                                 adapter_TimeStamp_t tstamp, 
+                                 char* out, 
                                  size_t out_len)
 {
   assert(kpm_measData != NULL);
@@ -856,7 +857,7 @@ int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
         // , granulPeriod
         );
     assert(rc < (int)max && "Not enough space in the char array to write all the data");
-    return rc;
+    return ;
   } else {
     if(kpm_measRecord->type == MeasRecord_int){
       int const rc = snprintf(out, max,
@@ -880,7 +881,7 @@ int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , kpm_measRecord->int_val
           );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
-      return rc;
+      return;
     }else if (kpm_measRecord->type == MeasRecord_real){
       int const rc = snprintf(out, max,
           "INSERT INTO KPM_MeasRecord VALUES("
@@ -903,7 +904,7 @@ int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , kpm_measRecord->real_val
           );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
-      return rc;
+      return;
     }else if (kpm_measRecord->type == MeasRecord_noval){
       int const rc = snprintf(out, max,
           "INSERT INTO KPM_MeasRecord VALUES("
@@ -925,9 +926,10 @@ int to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , kpm_measData->incompleteFlag
           );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
-      return rc;
+      return;
     }
   }
+  assert(0!=0 && "Bad input data. Nothing for SQL to be created");
 }
 
 static
@@ -1072,13 +1074,13 @@ void write_kpm_stats(sqlite3* db, global_e2_node_id_t const* id, kpm_ind_data_t 
       for (size_t j = 0; j < curMeasData->measRecord_len; j++){
         adapter_MeasRecord_t* curMeasRecord = &curMeasData->measRecord[j];
         memset(buffer, 0, sizeof(buffer));
-        to_sql_string_kpm_measRecord(id, curMeasData, curMeasRecord, *ind->hdr.collectStartTime.buf, 
+        to_sql_string_kpm_measRecord(id, curMeasData, curMeasRecord, ind->hdr.collectStartTime, 
                                      buffer, 512);
         insert_db(db, buffer);
       }
     } else {
       memset(buffer, 0, sizeof(buffer));
-      to_sql_string_kpm_measRecord(id, curMeasData, NULL, *ind->hdr.collectStartTime.buf, 
+      to_sql_string_kpm_measRecord(id, curMeasData, NULL, ind->hdr.collectStartTime, 
                                    buffer, 512);
       insert_db(db, buffer);
     }

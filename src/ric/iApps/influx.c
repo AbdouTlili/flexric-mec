@@ -137,7 +137,7 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
                         ",granulPeriod=%lu"
                         ",kpm_MeasData"
                         ",kpm->MeasData_len=%zu"
-                        , *(kpm->hdr.collectStartTime.buf)
+                        , kpm->hdr.collectStartTime
                         , *(kpm->msg.granulPeriod)
                         , kpm->msg.MeasData_len
                         );
@@ -150,7 +150,7 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
                         ",granulPeriod="
                         ",kpm_MeasData"
                         ",kpm->MeasData_len=%zu"
-                        , *(kpm->hdr.collectStartTime.buf)
+                        , kpm->hdr.collectStartTime
                         , kpm->msg.MeasData_len
                         );
         assert(rc < (int)max && "Not enough space in the char array to write all the data");
@@ -174,7 +174,7 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
       for(size_t j = 0; j < curMeasData->measRecord_len; j++){
         adapter_MeasRecord_t* curMeasRecord = &(curMeasData->measRecord[j]);
         memset(stats, 0, sizeof(stats));
-        to_string_kpm_measRecord(curMeasRecord, stats, max);
+        to_string_kpm_measRecord(curMeasRecord, j, stats, max);
         rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
         assert(rc != -1);
       }
@@ -213,11 +213,11 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
                           ",MeasInfo[%zu]"
                           ",measType=%d"
                           ",measName->len=%zu"
-                          ",measName->buf=%u"
+                          ",measName->buf=%s"
                           , i
                           , curMeasInfo->measType
                           , curMeasInfo->measName.len
-                          , *curMeasInfo->measName.buf
+                          , curMeasInfo->measName.buf
                           );
         assert(rc < (int)max && "Not enough space in the char array to write all the data");
         rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
@@ -225,9 +225,9 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
       }
 
       for(size_t j = 0; j < curMeasInfo->labelInfo_len; ++j){
-        adapter_LabelInfoList_t* curLabelInfo = &curMeasInfo->labelInfo[j];
+        adapter_LabelInfoItem_t* curLabelInfo = &curMeasInfo->labelInfo[j];
         memset(stats, 0, sizeof(stats));
-        to_string_kpm_labelInfo(curLabelInfo, stats, max);
+        to_string_kpm_labelInfo(curLabelInfo, j, stats, max);
         int rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
         assert(rc != -1);
       }

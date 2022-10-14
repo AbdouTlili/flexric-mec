@@ -18,11 +18,13 @@
 #include "../ie/asn/asn_constant.h"
 
 #include "kpm_dec_asn.h"
+#include "../../../util/conversions.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+static void cp_label_info_item_from_asn(adapter_LabelInfoItem_t *dst, LabelInfoItem_t const *src);
 
 kpm_event_trigger_t kpm_dec_event_trigger_asn(size_t len, uint8_t const ev_tr[len])
 {
@@ -99,20 +101,10 @@ kpm_action_def_t kpm_dec_action_def_asn(size_t len, uint8_t const action_def[len
             break;
         }
         ret.MeasInfo[i].labelInfo_len = adf_p->measInfoList.list.array[i]->labelInfoList.list.count;
-        ret.MeasInfo[i].labelInfo = calloc(ret.MeasInfo[i].labelInfo_len, sizeof(adapter_LabelInfoList_t));
+        ret.MeasInfo[i].labelInfo = calloc(ret.MeasInfo[i].labelInfo_len, sizeof(adapter_LabelInfoItem_t));
         assert (ret.MeasInfo[i].labelInfo != NULL && "Memory exhausted");
         for (size_t j = 0; j<ret.MeasInfo[i].labelInfo_len; j++)
-        {
-          MeasurementLabel_t l = adf_p->measInfoList.list.array[i]->labelInfoList.list.array[j]->measLabel;
-          if (l.noLabel)
-          {
-            ret.MeasInfo[i].labelInfo[j].noLabel = malloc(sizeof(*(ret.MeasInfo[i].labelInfo[j].noLabel)));
-            *(ret.MeasInfo[i].labelInfo[j].noLabel) = *(l.noLabel);
-            continue;
-          }
-          //TO COMPLETE with all the fields of label
-        }
-        
+          cp_label_info_item_from_asn(&ret.MeasInfo[i].labelInfo[j], adf_p->measInfoList.list.array[i]->labelInfoList.list.array[j]);       
       }
       // 2. granular period
       ret.granularity_period = adf_p->granulPeriod;
@@ -148,7 +140,9 @@ kpm_ind_hdr_t kpm_dec_ind_hdr_asn(size_t len, uint8_t const ind_hdr[len])
   {
     E2SM_KPM_IndicationHeader_Format1_t *hdr = pdu->indicationHeader_formats.choice.indicationHeader_Format1;
 
-    BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ret.collectStartTime, hdr->colletStartTime)
+    uint32_t reversed_ts;
+    OCTET_STRING_TO_INT32(&hdr->colletStartTime, reversed_ts);
+    ret.collectStartTime = ntohl(reversed_ts);
     
     if (hdr->fileFormatversion){
       ret.fileFormatversion = calloc(1, sizeof(ret.fileFormatversion));
@@ -225,7 +219,32 @@ kpm_ind_msg_t kpm_dec_ind_msg_asn(size_t len, uint8_t const ind_msg[len])
       mData[i].measRecord = rec;
     }
     // 2. measInfoList (OPTIONAL)
-    assert(msg->measInfoList == NULL && "Decoding of measInfoList not implemented yet");
+    if (msg->measInfoList != NULL)
+    {
+      ret.MeasInfo_len = msg->measInfoList->list.count; 
+      ret.MeasInfo = calloc(ret.MeasInfo_len, sizeof(MeasInfo_t));
+      for (int i=0; i<msg->measInfoList->list.count; i++)
+      {
+        MeasurementInfoItem_t * mInfo = msg->measInfoList->list.array[i];
+        ret.MeasInfo[i].measType = mInfo->measType.present;
+        switch (mInfo->measType.present)
+        {
+        case MeasurementType_PR_measName:
+          BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ret.MeasInfo[i].measName, mInfo->measType.choice.measName);
+          break;
+        case MeasurementType_PR_measID:
+          ret.MeasInfo[i].measID = mInfo->measType.choice.measID;
+          break;
+        default:
+          break;
+        }
+        ret.MeasInfo[i].labelInfo_len = mInfo->labelInfoList.list.count;
+        ret.MeasInfo[i].labelInfo = calloc(ret.MeasInfo->labelInfo_len, sizeof(adapter_LabelInfoItem_t));
+        assert (ret.MeasInfo[i].labelInfo != NULL && "Memory exhausted");
+        for (int j=0; j<mInfo->labelInfoList.list.count; j++)
+          cp_label_info_item_from_asn(&ret.MeasInfo[i].labelInfo[j], mInfo->labelInfoList.list.array[j]);
+      }
+    }
 
     // 3. granulPeriod (OPTIONAL)
     assert(msg->granulPeriod == NULL && "Decoding of granulPeriod not implemented yet");
@@ -264,3 +283,45 @@ kpm_func_def_t kpm_dec_func_def_asn(size_t len, uint8_t const func_def[len])
   
   return ret;
 }
+
+static void cp_label_info_item_from_asn(adapter_LabelInfoItem_t *dst, LabelInfoItem_t const *src)
+{
+  assert(dst != NULL);
+
+  if (src->measLabel.noLabel)
+  {
+    dst->noLabel = malloc(sizeof(*(dst->noLabel)));
+    assert (dst->noLabel != NULL && "Memory exhausted");        
+    *(dst->noLabel) = *(src->measLabel.noLabel);
+      /* 
+     * specification mentions that if 'noLabel' is included, other elements in the same datastructure 
+     * 'LabelInfoItem_t' shall not be included.
+     */
+    return;
+  }
+ 
+  if (src->measLabel.plmnID != NULL)
+    BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS (dst->plmnID, src->measLabel.plmnID);
+
+  // To complete with below fields.
+  // internal_S_NSSAI_t	          *sliceID;	/* OPTIONAL */
+  // internal_FiveQI_t	          *fiveQI;	/* OPTIONAL */
+  // internal_QosFlowIdentifier_t	*qFI;	    /* OPTIONAL */
+  // internal_QCI_t	              *qCI;	    /* OPTIONAL */
+  // internal_QCI_t	              *qCImax;	/* OPTIONAL */
+  // internal_QCI_t	              *qCImin;	/* OPTIONAL */
+  // long	              *aRPmax;	/* OPTIONAL */
+  // long	              *aRPmin;	/* OPTIONAL */
+  // long	              *bitrateRange;/* OPTIONAL */
+  // long	              *layerMU_MIMO;/* OPTIONAL */
+  // long	              *sUM;	    /* OPTIONAL */
+  // long	              *distBinX;/* OPTIONAL */
+  // long	              *distBinY;/* OPTIONAL */
+  // long	              *distBinZ;/* OPTIONAL */
+  // long	              *preLabelOverride;/* OPTIONAL */
+  // long	              *startEndInd;	/* OPTIONAL */
+  // long	              *min;	    /* OPTIONAL */
+  // long	              *max;	    /* OPTIONAL */
+  // long	              *avg;	    /* OPTIONAL */
+
+} 

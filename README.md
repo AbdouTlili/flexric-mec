@@ -1,99 +1,179 @@
-# FlexRIC: The O-RAN Alliance compliant E2-Agent and NearRT-RIC 
+# FlexRIC
 
-This repository contains O-RAN Alliance (https://www.o-ran.org/) compliant E2-Agent emulators, a NearRT-RIC, xApps written in C/C++ and Python, as well as patches to 5G/4G OpenAirInterface and 4G srsRAN. Additionally, it stores the data received in the xApp in a sqlite3 database for offline processing applications (e.g., ML/AI). 
+This repository contains [O-RAN Alliance](https://www.o-ran.org/) compliant E2 node Agent emulators, a NearRT-RIC, xApps written in C/C++ and Python, as well as
+patches to 5G/4G OpenAirInterface and 4G srsRAN. It implements various service models (NG/GTP, PDCP, RLC, MAC, KPM v2, SC, TC) and a built-in emulation. Depending on the service model, different encoding schemes have been developed (ASN.1, flatbuffer, plain). The indication data received in the xApp uses as persistence mechanism an sqlite3 database for enabling offline processing applications
+(e.g., ML/AI). 
 
+If you want to know more about FlexRIC and its original architecture, you can find more details at: Robert Schmidt, Mikel Irazabal, and Navid Nikaein. 2021.
+FlexRIC: an SDK for next-generation SD-RANs. In Proceedings of the 17th International Conference on emerging Networking EXperiments and Technologies (CoNEXT
+'21). Association for Computing Machinery, New York, NY, USA, 411–425. DOI: https://doi.org/10.1145/3485983.3494870. A pdf copy is available at
+https://bit.ly/3uOXuCV 
 
-## General instructions
+Below is the list of features available in this version divided per component and per service model:
 
-To build this repository, you need a *recent* CMake. On Ubuntu, you might want
-to use [this PPA](https://apt.kitware.com/) to install an up-to-date version.
+|      | OAI-4g |OAI-5g| SRS-4g | E2 node Agent emulator| Near RT-RIC | xApp c/c++ SDK |xApp python SDK | O-RAN standardized|
+|:-----|:-------|:-----|:-------|:--------|:------------|:------------------|:---------------|:--------------|
+| MAC  |  Y     | Y    | Y      |Y | Y | Y  |Y  | N |
+| RLC  |  Y     | Y    | Y      |Y | Y | Y  |Y  | N | 
+| PDCP |  Y     | Y    | Y      |Y | Y | Y  |Y  | N | 
+| SLICE|  Y     | NO   | Y      |Y | Y | Y  |Y  | N |
+| TC   |  NO    | NO   | NO     |Y | Y | Y  |NO | N |
+| GTP  |  NO    | NO   | NO     |Y | Y | Y  |NO | N |
+| KPM  |  NO    | NO   | NO     |Y | Y | Y  |NO | Y |
 
-Download the required dependencies. 
+## 1. Installation
 
+1.1 Install prerequisites
+
+- A *recent* CMake (at least v3.15). 
+
+  On Ubuntu, you might want to use [this PPA](https://apt.kitware.com/) to install an up-to-date version.
+
+- SWIG (at least  v.4.0). 
+
+  We use SWIG as an interface generator to enable the multi-language feature (i.e., C/C++ and Python) for the xApps. Please, check your SWIG version (i.e, `swig
+  -version`) and install it from scratch if necessary as described here: https://swig.org/svn.html or via the code below: 
+  
+  ```bash
+  git clone https://github.com/swig/swig.git
+  cd swig
+  ./autogen.sh
+  ./configure --prefix=/usr/
+  make
+  make install
+  ```
+
+- asn1c compiler. 
+
+  We use `asn1c` as an generator tool for auto creating new enc/dec files. Below an example of how to install it in ubuntu
+  ```bash
+  sudo apt-get -y install asn1c
+  ```
+- flatbuffer encoding(optional). 
+  
+  We also provide a flatbuffers encoding/decoding scheme as alternative to ASN.1. In case that you want to use it  follow the
+  instructions at https://github.com/dvidelabs/flatcc and provide the path for the lib and include when selecting it at `ccmake ..` from the build directory 
+
+1.2 Download the required dependencies. 
+
+Below an example of how to install it in ubuntu
 ```bash
-sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev 
+sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev python-dev
 ```
 
-We use SWIG (i.e., > 4.0) as an interface generator to enable the multi-language feature (i.e., C/C++ and Python) for the xApps.
+1.3 Clone the FlexRIC project, build and install it. 
 
-Please, check your SWIG version (i.e, $ swig -version) and install it from scratch if necessary as described here: https://swig.org/svn.html 
-or
-```bash
-$ git clone https://github.com/swig/swig.git
-$ cd swig
-$ ./autogen.sh
-$ ./configure --prefix=/usr/
-$ make -j $(nproc)
-$ make install
-```
+* Download the code
 
-You can now clone the FlexRIC project and build it. 
+  Check the [release page](https://gitlab.eurecom.fr/mosaic5g/flexric/-/releases) the release you want to install. You can download directly from the web or
+  use git in the following way:
 
-```bash
-$ git clone https://gitlab.eurecom.fr/mosaic5g/flexric.git 
-$ cd flexric && mkdir build && cd build && cmake .. && make -j $(nproc)
-```
+  ```bash
+  # i.e.: 
+  $ git clone https://gitlab.eurecom.fr/mosaic5g/flexric.git 
+  # i.e. git checkout v1.0.0
+  $ git checkout <here put the release tag>
+  ```
 
-You also need to install the Service Models (SM) in your computer.
+* Build 
 
-```bash
-sudo make install
-```
+  ```bash
+  $ cd flexric && mkdir build && cd build && cmake .. && make 
+  ```
 
-By default they will be installed in the path /usr/local/flexric
+* Install
 
-Check that everything is working correctly by running. 
+  You can install the Service Models (SM) in your computer via:
+  ```bash
+  sudo make install
+  ```
+  By default the service model libraries will be installed in the path /usr/local/lib/flexric while the
+  configuration file in /usr/local/etc/flexric. 
 
-```bash
-$ ./build/test/test_near_ric # located in the /path/to/flexric/build
-```
+1.4 Test (optional step)
 
-Before starting the nearRT-RIC, check that the IP address where your nearRT-RIC will be listening is the desired one at /usr/local/flexric/flexric.conf. You can now start the nearRT-RIC. 
+There are some tests you can run. Precisely:
+* Service Model unit test. See directory `build/test/sm`
+* 3 nodes test. See directory `build/examples/xApp/c/monitor`. This test check a simulated scenario using an E2 node's agent emulator that uses random data
+  filled via `fill_kpm_ind_data()` function in the code. Example or run with 3 terminals for easying the console output:
+    ```bash
+    # terminal 1: start E2 Node agent
+    ./build/examples/emulator/agent/agent_1
+    # terminal 2: start nearRT-RIC
+    ./build/examples/ric/nearRT-RIC
+    # terminal 3
+    build/examples/xApp/c/monitor/xapp_mac_rlc_pdcp_moni
+    ```
+* All-in-one test. See directory `build/test/agent-ric-xapp`
 
+Most of the tests can also be triggered by `ctest` automation framework. You would need to install ctest as further dependency if you want to use this
+feature. From the build directory it is sufficent to launch `ctest` to launch the tests.
+
+## 2. Usage/deployment
+
+Before starting the nearRT-RIC, check that the IP address where your nearRT-RIC will be listening is the desired one at `/usr/local/lib/flexric/flexric.conf`.
+Infact the default configuration assumes all the components are located in the same localhost. 
+
+Start the nearRT-RIC with:
 ```bash
 $ ./build/examples/ric/nearRT-RIC
 ```
 
-You can also start multiple E2 Agent emulators that will try to connect to the IP address specified at /usr/local/flexric/flexric.conf.
-
+Start one or multiple E2 node Agent emulators using default configuration
 ```bash
 $ ./build/examples/emulator/agent/agent_1
-$ ./build/examples/emulator/agent/agent_2
-$ ./build/examples/emulator/agent/agent_3
-$ ./build/examples/emulator/agent/agent_4
-$ ./build/examples/emulator/agent/agent_5
+$ ./build/examples/emulator/agent/agent_2 
 ```
-
-Next, you can fetch some statistics from the E2 Agents using python. 
-
+or a customized one, i.e.:
 ```bash
-$ cd build/example/xApp/python3/
-$ python3 xapp_mac_rlc_pdcp_moni.py
+$ ./build/examples/emulator/agent/agent_1 -c /usr/local/etc/flexric/flexric.conf  &
+$ ./build/examples/emulator/agent/agent_2 -c /usr/local/etc/flexric/flexric2.conf &
+```
+where, for example, flexric.conf is: 
+```
+[NEAR-RIC]
+NEAR_RIC_IP = 127.0.0.1
+E2_PORT = 36421
+
+[EMULATOR-E2-NODE]
+NB_ID = 11
+MCC = 222
+MNC = 11
+RAN_TYPE = gNB
 ```
 
-While in other window you can start a second xApp developed in c
+flexric2.conf is: 
 
-```bash
-$ cd build/example/xApp/c/monitor/
-$ ./xapp_mac_rlc_pdcp_moni
+```
+[NEAR-RIC]
+NEAR_RIC_IP = 127.0.0.1
+E2_PORT = 36421
+
+[EMULATOR-E2-NODE]
+NB_ID = 12
+MCC = 555
+MNC = 22
+RAN_TYPE = gNB
 ```
 
-You can now start wireshark and see how E2AP messages are flowing.
+Next, you can fetch some statistics from the E2 Agents using python xApps via `$ python3 build/examples/xApp/python3/xapp_gtp_moni.py`, while in other window you can start a second xApp developed in c `$ build/examples/xApp/c/monitor/xapp_monitor_all`
 
-The latency that you observe in your monitor xApp is the latency from the E2 Agent to the nearRT-RIC and xApp. In modern computers the latency should be around 200 microseconds or 50x faster than the O-RAN specified maximum nearRT-RIC latency of 10 ms.
-
+You can also start wireshark and see how E2AP messages are flowing. 
 At this point, FlexRIC is working correctly in your computer and you have already tested the multi-agent, multi-xApp and multi-language capabilities. 
 
-Additionally, all the data received in the xApp has also been written to /tmp/xapp_db in case that offline data processing is wanted (e.g., Machine Learning/Artificial Intelligence applications).
+The latency that you observe in your monitor xApp is the latency from the E2 Agent to the nearRT-RIC and xApp. In modern computers the latency should be around 200 microseconds or 50x faster than the O-RAN specified maximum nearRT-RIC latency of 10 ms.
+Additionally, all the data received in the xApp has also been written to /tmp/xapp_db in case that offline data processing is wanted (e.g., Machine
+Learning/Artificial Intelligence applications). Please, check the example folder for other working xApp use cases.
 
-Please, check the example folder for other working xApp use cases.
+## 3. Integration with RAN and example of deployment
 
-## Integration with OpenAirInterface 4G/5G
+### 3.1 Integration with OpenAirInterface 4G/5G RAN
 
+We will use the patch provided in flexric repository
 ```bash
 $ git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git oai
 $ cd oai/
-$ git checkout nr-mac-rlc-pdcp-stats
+$ git checkout develop
 $ git am path/to/flexric/multiRAT/oai/oai.patch --whitespace=nowarn
 $ source oaienv
 $ cd cmake_targets
@@ -104,20 +184,9 @@ $ ./build_oai --eNB --gNB -c -C -w USRP --ninja
 Prepare you favourite hot/cold beverage as the compilation of OAI may take 10 minutes. 
 Example configuration files using a B210 USRP are provided to facilitate the integration.
 
-You can now run the 5G or 4G OAI gNodeB/eNodeB
-```bash
-# eNB
-$ cd oai/cmake_targets/ran_build/build
-$ sudo ./lte-softmodem -O path/to/flexric/multiRAT/oai/enb.band7.tm1.25PRB.usrpb210.replay.conf
-
-# gNB
-$ cd oai/cmake_targets/ran_build/build
-$ sudo ./nr-softmodem -O path/to/flexric/multiRAT/oai/gnb.sa.band78.fr1.106PRB.usrpb210.conf --sa -E --continuous-tx
-```
-
 In this release MAC, RLC, PDCP SMs are operative for 5G/4G and slicing for 4G 
 
-## Integration with srsRAN 4G
+### 3.2 Integration with srsRAN 4G RAN
 
 Install srsRAN from source <https://docs.srsran.com/en/latest/general/source/1_installation.html#installation-from-source> and follow their instructions.
 
@@ -134,18 +203,10 @@ sudo ./srsenb
 In this release MAC, RLC, PDCP and partially Slicing are supported SMs.
 
 
-## Demo July 2022
+### 3.3 (opt) Synchronize clock
 
-If you want to see the full power of FlexRIC using its multi-RAT, multi-vendor, multi-language, multi-agent and multi-xApp capabilities in action, you can replicate the following demo.
-
-<https://www.youtube.com/watch?v=sHJSA3FgGd8>
-
-![alt text](fig/1.png)
-
-
-### (opt) Synchronize clock
-
-Run ptp4l in all the machines
+Before running the various components (RAN/flexric), you probably want to align the machines' clock. At this aim, you can use `ptp4l` in all the machines
+involved (if you have for example deploed the various components on different hosts)
 
 ```bash
 sudo ptp4l -m -i InterfaceName #for master
@@ -162,50 +223,47 @@ sudo phc2sys -m -s InterfaceName -w
 
 ![alt text](fig/3.png)
 
-### Start some eNodeB/gNodeB
+### 3.4 Start the processes
 
-```bash
-$ sudo ./nr-softmodem -O path/to/flexric/multiRAT/oai/gnb.sa.band78.fr1.106PRB.usrpb210.conf --sa -E --continuous-tx
-```
+* Start some eNodeB/gNodeB
 
-### Start the nearRT-RIC
+  Below an example with 5G or 4G OAI gNodeB/eNodeB
+  ```bash
+  # eNB
+  $ cd oai/cmake_targets/ran_build/build
+  $ sudo ./lte-softmodem -O path/to/flexric/multiRAT/oai/enb.band7.tm1.25PRB.usrpb210.replay.conf
 
-```bash
-$ ./build/examples/ric/nearRT-RIC
-```
+  # gNB
+  $ cd oai/cmake_targets/ran_build/build
+  $ sudo ./nr-softmodem -O path/to/flexric/multiRAT/oai/gnb.sa.band78.fr1.106PRB.usrpb210.conf --sa -E --continuous-tx
+  ```
 
-### Start different xApps
+* Start the nearRT-RIC
 
-e.g, start the monitoring xApp
+  ```bash
+  $ ./build/examples/ric/nearRT-RIC
+  ```
 
-```bash
-$ cd build/example/xApp/c/monitor/
-$ ./xapp_mac_rlc_pdcp_moni
-```
+* Start different xApps
 
-Following the monitoring sequence diagram. 
-![alt text](fig/4.png)
+  e.g, start the monitoring xApp with `build/examples/xApp/c/monitor/xapp_mac_rlc_pdcp_moni`. The monitoring sequence diagram is represented below: 
 
-
-e.g, start the slicing control xApp
-
-```bash
-$ cd build/example/xApp/python3/
-$ python3 ./xapp_slice_moni_ctrl.py
-```
-Following the controlling sequence diagram.
-
-![alt text](fig/5.png)
+  ![alt text](fig/4.png)
 
 
-## Flatbuffers 
-We also provide a flatbuffers encoding/decoding scheme as alternative to ASN.1. In case that you want to use it,
-follow the instructions at https://github.com/dvidelabs/flatcc and provide the path for the lib and include when
-selecting it at ccmake .. from the build directory 
+  e.g, start the slicing control xApp via `$ python3 build/examples/xApp/python3/xapp_slice_moni_ctrl.py`. The controlling sequence diagram is represented below:
 
-## Research Paper
-If you want to know more about FlexRIC and its original architecture, you can find more details at:
+  ![alt text](fig/5.png)
 
-Robert Schmidt, Mikel Irazabal, and Navid Nikaein. 2021. FlexRIC: an SDK for next-generation SD-RANs. In Proceedings of the 17th International Conference on emerging Networking EXperiments and Technologies (CoNEXT '21). Association for Computing Machinery, New York, NY, USA, 411–425. DOI:https://doi.org/10.1145/3485983.3494870
+## 4. Support/further resources
 
+* Mailing list: if you need help, you can subscribe to the mailing list `techs@mosaic-5g.io` that you can find at
+  https://gitlab.eurecom.fr/mosaic5g/mosaic5g/-/wikis/mailing-lists
+* demo: [here](DEMO.md) you can find a demo 
+* [wiki page](https://gitlab.eurecom.fr/mosaic5g/flexric/-/wikis/home)
+* [ppt](https://gitlab.eurecom.fr/mosaic5g/flexric/-/wikis/home) presentation with a gentle introduction to flexric 
+* [Flexric paper ACN 2021](https://bit.ly/3uOXuCV)
 
+## 5. Roadmap
+
+Check on https://gitlab.eurecom.fr/mosaic5g/flexric/-/milestones
