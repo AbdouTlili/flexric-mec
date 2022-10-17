@@ -39,7 +39,11 @@ void sm_cb_kpm(sm_ag_if_rd_t const* rd)
   int64_t now = time_now_us();
       
   // KPM has 1 second resolution in its indication header, while 'now' is in microseconds
-  printf("KPM ind_msg latency = %ld seconds\n", now/1000000 - (int64_t)rd->kpm_stats.hdr.collectStartTime);
+  int64_t diff = now/1000000 - (int64_t)rd->kpm_stats.hdr.collectStartTime;
+  if (diff > 1)
+    printf("KPM ind_msg latency = %lu seconds\n", diff);
+  else
+    printf("KPM ind_msg latency < 1 seconds\n");
 }
 
 int main(int argc, char *argv[])

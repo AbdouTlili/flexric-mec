@@ -79,10 +79,10 @@ int main(int argc, char *argv[])
   inter_xapp_e i_0 = ms_1;
   sm_ans_xapp_t* mac_handle = NULL;
   // RLC indication
-  inter_xapp_e i_1 = ms_1;
+  inter_xapp_e i_1 = ms_5;
   sm_ans_xapp_t* rlc_handle = NULL;
   // PDCP indication
-  inter_xapp_e i_2 = ms_1;
+  inter_xapp_e i_2 = ms_10;
   sm_ans_xapp_t* pdcp_handle = NULL;
 
   if(nodes.len > 0){

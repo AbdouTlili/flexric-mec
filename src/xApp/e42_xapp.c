@@ -330,6 +330,8 @@ void send_subscription_request(e42_xapp_t* xapp, global_e2_node_id_t* id, ric_ge
     cmd = "2_ms";
   } else if(i == ms_5 ){
     cmd = "5_ms";
+  } else if(i == ms_10){
+    cmd = "10_ms";
   } else {
     assert(0!=0 && "Unsupported interval type. Check the SM on_subscription for details");
   }
