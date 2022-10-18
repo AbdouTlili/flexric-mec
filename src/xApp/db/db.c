@@ -115,6 +115,7 @@ void* worker_thread(void* arg)
 
     for(size_t i = 0; i < sz; ++i){
       write_db_gen(db->handler, &data[i].id, &data[i].rd);
+      free_global_e2_node_id(&data[i].id);
       free_sm_ag_if_rd(&data[i].rd);
     }
   }
@@ -142,6 +143,7 @@ void free_e2_node_ag_if_wrapper(void* it)
   assert(it != NULL);
 
   e2_node_ag_if_t* d = (e2_node_ag_if_t*)it;
+  free_global_e2_node_id(&d->id);
   free_sm_ag_if_rd(&d->rd);
 }
 

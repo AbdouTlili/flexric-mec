@@ -220,7 +220,7 @@ void* assoc_reg_value(assoc_reg_t* reg, void* it)
 }
 
 // Erase the elements in the range
-void assoc_reg_erase(assoc_reg_t* reg, void* start_it, void* end_it)
+void assoc_reg_erase(assoc_reg_t* reg, void* start_it, void* end_it, void(free_func)(void*))
 {
   assert(reg != NULL);
   assert(start_it != NULL);
@@ -234,6 +234,8 @@ void assoc_reg_erase(assoc_reg_t* reg, void* start_it, void* end_it)
     registry_bucket_t* b = (registry_bucket_t*)start_it;
     start_it = assoc_reg_next(reg, start_it);
     b->has_value = false;
+    if (free_func != NULL)
+      free_func(&b->val);
     --reg->sz;
   }
 

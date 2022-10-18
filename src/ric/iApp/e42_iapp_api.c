@@ -52,7 +52,6 @@ void init_iapp_api(const char* addr, near_ric_if_t ric_if)
 {
   assert(iapp == NULL);
 
-  printf("[iApp]: IP Address = %s\n", addr);
   iapp = init_e42_iapp(addr, ric_if);
   assert(iapp->io.efd < 1024);
 

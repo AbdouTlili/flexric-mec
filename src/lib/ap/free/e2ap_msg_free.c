@@ -662,6 +662,7 @@ void e2ap_free_e42_ric_subscription_request(e42_ric_subscription_request_t* e42_
 {
   assert(e42_sr != NULL);
   e2ap_free_subscription_request(&e42_sr->sr);
+  free_global_e2_node_id(&e42_sr->id);
 }
 
 void e2ap_free_e42_ric_subscription_delete_request_msg(e2ap_msg_t* msg)
@@ -688,5 +689,6 @@ void e2ap_free_e42_ric_control_request(e42_ric_control_request_t* e42_ctrl)
 {
   assert(e42_ctrl != NULL);
   e2ap_free_control_request(&e42_ctrl->ctrl_req);
+  free_global_e2_node_id(&e42_ctrl->id);
 }
 

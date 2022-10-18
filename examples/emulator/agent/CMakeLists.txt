@@ -4,94 +4,73 @@
 
 
 #############################
-# E2 Agent 1  
+# E2 Agent gNB
 #############################
 
-add_executable(agent_1 
-              test_agent.c
-              ../../../test/sm/common/fill_ind_data.c)
+add_executable(emu_agent_gnb
+                  test_agent.c
+                  ../../../test/sm/common/fill_ind_data.c)
 
-target_link_libraries(agent_1
-                      PUBLIC 
+target_link_libraries(emu_agent_gnb
+                      PUBLIC
                       e2_agent
                       ${FlatCC} 
                       -pthread
                       -lsctp
                       -ldl)
 
-target_compile_definitions(agent_1 PRIVATE TEST_AGENT_1)
+target_compile_definitions(emu_agent_gnb PRIVATE TEST_AGENT_GNB)
 
 #############################
-# E2 Agent 2  
+# E2 Agent gNB-CU
 #############################
 
-add_executable(agent_2 
-              test_agent.c
-              ../../../test/sm/common/fill_ind_data.c)
+add_executable(emu_agent_gnb_cu
+                test_agent.c
+                ../../../test/sm/common/fill_ind_data.c)
 
-target_link_libraries(agent_2
-                      PUBLIC 
-                      e2_agent
-                      ${FlatCC} 
-                      -pthread
-                      -lsctp
-                      -ldl)
+target_link_libraries(emu_agent_gnb_cu
+                        PUBLIC
+                        e2_agent
+                        ${FlatCC}
+                        -pthread
+                        -lsctp
+                        -ldl)
 
-target_compile_definitions(agent_2 PRIVATE TEST_AGENT_2)
-
-#############################
-# E2 Agent 3  
-#############################
-
-add_executable(agent_3 
-              test_agent.c
-              ../../../test/sm/common/fill_ind_data.c)
-
-target_link_libraries(agent_3
-                      PUBLIC 
-                      e2_agent
-                      ${FlatCC} 
-                      -pthread
-                      -lsctp
-                      -ldl)
-
-target_compile_definitions(agent_3 PRIVATE TEST_AGENT_3)
+target_compile_definitions(emu_agent_gnb_cu PRIVATE TEST_AGENT_GNB_CU)
 
 #############################
-# E2 Agent 4  
+# E2 Agent gNB-DU
 #############################
 
-add_executable(agent_4 
-              test_agent.c
-              ../../../test/sm/common/fill_ind_data.c)
+add_executable(emu_agent_gnb_du
+                test_agent.c
+                ../../../test/sm/common/fill_ind_data.c)
 
-target_link_libraries(agent_4
-                      PUBLIC 
-                      e2_agent
-                      ${FlatCC} 
-                      -pthread
-                      -lsctp
-                      -ldl)
+target_link_libraries(emu_agent_gnb_du
+                        PUBLIC
+                        e2_agent
+                        ${FlatCC}
+                        -pthread
+                        -lsctp
+                        -ldl)
 
-target_compile_definitions(agent_4 PRIVATE TEST_AGENT_4)
+target_compile_definitions(emu_agent_gnb_du PRIVATE TEST_AGENT_GNB_DU)
 
 #############################
-# E2 Agent 46  
+# E2 Agent eNB
 #############################
 
-add_executable(agent_5 
-              test_agent.c
-              ../../../test/sm/common/fill_ind_data.c)
+add_executable(emu_agent_enb
+                test_agent.c
+                ../../../test/sm/common/fill_ind_data.c)
 
-target_link_libraries(agent_5
-                      PUBLIC 
-                      e2_agent
-                      ${FlatCC} 
-                      -pthread
-                      -lsctp
-                      -ldl)
+target_link_libraries(emu_agent_enb
+                        PUBLIC
+                        e2_agent
+                        ${FlatCC}
+                        -pthread
+                        -lsctp
+                        -ldl)
 
-target_compile_definitions(agent_5 PRIVATE TEST_AGENT_5)
-
-
-
+target_compile_definitions(emu_agent_enb PRIVATE TEST_AGENT_ENB)

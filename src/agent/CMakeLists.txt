@@ -28,6 +28,7 @@ set(E2_AGENT_SRC
             $<TARGET_OBJECTS:e2ap_msg_enc_obj>
             $<TARGET_OBJECTS:e2ap_msg_dec_obj>
             $<TARGET_OBJECTS:e2ap_msg_free_obj>
+            $<TARGET_OBJECTS:e2_ngran_obj>
   )
 
 if(E2AP_ENCODING STREQUAL "ASN")

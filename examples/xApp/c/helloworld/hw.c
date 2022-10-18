@@ -21,30 +21,13 @@
 
 #include "../../../../src/xApp/e42_xapp_api.h"
 #include "../../../../src/util/alg_ds/alg/defer.h"
-#include "../../../../src/util/time_now_us.h"
-#include "../../../../src/sm/kpm_sm_v2.02/kpm_sm_id.h"
+#include "../../../../src/util/ngran_types.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-
-
-static
-void sm_cb_kpm(sm_ag_if_rd_t const* rd)
-{
-  assert(rd != NULL);
-  assert(rd->type == KPM_STATS_V0);
-
-  int64_t now = time_now_us();
-      
-  // KPM has 1 second resolution in its indication header, while 'now' is in microseconds
-  int64_t diff = now/1000000 - (int64_t)rd->kpm_stats.hdr.collectStartTime;
-  if (diff > 1)
-    printf("KPM ind_msg latency = %lu seconds\n", diff);
-  else
-    printf("KPM ind_msg latency < 1 seconds\n");
-}
+#include <signal.h>
 
 int main(int argc, char *argv[])
 {
@@ -60,36 +43,34 @@ int main(int argc, char *argv[])
   assert(nodes.len > 0);
 
   printf("Connected E2 nodes = %d\n", nodes.len);
+  for (size_t i = 0; i < nodes.len; i++) {
+    ngran_node_t ran_type = nodes.n[i].id.type;
+    if (NODE_IS_MONOLITHIC(ran_type))
+      printf("E2 node %ld info: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d, ran_type %s\n",
+             i,
+             nodes.n[i].id.nb_id,
+             nodes.n[i].id.plmn.mcc,
+             nodes.n[i].id.plmn.mnc,
+             nodes.n[i].id.plmn.mnc_digit_len,
+             get_ngran_name(ran_type));
+    else
+      printf("E2 node %ld info: nb_id %d, mcc %d, mnc %d, mnc_digit_len %d, ran_type %s, cu_du_id %lu\n",
+             i,
+             nodes.n[i].id.nb_id,
+             nodes.n[i].id.plmn.mcc,
+             nodes.n[i].id.plmn.mnc,
+             nodes.n[i].id.plmn.mnc_digit_len,
+             get_ngran_name(ran_type),
+             *nodes.n[i].id.cu_du_id);
 
-  // KPM indication
-  inter_xapp_e i_0 = ms_1;
-  sm_ans_xapp_t* kpm_handle = NULL;
-
-  if(nodes.len > 0){
-    kpm_handle = calloc( nodes.len, sizeof(sm_ans_xapp_t) ); 
-    assert(kpm_handle  != NULL);
+    printf("E2 node %ld supported RAN function's IDs:", i);
+    for (size_t j = 0; j < nodes.n[i].len_rf; j++)
+      printf(", %d", nodes.n[i].ack_rf[j].id);
+    printf("\n");
   }
 
-  for (int i = 0; i < nodes.len; i++) {
-    e2_node_connected_t* n = &nodes.n[i];
-    for (size_t j = 0; j < n->len_rf; j++)
-      printf("Registered node %d ran func id = %d \n ", i, n->ack_rf[j].id);
 
-    kpm_handle[i] = report_sm_xapp_api(&nodes.n[i].id, SM_KPM_ID, i_0, sm_cb_kpm);
-    assert(kpm_handle[i].success == true);
-  }
-
-  sleep(10);
-
-
-  for(int i = 0; i < nodes.len; ++i){
-    // Remove the handle previously returned
-    rm_report_sm_xapp_api(kpm_handle[i].u.handle);
-  }
-
-  if(nodes.len > 0){
-    free(kpm_handle);
-  }
+  printf("Hello World\n");
 
   //Stop the xApp
   while(try_stop_xapp_api() == false)
@@ -97,3 +78,4 @@ int main(int argc, char *argv[])
 
   printf("Test xApp run SUCCESSFULLY\n");
 }
+

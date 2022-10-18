@@ -34,6 +34,8 @@ void free_e2_node_arr(e2_node_arr_t* xapp)
     }
     if( xapp->n[i].len_rf > 0)
       free(xapp->n[i].ack_rf);
+
+    free_global_e2_node_id(&xapp->n[i].id);
   }
   
   if(xapp->len > 0){

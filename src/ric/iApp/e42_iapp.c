@@ -54,6 +54,7 @@ e42_iapp_t* init_e42_iapp(const char* addr, near_ric_if_t ric_if)
   start_near_ric_iapp_gen(iapp->ric_if.type);
 
   uint32_t const port = 36422;
+  printf("[iApp]: nearRT-RIC IP Address = %s, PORT = %d\n", addr, port);
   e2ap_init_ep_iapp(&iapp->ep, addr, port);
 
   init_asio_iapp(&iapp->io); 
@@ -155,8 +156,9 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
       e2ap_msg_t msg = e2ap_msg_dec_iapp(&iapp->ap, rcv.ba); 
       defer({e2ap_msg_free_iapp(&iapp->ap, &msg); } );
 
+      // TODO: need to update connected e2 nodes
       e2ap_msg_t ans = e2ap_msg_handle_iapp(iapp, &msg);
-      defer({ e2ap_msg_free_iapp(&iapp->ap, &ans);} );
+      defer({e2ap_msg_free_iapp(&iapp->ap, &ans);});
 
       if(ans.type == E42_SETUP_RESPONSE ){
         const uint16_t xapp_id = ans.u_msgs.e42_stp_resp.xapp_id;
@@ -167,12 +169,12 @@ void e2_event_loop_iapp(e42_iapp_t* iapp)
       if(ans.type != NONE_E2_MSG_TYPE ){
 
         sctp_msg_t sctp_msg = { .info.addr = rcv.info.addr,
-                                .info.sri = rcv.info.sri,
-                                 };
+                .info.sri = rcv.info.sri,
+        };
 
-        sctp_msg.ba = e2ap_msg_enc_iapp(&iapp->ap, &ans); 
+        sctp_msg.ba = e2ap_msg_enc_iapp(&iapp->ap, &ans);
         defer({ free_sctp_msg(&sctp_msg); } );
-       
+
         // Get the endpoint for the appropiate xApp
         e2ap_send_sctp_msg_iapp(&iapp->ep, &sctp_msg);
 

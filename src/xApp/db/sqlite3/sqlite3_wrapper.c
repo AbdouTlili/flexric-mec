@@ -49,6 +49,7 @@ void create_mac_ue_table(sqlite3* db)
                        "mnc INT,"
                        "mnc_digit_len INT,"
                        "nb_id INT,"
+                       "cu_du_id TEXT,"
                        "frame INT,"
                        "slot INT,"
                        "dl_aggr_tbs INT CHECK(dl_aggr_tbs  >= 0 AND dl_aggr_tbs < 18446744073709551615),"
@@ -107,6 +108,7 @@ void create_rlc_bearer_table(sqlite3* db)
                             "mnc INT,"
                             "mnc_digit_len INT,"
                             "nb_id INT,"
+                            "cu_du_id TEXT,"
                             "txpdu_pkts INT CHECK(txpdu_pkts >= 0 AND txpdu_pkts < 4294967296)," // 1 << 32 = 4294967296 
                             "txpdu_bytes INT CHECK(txpdu_bytes >= 0 AND  txpdu_bytes < 4294967296 ),"\
                             "txpdu_wt_ms  INT CHECK(txpdu_wt_ms  >= 0 AND  txpdu_wt_ms  < 4294967296 ),"\
@@ -158,6 +160,7 @@ void create_pdcp_bearer_table(sqlite3* db)
                        "mnc INT,"
                        "mnc_digit_len INT,"
                        "nb_id INT,"
+                       "cu_du_id TEXT,"
                        "txpdu_pkts INT CHECK(txpdu_pkts  >= 0 AND txpdu_pkts  < 4294967296),"
                        "txpdu_bytes INT CHECK(txpdu_bytes >=0 AND txpdu_bytes < 4294967296 ),"
                        "txpdu_sn INT CHECK(txpdu_sn >=0 AND txpdu_sn < 4294967296 ),"
@@ -194,6 +197,7 @@ void create_slice_table(sqlite3* db)
                     "mnc INT,"\
                     "mnc_digit_len INT,"\
                     "nb_id INT,"\
+                    "cu_du_id TEXT,"\
                     "len_slices INT CHECK(len_slices  >= 0 AND len_slices < 4),"\
                     "sched_name TEXT,"\
                     "id INT CHECK(id >=0 AND id < 4294967296),"\
@@ -222,6 +226,7 @@ void create_ue_slice_table(sqlite3* db)
                     "mnc INT,"\
                     "mnc_digit_len INT,"\
                     "nb_id INT,"\
+                    "cu_du_id TEXT,"\
                     "len_ue_slice INT CHECK(len_ue_slice  >= 0 AND len_ue_slice  < 4294967296),"\
                     "rnti INT CHECK(rnti == -1 OR (rnti >= 0 AND rnti < 65535)),"\
                     "dl_id INT CHECK(dl_id == -1 OR (dl_id >= 0 AND dl_id < 4294967296))"
@@ -242,6 +247,7 @@ void create_gtp_table(sqlite3* db)
                             "mnc INT,"
                             "mnc_digit_len INT,"
                             "nb_id INT,"
+                            "cu_du_id TEXT,"
                             "teidgnb INT ," // 1 << 32 = 4294967296 
                             "rnti INT ,"
                             "qfi  INT ,"
@@ -261,6 +267,7 @@ void create_kpm_table(sqlite3* db)
                        "mnc INT,"
                        "mnc_digit_len INT,"
                        "nb_id INT,"
+                       "cu_du_id TEXT,"
                        "incompleteFlag INT,"
                        "val REAL CHECK(val >=0 AND val < 4294967296 )"
                        ");";
@@ -274,6 +281,7 @@ void create_kpm_table(sqlite3* db)
                        "mnc INT,"
                        "mnc_digit_len INT,"
                        "nb_id INT,"
+                       "cu_du_id TEXT,"
                        "MeasType TEXT,"
                        "noLabel INT CHECK(noLabel >=0 AND noLabel < 4294967296 ),"
                        "plmnID TEXT,"
@@ -319,7 +327,15 @@ int to_sql_string_mac_ue(global_e2_node_id_t const* id, mac_ue_stats_impl_t* sta
   assert(stats != NULL);       
   assert(out != NULL);
   const size_t max = 1024;
-  assert(out_len >= max);      
+  assert(out_len >= max);
+
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int rc = snprintf(out, max, 
       "INSERT INTO MAC_UE VALUES("
       "%ld,"//tstamp
@@ -328,6 +344,7 @@ int to_sql_string_mac_ue(global_e2_node_id_t const* id, mac_ue_stats_impl_t* sta
       "%d," //mnc
       "%d," //mnc_digit_len   
       "%d," //nb_id 
+      "'%s'," //cu_du_id
       "%d," //frame
       "%d," //slot
       "%lu,"//dl_aggr_tbs     
@@ -375,6 +392,7 @@ int to_sql_string_mac_ue(global_e2_node_id_t const* id, mac_ue_stats_impl_t* sta
       ,id->plmn.mnc
       ,id->plmn.mnc_digit_len
       ,id->nb_id 
+      ,id->cu_du_id ? c_cu_du_id : c_null
       ,stats->frame
       ,stats->slot
       ,stats->dl_aggr_tbs    
@@ -429,6 +447,13 @@ int to_sql_string_rlc_rb(global_e2_node_id_t const* id,rlc_radio_bearer_stats_t*
   const size_t max = 1024;
   assert(out_len >= max);
 
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int const rc = snprintf(out, max,
         "INSERT INTO RLC_bearer VALUES("
         "%ld,"// tstamp
@@ -437,6 +462,7 @@ int to_sql_string_rlc_rb(global_e2_node_id_t const* id,rlc_radio_bearer_stats_t*
         "%d," //mnc
         "%d," //mnc_digit_len   
         "%d," //nb_id 
+        "'%s'," //cu_du_id
         "%u," //rlc->txpdu_pkts
         "%u," //rlc->txpdu_bytes
         "%u," //rlc->txpdu_wt_ms 
@@ -477,6 +503,7 @@ int to_sql_string_rlc_rb(global_e2_node_id_t const* id,rlc_radio_bearer_stats_t*
         , id->plmn.mnc
         , id->plmn.mnc_digit_len
         , id->nb_id 
+        , id->cu_du_id ? c_cu_du_id : c_null
         , rlc->txpdu_pkts
         , rlc->txpdu_bytes
         , rlc->txpdu_wt_ms
@@ -522,8 +549,15 @@ int to_sql_string_pdcp_rb(global_e2_node_id_t const* id, pdcp_radio_bearer_stats
   assert(pdcp != NULL);        
   assert(out != NULL);
   const size_t max = 512;      
-  assert(out_len >= max);      
-  
+  assert(out_len >= max);
+
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int rc = snprintf(out, out_len, 
       "INSERT INTO PDCP_bearer VALUES("
         "%ld," //tstamp         
@@ -532,6 +566,7 @@ int to_sql_string_pdcp_rb(global_e2_node_id_t const* id, pdcp_radio_bearer_stats
         "%d," //mnc
         "%d," //mnc_digit_len   
         "%d," //nb_id 
+        "'%s'," //cu_du_id
         "%u," //txpdu_pkts       
         "%u," //txpdu_bytes     
         "%u," // txpdu_sn   
@@ -557,6 +592,7 @@ int to_sql_string_pdcp_rb(global_e2_node_id_t const* id, pdcp_radio_bearer_stats
         , id->plmn.mnc
         , id->plmn.mnc_digit_len
         , id->nb_id 
+        , id->cu_du_id ? c_cu_du_id : c_null
         , pdcp->txpdu_pkts     
         , pdcp->txpdu_bytes    
         , pdcp->txpdu_sn       
@@ -588,6 +624,13 @@ int to_sql_string_ue_slice_rb(global_e2_node_id_t const* id, ue_slice_conf_t con
   const size_t max = 512;
   assert(out_len >= max);
 
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int rc = 0;
   if (u == NULL) {
     rc = snprintf(out, out_len,
@@ -598,11 +641,13 @@ int to_sql_string_ue_slice_rb(global_e2_node_id_t const* id, ue_slice_conf_t con
                   "%d,"    // mnc
                   "%d,"    // mnc_digit_len
                   "%d,"    // nb_id
+                  "'%s',"  // cu_du_id
                   "%d,"    // dl->len_ue_slices
                   "%d,"    // ues[i]->rnti
                   "%d"     // ues[i]->dl_id
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , id->cu_du_id ? c_cu_du_id : c_null
                   , ues->len_ue_slice, -1, -1);
     assert(rc < (int)max && "Not enough space in the char array to write all the data");
     return rc;
@@ -616,11 +661,13 @@ int to_sql_string_ue_slice_rb(global_e2_node_id_t const* id, ue_slice_conf_t con
                 "%d,"    // mnc
                 "%d,"    // mnc_digit_len
                 "%d,"    // nb_id
+                "'%s',"  // cu_du_id
                 "%d,"    // dl->len_ue_slices
                 "%d,"    // ues[i]->rnti
                 "%d"     // ues[i]->dl_id
                 ");"
                 , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                , id->cu_du_id ? c_cu_du_id : c_null
                 , ues->len_ue_slice, u->rnti, u->dl_id);
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
   return rc;
@@ -639,6 +686,12 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
   sched_name[0] = '\0';
   strncat(sched_name, slices->sched_name, slices->len_sched_name);
 
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int rc = 0;
   if (s == NULL) {
     rc = snprintf(out, out_len,
@@ -649,6 +702,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%d,"    // mnc
                   "%d,"    // mnc_digit_len
                   "%d,"    // nb_id
+                  "'%s',"  // cu_du_id
                   "%d,"    // dl->len_slices
                   "'%s',"  // dl->sched_name
                   "%u,"    // dl->slice[i].id
@@ -661,6 +715,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , id->cu_du_id ? c_cu_du_id : c_null
                   , 0, sched_name, 0, c_null, c_null, c_null, c_null, 0.00, 0.00, 0.00);
     assert(rc < (int)max && "Not enough space in the char array to write all the data");
     return rc;
@@ -686,6 +741,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%d,"    // mnc
                   "%d,"    // mnc_digit_len
                   "%d,"    // nb_id
+                  "'%s',"  // cu_du_id
                   "%d,"    // dl->len_slices
                   "'%s',"  // dl->sched_name
                   "%u,"    // dl->slice[i].id
@@ -698,6 +754,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , id->cu_du_id ? c_cu_du_id : c_null
                   , slices->len_slices, c_null
                   , s->id, label, params_type, c_null, sched
                   , s->params.u.sta.pos_low, s->params.u.sta.pos_high, 0.00);
@@ -713,6 +770,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                     "%d,"    // mnc
                     "%d,"    // mnc_digit_len
                     "%d,"    // nb_id
+                    "'%s',"  // cu_du_id
                     "%d,"    // dl->len_slices
                     "'%s',"  // dl->sched_name
                     "%u,"    // dl->slice[i].id
@@ -725,6 +783,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                     "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                     ");"
                     , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                    , id->cu_du_id ? c_cu_du_id : c_null
                     , slices->len_slices, c_null
                     , s->id, label, params_type, params_type_conf, sched
                     , s->params.u.nvs.u.rate.u1.mbps_required, s->params.u.nvs.u.rate.u2.mbps_reference, 0.00);
@@ -738,6 +797,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                       "%d,"    // mnc
                       "%d,"    // mnc_digit_len
                       "%d,"    // nb_id
+                      "'%s',"  // cu_du_id
                       "%d,"    // dl->len_slices
                       "'%s',"  // dl->sched_name
                       "%u,"    // dl->slice[i].id
@@ -750,6 +810,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                       "%.2f"  // dl->slice[i]->params.u.edf.max_replenish
                       ");"
                       , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                      , id->cu_du_id ? c_cu_du_id : c_null
                       , slices->len_slices, c_null
                       , s->id, label, params_type, params_type_conf, sched
                       , s->params.u.nvs.u.capacity.u.pct_reserved, 0.00, 0.00);
@@ -764,6 +825,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%d,"    // mnc
                   "%d,"    // mnc_digit_len
                   "%d,"    // nb_id
+                  "'%s',"  // cu_du_id
                   "%d,"    // dl->len_slices
                   "'%s',"  // dl->sched_name
                   "%u,"    // dl->slice[i].id
@@ -776,6 +838,7 @@ int to_sql_string_slice_rb(global_e2_node_id_t const* id, ul_dl_slice_conf_t con
                   "%d"  // dl->slice[i]->params.u.edf.max_replenish
                   ");"
                   , tstamp, id->type, id->plmn.mcc, id->plmn.mnc, id->plmn.mnc_digit_len, id->nb_id
+                  , id->cu_du_id ? c_cu_du_id : c_null
                   , slices->len_slices, c_null
                   , s->id, label, params_type, c_null, sched
                   , s->params.u.edf.deadline
@@ -794,6 +857,13 @@ int to_sql_string_gtp_NGUT(global_e2_node_id_t const* id,gtp_ngu_t_stats_t* gtp,
   const size_t max = 1024;
   assert(out_len >= max);
 
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   int const rc = snprintf(out, max,
         "INSERT INTO GTP_NGUT VALUES("
         "%ld," //tstamp         
@@ -802,6 +872,7 @@ int to_sql_string_gtp_NGUT(global_e2_node_id_t const* id,gtp_ngu_t_stats_t* gtp,
         "%d," //mnc
         "%d," //mnc_digit_len   
         "%d," //nb_id 
+        "'%s'," //cu_du_id
         "%u," //teidgnb    
         "%u," //rnti
         "%u," // qfi   
@@ -813,6 +884,7 @@ int to_sql_string_gtp_NGUT(global_e2_node_id_t const* id,gtp_ngu_t_stats_t* gtp,
         , id->plmn.mnc
         , id->plmn.mnc_digit_len
         , id->nb_id 
+        , id->cu_du_id ? c_cu_du_id : c_null
         , gtp->teidgnb
         , gtp->rnti   
         , gtp->qfi    
@@ -835,6 +907,13 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
   const size_t max = 512;
   assert(out_len >= max);
 
+  char* c_null = NULL;
+  char c_cu_du_id[26];
+  if (id->cu_du_id) {
+    int rc = snprintf(c_cu_du_id, 26, "%lu", *id->cu_du_id);
+    assert(rc < (int) max && "Not enough space in the char array to write all the data");
+  }
+
   if (kpm_measRecord == NULL){
     int const rc = snprintf(out, max,
         "INSERT INTO KPM_MeasRecord VALUES("
@@ -844,6 +923,7 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
         "%d," //mnc
         "%d," //mnc_digit_len   
         "%d," //nb_id 
+        "'%s'," //cu_du_id
         "%ld,"  //kpm_measData->incompleteFlag
         "NULL"  //kpm_measRecord->int_val
         ");" 
@@ -852,7 +932,8 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
         , id->plmn.mcc
         , id->plmn.mnc
         , id->plmn.mnc_digit_len
-        , id->nb_id 
+        , id->nb_id
+        , id->cu_du_id ? c_cu_du_id : c_null
         , kpm_measData->incompleteFlag
         // , granulPeriod
         );
@@ -867,7 +948,8 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           "%d," //mcc
           "%d," //mnc
           "%d," //mnc_digit_len   
-          "%d," //nb_id 
+          "%d," //nb_id
+          "'%s'," //cu_du_id
           "%ld,"  //kpm_measData->incompleteFlag
           "%ld"  //kpm_measRecord->int_val
           ");" 
@@ -876,7 +958,8 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , id->plmn.mcc
           , id->plmn.mnc
           , id->plmn.mnc_digit_len
-          , id->nb_id 
+          , id->nb_id
+          , id->cu_du_id ? c_cu_du_id : c_null
           , kpm_measData->incompleteFlag
           , kpm_measRecord->int_val
           );
@@ -891,6 +974,7 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           "%d," //mnc
           "%d," //mnc_digit_len   
           "%d," //nb_id 
+          "'%s'," //cu_du_id
           "%ld,"  //kpm_measData->incompleteFlag
           "%f"  //kpm_measRecord->real_val
           ");" 
@@ -899,7 +983,8 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , id->plmn.mcc
           , id->plmn.mnc
           , id->plmn.mnc_digit_len
-          , id->nb_id 
+          , id->nb_id
+          , id->cu_du_id ? c_cu_du_id : c_null
           , kpm_measData->incompleteFlag
           , kpm_measRecord->real_val
           );
@@ -914,6 +999,7 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           "%d," //mnc
           "%d," //mnc_digit_len   
           "%d," //nb_id 
+          "'%s'," //cu_du_id
           "%ld,"  //kpm_measData->incompleteFlag
           "-1"  //kpm_measRecord->noVal
           ");" 
@@ -922,7 +1008,8 @@ void to_sql_string_kpm_measRecord(global_e2_node_id_t const* id,
           , id->plmn.mcc
           , id->plmn.mnc
           , id->plmn.mnc_digit_len
-          , id->nb_id 
+          , id->nb_id
+          , id->cu_du_id ? c_cu_du_id : c_null
           , kpm_measData->incompleteFlag
           );
       assert(rc < (int)max && "Not enough space in the char array to write all the data");

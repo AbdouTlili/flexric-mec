@@ -147,7 +147,7 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
   char* addr = get_near_ric_ip(args);
   defer({ free(addr); } );
 
-  printf("[xApp]: RIC IP Address = %s\n", addr);
+  printf("[xApp]: nearRT-RIC IP Address = %s, PORT = %d\n", addr, port);
 
   e2ap_init_ep_xapp(&xapp->ep, addr, port);
 
@@ -173,17 +173,31 @@ e42_xapp_t* init_e42_xapp(fr_args_t const* args)
 
   init_msg_dispatcher(&xapp->msg_disp);
 
-  const char* dir = XAPP_DB_DIR; // + "xapp_db.sqlite3"; //  XAPP_DB_DIR; // + "/xapp_db";
-  assert(strlen(dir) < 128 && "String too large" );
-
-  int64_t const now = time_now_us(); 
+  char* dir = get_conf_db_dir(args);
+  assert(strlen(dir) < 128 && "String too large");
+  char* db_name = get_conf_db_name(args);
+  assert(strlen(db_name) < 128 && "String too large");
+  const char* default_dir = XAPP_DB_DIR;
+  assert(strlen(default_dir) < 128 && "String too large");
   char filename[256] = {0};
-  int n = snprintf(filename, 255, "%s_%ld", dir, now);
+  int n = 0;
+  int64_t const now = time_now_us();
+  if (strlen(dir)) {
+    if (strlen(db_name))
+      n = snprintf(filename, 255, "%s%s", dir, db_name);
+    else
+      n = snprintf(filename, 255, "%sxapp_db_%ld", dir, now);
+  } else {
+    n = snprintf(filename, 255, "%sxapp_db_%ld", default_dir, now);
+  }
   assert(n < 256 && "Overflow");
 
   printf("Filename = %s \n ", filename );
 
   init_db_xapp(&xapp->db, filename);
+
+  free(dir);
+  free(db_name);
 
   xapp->connected = false;
   xapp->stop_token = false;
@@ -240,8 +254,14 @@ void e2_event_loop_xapp(e42_xapp_t* xapp)
       assert(*e.p_ev != E42_RIC_CONTROL_REQUEST_PENDING_EVENT && "Timeout waiting for Control ACK. Connection lost with the RIC?");
 
       // Resend the subscription request message
+      e42_setup_request_t sr = generate_e42_setup_request(xapp);
+      defer({ e2ap_free_e42_setup_request(&sr);  } );
+
       printf("[E2AP]: Resending Setup Request after timeout\n");
-      send_setup_request(xapp);
+      byte_array_t ba = e2ap_enc_e42_setup_request_xapp(&xapp->ap, &sr);
+      defer({free_byte_array(ba); } );
+
+      e2ap_send_bytes_xapp(&xapp->ep, ba);
 
       consume_fd(fd);
     } else {
@@ -310,6 +330,8 @@ void send_subscription_request(e42_xapp_t* xapp, global_e2_node_id_t* id, ric_ge
     cmd = "2_ms";
   } else if(i == ms_5 ){
     cmd = "5_ms";
+  } else if(i == ms_10){
+    cmd = "10_ms";
   } else {
     assert(0!=0 && "Unsupported interval type. Check the SM on_subscription for details");
   }
@@ -475,7 +497,7 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
 
   // Answer received
   printf("[xApp]: Successfully received CONTROL-ACK \n");
- 
+
   // Remove the active procedure, control request  
   rm_act_proc(&xapp->act_proc, ric_id.ric_req_id ); 
  

@@ -350,10 +350,10 @@ e2ap_msg_t e2ap_handle_e42_setup_response_xapp(e42_xapp_t* xapp, const e2ap_msg_
   printf("[xApp]: xApp ID = %u \n", sr->xapp_id);
 
   for(size_t i = 0; i < sr->len_e2_nodes_conn; ++i){
-    global_e2_node_id_t const* id = &sr->nodes[i].id;
+    global_e2_node_id_t const id = cp_global_e2_node_id(&sr->nodes[i].id);
     const size_t len = sr->nodes[i].len_rf;
     ran_function_t* rf = sr->nodes[i].ack_rf; 
-    add_reg_e2_node(&xapp->e2_nodes, id, len, rf);
+    add_reg_e2_node(&xapp->e2_nodes, &id, len, rf);
   }
 
   printf("Registered E2 Nodes = %ld \n",   sz_reg_e2_node(&xapp->e2_nodes) );

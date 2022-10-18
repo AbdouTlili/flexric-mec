@@ -194,11 +194,13 @@ int main(int argc, char *argv[])
   const int mnc = 92; 
   const int mnc_digit_len = 2;
   const int nb_id = 42;
+  const int cu_du_id = 0;
+  ngran_node_t ran_type = ngran_gNB;
   sm_io_ag_t io = {.read = read_RAN, .write = write_RAN};
 
   fr_args_t args = init_fr_args(argc, argv);  // Parse arguments
   
-  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, io, &args);
+  init_agent_api( mcc, mnc, mnc_digit_len, nb_id, cu_du_id, ran_type, io, &args);
   sleep(1);
 
   // Init the RIC
@@ -226,9 +228,10 @@ int main(int argc, char *argv[])
   assert(h.success == true);
   sleep(2);
 
+  inter_xapp_e i_1 = ms_1;
   // returns a handle
-  h = report_sm_xapp_api(&nodes.n[0].id, n->ack_rf[0].id, i, sm_cb_mac);
-  assert(h.success == true);
+  sm_ans_xapp_t h_1 = report_sm_xapp_api(&nodes.n[0].id, n->ack_rf[0].id, i_1, sm_cb_mac);
+  assert(h_1.success == true);
   sleep(2);
 
   inter_xapp_e i_2 = ms_1;
@@ -260,6 +263,9 @@ int main(int argc, char *argv[])
 
   // Remove the handle previously returned
   rm_report_sm_xapp_api(h.u.handle);
+
+  // Remove the handle previously returned
+  rm_report_sm_xapp_api(h_1.u.handle);
 
   // Remove the handle previously returned
   rm_report_sm_xapp_api(h_2.u.handle);

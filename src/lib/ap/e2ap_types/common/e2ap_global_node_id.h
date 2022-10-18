@@ -38,9 +38,12 @@ typedef struct global_e2_node_id {
   ngran_node_t type;
   plmn_t plmn;
   uint32_t nb_id;
+  uint64_t *cu_du_id;
 } global_e2_node_id_t;
 
 global_e2_node_id_t cp_global_e2_node_id(global_e2_node_id_t const* src);
+
+void free_global_e2_node_id(global_e2_node_id_t* src);
 
 bool eq_global_e2_node_id(const global_e2_node_id_t* m0, const global_e2_node_id_t* m1); 
 

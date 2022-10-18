@@ -245,42 +245,51 @@ int main(int argc, char *argv[])
 
   // SLICE indication
   inter_xapp_e inter_t = ms_5;
-  sm_ans_xapp_t slice_handle;
+  sm_ans_xapp_t* slice_handle = NULL;
+
+  if(nodes.len > 0){
+    slice_handle = calloc(nodes.len, sizeof(sm_ans_xapp_t) );
+    assert(slice_handle != NULL);
+  }
 
   for(size_t i = 0; i < nodes.len; ++i) {
     e2_node_connected_t *n = &nodes.n[i];
     for (size_t j = 0; j < n->len_rf; ++j)
       printf("Registered ran func id = %d \n ", n->ack_rf[j].id);
 
-    slice_handle = report_sm_xapp_api(&nodes.n[i].id, n->ack_rf[3].id, inter_t, sm_cb_slice);
-    assert(slice_handle.success == true);
+    slice_handle[i] = report_sm_xapp_api(&nodes.n[i].id, n->ack_rf[3].id, inter_t, sm_cb_slice);
+    assert(slice_handle[i].success == true);
     sleep(2);
 
     // Control ADD slice
     sm_ag_if_wr_t ctrl_msg_add = fill_slice_sm_ctrl_req(SM_SLICE_ID, SLICE_CTRL_SM_V0_ADD);
     control_sm_xapp_api(&nodes.n[i].id, SM_SLICE_ID, &ctrl_msg_add);
-    free(ctrl_msg_add.slice_req_ctrl.msg.u.add_mod_slice.dl.slices);
-    free(ctrl_msg_add.slice_req_ctrl.msg.u.add_mod_slice.dl.sched_name);
+    free_slice_ctrl_msg(&ctrl_msg_add.slice_req_ctrl.msg);
 
     sleep(10);
 
     // Control DEL slice
     sm_ag_if_wr_t ctrl_msg_del = fill_slice_sm_ctrl_req(SM_SLICE_ID, SLICE_CTRL_SM_V0_DEL);
     control_sm_xapp_api(&nodes.n[i].id, SM_SLICE_ID, &ctrl_msg_del);
-    free(ctrl_msg_del.slice_req_ctrl.msg.u.ue_slice.ues);
+    free_slice_ctrl_msg(&ctrl_msg_del.slice_req_ctrl.msg);
 
     sleep(20);
 
     // Control ASSOC slice
     sm_ag_if_wr_t ctrl_msg_assoc = fill_slice_sm_ctrl_req(SM_SLICE_ID, SLICE_CTRL_SM_V0_UE_SLICE_ASSOC);
     control_sm_xapp_api(&nodes.n[i].id, SM_SLICE_ID, &ctrl_msg_assoc);
-    free(ctrl_msg_assoc.slice_req_ctrl.msg.u.ue_slice.ues);
+    free_slice_ctrl_msg(&ctrl_msg_assoc.slice_req_ctrl.msg);
 
     sleep(20);
   }
 
   // Remove the handle previously returned
-  rm_report_sm_xapp_api(slice_handle.u.handle);
+  for(int i = 0; i < nodes.len; ++i)
+    rm_report_sm_xapp_api(slice_handle[i].u.handle);
+
+  if(nodes.len > 0){
+    free(slice_handle);
+  }
 
   sleep(1);
 

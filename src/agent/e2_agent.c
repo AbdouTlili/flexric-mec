@@ -144,16 +144,38 @@ void init_pending_events(e2_agent_t* ag)
 }
 
 static inline
+void free_ind_event(void* key, void* value)
+{
+  assert(key != NULL);
+  assert(value != NULL);
+
+  (void)key;
+
+  ind_event_t* ev = (ind_event_t* )value;
+  free(ev);
+}
+
+static inline
+void free_key(void* key, void* value)
+{
+  assert(key != NULL);
+  assert(value != NULL);
+
+  (void)key;
+
+  int* fd = (int* )value;
+  free(fd);
+}
+
+
+static inline
 void init_indication_event(e2_agent_t* ag)
 {
   assert(ag != NULL);
   size_t key_sz_fd = sizeof(int);
   size_t key_sz_ind = sizeof(ind_event_t);
 
-  free_func_t free_key = NULL;
-  free_func_t free_ind_event = NULL;
-
-  bi_map_init(&ag->ind_event, key_sz_fd, key_sz_ind, cmp_fd, cmp_ind_event, free_key, free_ind_event);
+  bi_map_init(&ag->ind_event, key_sz_fd, key_sz_ind, cmp_fd, cmp_ind_event, free_ind_event, free_key);
 }
 
 static inline
