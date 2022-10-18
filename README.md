@@ -173,7 +173,7 @@ We will use the patch provided in flexric repository
 ```bash
 $ git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git oai
 $ cd oai/
-$ git checkout develop
+$ git checkout 2022.41
 $ git am path/to/flexric/multiRAT/oai/oai.patch --whitespace=nowarn
 $ source oaienv
 $ cd cmake_targets
