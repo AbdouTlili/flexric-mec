@@ -34,8 +34,8 @@ const char* default_libs_dir = "/usr/local/lib/flexric/";
 #include <sys/stat.h>
 #include "alg_ds/alg/defer.h"
 
-const char* conf_file = "/usr/local/flexric/flexric.conf";
-const char* libs_dir = "/usr/local/flexric/";
+const char* conf_file = "/usr/local/etc/flexric/flexric.conf";
+const char* libs_dir = "/usr/local/lib/flexric/";
 
 static
 bool valid_ip(const char* ip)
@@ -300,7 +300,7 @@ void print_usage(void)
   printf("  -p         : path to the shared libs \n");
   printf(
       "\n");
-  printf("Ex. -p /usr/local/flexric/ -c /usr/local/flexric/flexric.conf \n");
+  printf("Ex. -p /usr/local/lib/flexric/ -c /usr/local/etc/flexric/flexric.conf \n");
 } 
 
 static
