@@ -74,9 +74,9 @@ if(XAPP_TARGET_LANGUAGE STREQUAL "PYTHON_LANG")
   ADD_COMPILE_DEFINITIONS(XAPP_LANG_PYTHON)
   SWIG_LINK_LIBRARIES(xapp_sdk ${PYTHON_LIBRARIES})
 
-   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/_xapp_sdk.so" "${CMAKE_SOURCE_DIR}/examples/xApp/python3/_xapp_sdk.so" )
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/_xapp_sdk.so" "${CMAKE_BINARY_DIR}/examples/xApp/python3/_xapp_sdk.so" )
 
-   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/xapp_sdk.py" "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_sdk.py" )
+   add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/xapp_sdk.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_sdk.py" )
 
    add_custom_command(TARGET xapp_sdk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
      "${CMAKE_SOURCE_DIR}/examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" "${CMAKE_BINARY_DIR}/examples/xApp/python3/xapp_mac_rlc_pdcp_moni.py" )
