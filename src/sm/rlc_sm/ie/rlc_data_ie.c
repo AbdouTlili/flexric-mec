@@ -99,7 +99,7 @@ void free_rlc_ind_hdr(rlc_ind_hdr_t* src)
   (void)src;
 }
 
-rlc_ind_hdr_t cp_rlc_ind_hdr(rlc_ind_hdr_t* src)
+rlc_ind_hdr_t cp_rlc_ind_hdr(rlc_ind_hdr_t const* src)
 {
   assert(src != NULL);
   rlc_ind_hdr_t dst = {0}; 
@@ -136,7 +136,7 @@ void free_rlc_ind_msg(rlc_ind_msg_t* src)
   }
 }
 
-rlc_ind_msg_t cp_rlc_ind_msg(rlc_ind_msg_t* src)
+rlc_ind_msg_t cp_rlc_ind_msg(rlc_ind_msg_t const* src)
 {
   assert(src != NULL);
 
@@ -360,6 +360,37 @@ bool eq_rlc_func_def(rlc_func_def_t* m0, rlc_func_def_t* m1)
 
   assert(0!=0 && "Not implemented" ); 
   return true;
+}
+
+
+///////////////
+// RIC Indication
+///////////////
+
+void free_rlc_ind_data(rlc_ind_data_t* ind)
+{
+  assert(ind != NULL);
+  
+  free_rlc_ind_hdr(&ind->hdr);
+  free_rlc_ind_msg(&ind->msg);
+  free_rlc_call_proc_id(ind->proc_id); 
+}
+
+rlc_ind_data_t cp_rlc_ind_data(rlc_ind_data_t const* src)
+{
+  assert(src != NULL);
+  rlc_ind_data_t dst = {0};
+
+  dst.hdr = cp_rlc_ind_hdr(&src->hdr);
+  dst.msg = cp_rlc_ind_msg(&src->msg);
+
+  if(src->proc_id != NULL){
+    dst.proc_id = malloc(sizeof(rlc_call_proc_id_t));
+    assert(dst.proc_id != NULL && "Memory exhausted");
+    *dst.proc_id = cp_rlc_call_proc_id(src->proc_id);
+  }
+
+  return dst;
 }
 
 

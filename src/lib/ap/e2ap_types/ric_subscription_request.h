@@ -37,6 +37,8 @@ typedef struct ric_subscription_request {
 
 bool eq_ric_subscritption_request(const ric_subscription_request_t* m0, const ric_subscription_request_t* m1);
 
+// C++ move semantics
+ric_subscription_request_t mv_ric_subscription_request( ric_subscription_request_t* sr);
 
 #endif
 

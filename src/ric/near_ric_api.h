@@ -19,29 +19,44 @@
  *      contact@openairinterface.org
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef NEAR_RIC_SERVER_API
 #define NEAR_RIC_SERVER_API
 
+#include "../lib/ap/e2ap_types/common/e2ap_global_node_id.h"
+#include "../ric/e2_node.h"
+#include "../util/conf_file.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
-void init_near_ric_api(void /* const char* addr , int port*/ );
+typedef struct{
+  e2_node_t* n;  
+  size_t len;
+} e2_nodes_api_t;
+
+void free_e2_nodes_api( e2_nodes_api_t* src);
+
+void init_near_ric_api(fr_args_t const*);
 
 void stop_near_ric_api(void);
 
-size_t e2_nodes(void);
+e2_nodes_api_t e2_nodes_near_ric_api(void);
 
 // NEAR-RT RIC services
 // 4 basic Service reports defined 
 // in Near-Real-time RAN Intelligent Controller
 // E2 Service Model (E2SM)
 
-void report_service_near_ric_api(/*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd );
+void report_service_near_ric_api(global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd );
 
-void rm_report_service_near_ric_api(/*global_e2_node_id_t const* id,*/ uint16_t ran_func_id, const char* cmd );
+void rm_report_service_near_ric_api(global_e2_node_id_t const* id, uint16_t ran_func_id, const char* cmd );
 
-void control_service_near_ric_api(uint16_t sm_id, const char* cmd);
+void control_service_near_ric_api(global_e2_node_id_t const* id, uint16_t sm_id, const char* cmd);
 
 void insert_service_near_ric_api(uint16_t sm_id, const char* cmd);
 
@@ -74,4 +89,10 @@ void unsusbscribe_near_ric( /*global_e2_node_id_t const* id,*/ uint16_t sm_id, s
 // and NodeJS, at least)
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
+
 

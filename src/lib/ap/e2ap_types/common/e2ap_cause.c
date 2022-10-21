@@ -21,8 +21,9 @@
 
 
 #include "e2ap_cause.h"
-#include <stddef.h>
 
+#include <assert.h>
+#include <stddef.h>
 #include <string.h>
 
 bool eq_cause(const cause_t* m0, const cause_t* m1)
@@ -36,5 +37,12 @@ bool eq_cause(const cause_t* m0, const cause_t* m1)
   if( rc != 0) return false;
 
   return true;
+}
+
+cause_t cp_cause(cause_t const* src)
+{
+   assert(src != NULL);
+   cause_t dst = *src;
+   return dst;
 }
 

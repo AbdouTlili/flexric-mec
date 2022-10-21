@@ -67,7 +67,8 @@ void init_udp_socket()
 void notify_influx_listener(sm_ag_if_rd_t const* data)
 {
   assert(data != NULL);
-  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0);
+
+  assert(data->type == MAC_STATS_V0 || data->type == RLC_STATS_V0 || data->type == PDCP_STATS_V0 || data->type == SLICE_STATS_V0 || data->type == KPM_STATS_V0 || data->type == GTP_STATS_V0);
   pthread_once(&init_socket, init_udp_socket);
 
 //  printf("Influx db data called!!!\n");
@@ -106,11 +107,131 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
   } else if(data->type == SLICE_STATS_V0){
     slice_ind_msg_t const* slice = &data->slice_stats.msg;
 
-    char stats[512] = {0};
+    char stats[2048] = {0};
 
-    to_string_slice(slice, slice->tstamp, stats, 512);
+    to_string_slice(slice, slice->tstamp, stats, 2048);
     int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
     assert(rc != -1);
+  } else if (data->type == GTP_STATS_V0){
+    gtp_ind_msg_t const* gtp = &data->gtp_stats.msg;
+
+    for(uint32_t i = 0; i < gtp->len; ++i){
+      char stats[512] = {0};
+      gtp_ngu_t_stats_t* ngut = &gtp->ngut[i];
+
+      to_string_gtp_ngu(ngut, gtp->tstamp, stats, 512);
+      int const rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+      assert(rc != -1);
+    }
+  } else if(data->type == KPM_STATS_V0){
+    kpm_ind_data_t const* kpm = &data->kpm_stats;
+    char stats[1024] = {0};
+    int max = 1024;
+
+    for(size_t i = 0; i < kpm->msg.MeasData_len; i++){
+      adapter_MeasDataItem_t* curMeasData = &kpm->msg.MeasData[i];
+      
+      if (i == 0 && kpm->msg.granulPeriod){
+        int rc = snprintf(stats, max,  "kpm_stats: "
+                        "tstamp=%u"
+                        ",granulPeriod=%lu"
+                        ",kpm_MeasData"
+                        ",kpm->MeasData_len=%zu"
+                        , kpm->hdr.collectStartTime
+                        , *(kpm->msg.granulPeriod)
+                        , kpm->msg.MeasData_len
+                        );
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }else if(i == 0 && kpm->msg.granulPeriod == NULL){
+        int rc = snprintf(stats, max,  "kpm_stats: "
+                        "tstamp=%u"
+                        ",granulPeriod="
+                        ",kpm_MeasData"
+                        ",kpm->MeasData_len=%zu"
+                        , kpm->hdr.collectStartTime
+                        , kpm->msg.MeasData_len
+                        );
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }
+
+      memset(stats, 0, sizeof(stats));
+      int rc = snprintf(stats, max,
+                        ",kpm_measData[%zu]"
+                        ",MeasData->incompleteFlag=%ld"
+                        ",MeasData->measRecord_len=%zu"
+                        , i
+                        , curMeasData->incompleteFlag
+                        , curMeasData->measRecord_len
+                        );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+      assert(rc != -1);
+
+      for(size_t j = 0; j < curMeasData->measRecord_len; j++){
+        adapter_MeasRecord_t* curMeasRecord = &(curMeasData->measRecord[j]);
+        memset(stats, 0, sizeof(stats));
+        to_string_kpm_measRecord(curMeasRecord, j, stats, max);
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }
+    }
+
+    for(size_t i = 0; i < kpm->msg.MeasInfo_len; i++){
+      MeasInfo_t* curMeasInfo = &kpm->msg.MeasInfo[i];
+      if (i == 0){
+        memset(stats, 0, sizeof(stats));
+        int rc = snprintf(stats, max,
+                        ",kpm_MeasInfo"
+                        ",kpm->MeasInfo_len=%zu",
+                        i
+                        );
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }
+
+      if (curMeasInfo->measType == MeasurementType_ID){
+        memset(stats, 0, sizeof(stats));
+        int rc = snprintf(stats, max,
+                          ",MeasInfo[%zu]"
+                          ",measType=%d"
+                          ",measID=%ld"
+                          , i
+                          , curMeasInfo->measType
+                          , curMeasInfo->measID
+                          );
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      } else if (curMeasInfo->measType == MeasurementType_NAME){
+        memset(stats, 0, sizeof(stats));
+        int rc = snprintf(stats, max,
+                          ",MeasInfo[%zu]"
+                          ",measType=%d"
+                          ",measName->len=%zu"
+                          ",measName->buf=%s"
+                          , i
+                          , curMeasInfo->measType
+                          , curMeasInfo->measName.len
+                          , curMeasInfo->measName.buf
+                          );
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+        rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }
+
+      for(size_t j = 0; j < curMeasInfo->labelInfo_len; ++j){
+        adapter_LabelInfoItem_t* curLabelInfo = &curMeasInfo->labelInfo[j];
+        memset(stats, 0, sizeof(stats));
+        to_string_kpm_labelInfo(curLabelInfo, j, stats, max);
+        int rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        assert(rc != -1);
+      }
+    }
   } else {
     assert(0 != 0 || "invalid data type ");
   }

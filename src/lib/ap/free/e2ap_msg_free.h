@@ -140,5 +140,25 @@ void e2ap_free_node_connection_update_ack(e2_node_connection_update_ack_t* ca);
 void e2ap_free_node_connection_update_failure_msg(e2ap_msg_t* msg);
 void e2ap_free_node_connection_update_failure(e2_node_connection_update_failure_t* cf);
 
+// xApp -> iApp
+void e2ap_free_e42_setup_request_msg(e2ap_msg_t* msg);
+void e2ap_free_e42_setup_request(e42_setup_request_t* sr);
+
+// xApp -> iApp
+void e2ap_free_e42_setup_response_msg(e2ap_msg_t* msg);
+void e2ap_free_e42_setup_response(e42_setup_response_t* sr);
+
+// xApp -> iApp
+void e2ap_free_e42_ric_subscription_request_msg(e2ap_msg_t* msg);
+void e2ap_free_e42_ric_subscription_request(e42_ric_subscription_request_t* sr);
+
+// xApp -> iApp
+void e2ap_free_e42_ric_subscription_delete_request_msg(e2ap_msg_t* msg);
+void e2ap_free_e42_ric_subscription_delete_request(e42_ric_subscription_delete_request_t* e42_sr);
+
+// xApp -> iApp
+void e2ap_free_e42_ric_control_request_msg(e2ap_msg_t* msg);
+void e2ap_free_e42_ric_control_request(e42_ric_control_request_t* ctrl);
+
 #endif
 

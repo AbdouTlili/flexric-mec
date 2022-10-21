@@ -23,6 +23,9 @@ void seq_arr_push_back(seq_arr_t* arr, void* data, size_t len);
 
 void seq_arr_erase(seq_arr_t*, void*, void*);
 
+// void seq_arr_erase_free(seq_arr_t *, void *, void *, void (*free_func)(void
+// *));
+
 void seq_arr_swap(seq_arr_t*, void*, void*);
 
 size_t seq_arr_size(seq_arr_t*);

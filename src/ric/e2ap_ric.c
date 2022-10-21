@@ -19,22 +19,13 @@
  *      contact@openairinterface.org
  */
 
-
 #include "e2ap_ric.h"
-#include <assert.h>                           // for assert
-#include <stdio.h>                            // for NULL
 #include "lib/ap/dec/e2ap_msg_dec_generic.h"  // for e2ap_msg_dec_gen
 #include "lib/ap/enc/e2ap_msg_enc_generic.h"  // for e2ap_enc_control_reques...
 #include "lib/ap/free/e2ap_msg_free.h"        // for e2ap_free_control_request
 
-//#include "msg_handler_ric.h"
-//#include "lib/ap/free/e2ap_msg_free.h"
-//#include "lib/ep/e2ap_ep.h"
-//#include "lib/ap/dec/e2ap_msg_dec_generic.h"
-//#include "lib/ap/enc/e2ap_msg_enc_generic.h"
-
-//#include <assert.h>
-//#include <stdio.h>
+#include <assert.h>                           // for assert
+#include <stdio.h>                            // for NULL
 
 void e2ap_msg_free_ric(e2ap_ric_t* ap, e2ap_msg_t* msg)
 {
@@ -80,14 +71,14 @@ byte_array_t e2ap_msg_enc_ric(e2ap_ric_t* ap, e2ap_msg_t* msg)
   return ba;
 }
 
-byte_array_t e2ap_enc_subscription_request_ric(e2ap_ric_t* ap, ric_subscription_request_t* sr)
+byte_array_t e2ap_enc_subscription_request_ric(e2ap_ric_t* ap, ric_subscription_request_t const* sr)
 {
   assert(ap != NULL);
   assert(sr != NULL);
   return e2ap_enc_subscription_request_gen(&ap->base.type, sr);
 }
 
-byte_array_t e2ap_enc_subscription_delete_request_ric(e2ap_ric_t* ap, ric_subscription_delete_request_t* sd)
+byte_array_t e2ap_enc_subscription_delete_request_ric(e2ap_ric_t* ap, ric_subscription_delete_request_t const* sd)
 {
   assert(ap != NULL);
   assert(sd != NULL);
@@ -101,7 +92,7 @@ byte_array_t e2ap_enc_setup_response_ric(e2ap_ric_t* ap, e2_setup_response_t* sr
   return e2ap_enc_setup_response_gen(&ap->base.type, sr);
 }
 
-byte_array_t e2ap_enc_control_request_ric(e2ap_ric_t* ap, ric_control_request_t* ctrl_req)
+byte_array_t e2ap_enc_control_request_ric(e2ap_ric_t* ap, ric_control_request_t const* ctrl_req)
 {
   assert(ap != NULL);
   assert(ctrl_req != NULL);

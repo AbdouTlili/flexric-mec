@@ -41,5 +41,10 @@ typedef struct {
 
 bool eq_ric_subscritption_response(const ric_subscription_response_t* m0, const ric_subscription_response_t* m1);
 
+ric_subscription_response_t cp_ric_subscription_respponse(ric_subscription_response_t const* src);
+
+// C++ move semantics
+ric_subscription_response_t mv_ric_subscription_respponse(ric_subscription_response_t const* src);
+
 #endif
 

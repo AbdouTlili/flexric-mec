@@ -41,18 +41,16 @@ typedef byte_array_t (*e2ap_gen_enc_fb_fp)(const e2ap_msg_t*);
 
 typedef void (*e2ap_free_fp)(e2ap_msg_t*);
 
-typedef struct e2ap_asn
-{
-  e2ap_gen_enc_asn_fp enc_msg[26];
-  e2ap_gen_dec_asn_fp dec_msg[26];
-  e2ap_free_fp free_msg[26];
+typedef struct e2ap_asn{
+  e2ap_gen_enc_asn_fp enc_msg[31];
+  e2ap_gen_dec_asn_fp dec_msg[31];
+  e2ap_free_fp free_msg[31];
 } e2ap_asn_t;
 
-typedef struct e2ap_fb
-{
-  e2ap_gen_enc_fb_fp enc_msg[26];
-  e2ap_gen_dec_fb_fp dec_msg[26];
-  e2ap_free_fp free_msg[26];
+typedef struct e2ap_fb{
+  e2ap_gen_enc_fb_fp enc_msg[31];
+  e2ap_gen_dec_fb_fp dec_msg[31];
+  e2ap_free_fp free_msg[31];
 } e2ap_fb_t;
 
 
@@ -72,7 +70,6 @@ typedef struct{
 #define init_ap(T) _Generic ((T),   e2ap_asn_t*:  init_ap_asn, \
                                     e2ap_fb_t*:   init_ap_fb, \
                                     default:      init_ap_asn) (T)
-
 
 #endif
 

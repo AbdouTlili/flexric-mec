@@ -22,6 +22,7 @@
 
 #include "ric_action_not_admitted.h"
 
+#include <assert.h>
 #include <stddef.h>
 
 bool eq_ric_action_not_admitted(const ric_action_not_admitted_t* m0, const ric_action_not_admitted_t* m1)
@@ -40,3 +41,14 @@ bool eq_ric_action_not_admitted(const ric_action_not_admitted_t* m0, const ric_a
 
   return true;
 }
+
+ric_action_not_admitted_t cp_ric_action_not_admitted(ric_action_not_admitted_t* src)
+{
+  assert(src != NULL);
+  ric_action_not_admitted_t dst = { .ric_act_id = src->ric_act_id,
+                                    .cause = cp_cause(&src->cause) };
+
+  return dst;
+}
+
+

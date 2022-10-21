@@ -11,7 +11,7 @@
 static
 const uint16_t SM_SLICE_ID = 145; 
 
-static
+__attribute__((unused))static
 const char* SM_SLICE_STR = "SLICE_STATS_V0"; 
 
 #endif

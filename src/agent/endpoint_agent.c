@@ -19,12 +19,9 @@
  *      contact@openairinterface.org
  */
 
-
-
 #include "endpoint_agent.h"
 #include <arpa/inet.h>       // for inet_pton
 #include <assert.h>          // for assert
-//#include <linux/sctp.h>      // for sctp_event_subscribe, SCTP_EVENTS, SCTP_...
 #include <netinet/sctp.h>
 #include <netinet/in.h>      // for sockaddr_in, IPPROTO_SCTP, htonl, htons
 #include <stdio.h>           // for NULL
@@ -40,23 +37,25 @@ void init_sctp_conn_client(e2ap_ep_ag_t* ep, const char* addr, int port)
   int sock_fd = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP);
   assert(sock_fd != -1);
 
-  struct sockaddr_in servaddr; 
-  bzero(&servaddr, sizeof (servaddr) ) ;
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  servaddr.sin_port = htons (port);
+  struct sockaddr_in servaddr = { .sin_family = AF_INET,
+                                  .sin_port = htons(port),
+                                  .sin_addr.s_addr = htonl(INADDR_ANY)}; 
+
   int rc = inet_pton(AF_INET, addr, &servaddr.sin_addr);
   assert(rc == 1);
 
-  struct sctp_event_subscribe evnts; 
-  bzero(&evnts, sizeof (evnts)) ;
-  evnts.sctp_data_io_event = 1 ;
+  struct sctp_event_subscribe evnts = { .sctp_data_io_event = 1,
+                                        .sctp_shutdown_event = 1}; 
+
   setsockopt(sock_fd, IPPROTO_SCTP, SCTP_EVENTS, &evnts, sizeof (evnts));
+
+  const int close_time = 0; // No automatic close https://www.rfc-editor.org/rfc/pdfrfc/rfc6458.txt.pdf p. 65
+  setsockopt(sock_fd, IPPROTO_SCTP, SCTP_AUTOCLOSE, &close_time, sizeof(close_time));
 
   const int no_delay = 1;
   setsockopt(sock_fd, IPPROTO_SCTP, SCTP_NODELAY, &no_delay, sizeof(no_delay));
 
-  ep->base.to = servaddr;
+  ep->to = servaddr;
   *(int*)(&ep->base.port) = port; 
   *(int*)(&ep->base.fd) = sock_fd;
   strncpy((char*)(&ep->base.addr), addr, 16);
@@ -71,29 +70,48 @@ void e2ap_init_ep_agent(e2ap_ep_ag_t* ep, const char* addr, int port)
   init_sctp_conn_client(ep, addr, port);
 }
 
-byte_array_t e2ap_recv_msg_agent(e2ap_ep_ag_t* ep)
+/*
+static
+bool eq_sockaddr(struct sockaddr_in* m0, struct sockaddr_in* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  if(m0->sin_addr.s_addr != m1->sin_addr.s_addr)
+    return false;
+
+  if(m0->sin_port != m1->sin_port)
+    return false;
+
+  if(m0->sin_family != m1->sin_family)
+    return false;
+
+  return true;
+}
+*/
+
+sctp_msg_t e2ap_recv_msg_agent(e2ap_ep_ag_t* ep)
 {
   assert(ep != NULL);
 
- // BYTE_ARRAY_STACK(ba, 2048);
-  byte_array_t ba = {.len = 2048, .buf= malloc(2048)};
-  assert(ba.buf != NULL && "Memory exhausted");
-  e2ap_recv_bytes(&ep->base, &ba);
-  return ba;
-//  e2ap_msg_t msg = e2ap_msg_dec(&enc->type, ba);
-  //printf("Message received in the agent\n");
-//  return msg;
+  sctp_msg_t rcv = e2ap_recv_sctp_msg(&ep->base);// , &ba);
+  return rcv;
 }
 
 void e2ap_send_bytes_agent(e2ap_ep_ag_t* ep, byte_array_t ba)
 {
   assert(ep != NULL);
   assert(ba.buf && ba.len > 0);
-  e2ap_send_bytes(&ep->base, ba);
+
+  sctp_msg_t msg = { .info.addr = ep->to,
+                     .info.sri = ep->sri,
+                     .ba = ba};
+
+  e2ap_send_sctp_msg(&ep->base, &msg);
 }
 
 void e2ap_free_ep_agent(e2ap_ep_ag_t* ep)
 {
   assert(ep != NULL);
-  assert(0!=0 && "Not implememented!");
+  assert(0!=0 && "Not implemented!");
 }

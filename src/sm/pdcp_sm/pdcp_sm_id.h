@@ -34,10 +34,13 @@
 static
 const uint16_t SM_PDCP_ID = 144; 
 
-static
+//#ifdef __cplusplus // expected C++17 or superior i.e., 201703L
+//[[maybe_unused]] static
+//const char* SM_PDCP_STR = "PDCP_STATS_V0"; 
+//#else
+__attribute__((unused)) static
 const char* SM_PDCP_STR = "PDCP_STATS_V0"; 
-
-
+//#endif
 
 #endif
 

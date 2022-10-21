@@ -58,7 +58,6 @@
                                           const e2ap_fb_t*:   e2ap_enc_subscription_failure_fb, \
                                           default:   e2ap_enc_subscription_failure_asn) (U)
 
-
 #define e2ap_enc_subscription_delete_request_gen(T,U) _Generic ((T), e2ap_asn_t*: e2ap_enc_subscription_delete_request_asn, \
                                           const e2ap_asn_t*:  e2ap_enc_subscription_delete_request_asn, \
                                           e2ap_fb_t*: e2ap_enc_subscription_delete_request_fb, \
@@ -83,7 +82,6 @@
                                           const e2ap_fb_t*: e2ap_enc_indication_fb, \
                                           default: e2ap_enc_indication_fb) (U)
 
-
 #define e2ap_enc_control_request_gen(T,U) _Generic ((T), e2ap_asn_t*: e2ap_enc_control_request_asn, \
                                           const e2ap_asn_t*: e2ap_enc_control_request_asn, \
                                           e2ap_fb_t*:  e2ap_enc_control_request_fb, \
@@ -102,6 +100,35 @@
                                           const e2ap_fb_t*: e2ap_enc_control_failure_fb, \
                                           default:  e2ap_enc_control_failure_asn) (U)
 
-#endif
+#define e2ap_enc_e42_setup_request_gen(T,U) _Generic ((T),    e2ap_asn_t*: e2ap_enc_e42_setup_request_asn, \
+                                          const e2ap_asn_t*:  e2ap_enc_e42_setup_request_asn, \
+                                          e2ap_fb_t*:         e2ap_enc_e42_setup_request_fb, \
+                                          const e2ap_fb_t*:   e2ap_enc_e42_setup_request_fb, \
+                                          default:            e2ap_enc_e42_setup_request_asn) (U)
 
+#define e2ap_enc_e42_subscription_request_gen(T,U) _Generic ((T), e2ap_asn_t*: e2ap_enc_e42_subscription_request_asn, \
+                                          const e2ap_asn_t*:    e2ap_enc_e42_subscription_request_asn, \
+                                          e2ap_fb_t*:           e2ap_enc_e42_subscription_request_fb, \
+                                          const e2ap_fb_t*:     e2ap_enc_e42_subscription_request_fb, \
+                                          default:              e2ap_enc_e42_subscription_request_asn) (U)
+
+
+#define e2ap_enc_e42_subscription_delete_request_gen(T,U) _Generic ((T), e2ap_asn_t*: e2ap_enc_e42_subscription_delete_request_asn, \
+                                          const e2ap_asn_t*:    e2ap_enc_e42_subscription_delete_request_asn, \
+                                          e2ap_fb_t*:           e2ap_enc_e42_subscription_delete_request_fb, \
+                                          const e2ap_fb_t*:     e2ap_enc_e42_subscription_delete_request_fb, \
+                                          default:              e2ap_enc_e42_subscription_delete_request_asn) (U)
+
+
+#define e2ap_enc_e42_control_request_gen(T,U) _Generic ((T), e2ap_asn_t*: e2ap_enc_e42_control_request_asn, \
+                                          const e2ap_asn_t*:  e2ap_enc_e42_control_request_asn, \
+                                          e2ap_fb_t*:         e2ap_enc_e42_control_request_fb, \
+                                          const e2ap_fb_t*:   e2ap_enc_e42_control_request_fb, \
+                                          default:            e2ap_enc_e42_control_request_asn) (U)
+
+
+
+
+
+#endif
 

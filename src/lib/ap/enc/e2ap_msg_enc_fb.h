@@ -99,4 +99,18 @@ byte_array_t e2ap_enc_setup_failure_msg(const e2ap_msg_t* msg);
 
 //byte_array_t e2ap_enc_node_connection_update_failure_fb(const e2_node_connection_update_failure_t*);
 
+byte_array_t e2ap_enc_e42_setup_request_fb(const e42_setup_request_t* sr);
+byte_array_t e2ap_enc_e42_setup_request_msg(const  e2ap_msg_t* msg);
+
+byte_array_t e2ap_enc_e42_subscription_request_fb(const e42_setup_request_t* sr);
+byte_array_t e2ap_enc_e42_subscription_request_msg(const  e2ap_msg_t* msg);
+
+byte_array_t e2ap_enc_e42_subscription_delete_request_fb(const e42_setup_request_t* sr);
+byte_array_t e2ap_enc_e42_subscription_delete_request_msg(const  e2ap_msg_t* msg);
+
+
+byte_array_t e2ap_enc_e42_control_request_fb(const e42_ric_control_request_t* cr);
+byte_array_t e2ap_enc_e42_control_request_msg(const  e2ap_msg_t* msg);
+
+
 #endif

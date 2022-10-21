@@ -22,6 +22,10 @@
 #ifndef SLICE_DATA_INFORMATION_ELEMENTS_H
 #define SLICE_DATA_INFORMATION_ELEMENTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * 9 Information Elements (IE) , RIC Event Trigger Definition, RIC Action Definition, RIC Indication Header, RIC Indication Message, RIC Call Process ID, RIC Control Header, RIC Control Message, RIC Control Outcome and RAN Function Definition defined by ORAN-WG3.E2SM-v01.00.00 at Section 5
  */
@@ -75,7 +79,7 @@ typedef struct{
 
 void free_slice_ind_hdr(slice_ind_hdr_t* src); 
 
-slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t* src);
+slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t const* src);
 
 bool eq_slice_ind_hdr(slice_ind_hdr_t* m0, slice_ind_hdr_t* m1);
 
@@ -285,11 +289,11 @@ typedef struct{
   char* sched;
 
   slice_params_t params;
-} slice_t ;
+} fr_slice_t ;
 
 typedef struct{
   uint32_t len_slices;
-  slice_t* slices;
+  fr_slice_t* slices;
 
   uint32_t len_sched_name;
   char* sched_name;
@@ -320,7 +324,11 @@ typedef struct {
 
 void free_slice_ind_msg(slice_ind_msg_t* src); 
 
-slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t* src);
+slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t const* src);
+
+slice_conf_t cp_slice_conf(slice_conf_t const* src);
+
+ue_slice_conf_t cp_ue_slice_conf(ue_slice_conf_t const* src);
 
 bool eq_slice_ind_msg(slice_ind_msg_t const* m0, slice_ind_msg_t const* m1);
 
@@ -412,7 +420,15 @@ bool eq_slice_ctrl_msg(slice_ctrl_msg_t const* m0, slice_ctrl_msg_t const* m1);
 // RIC Control Outcome 
 /////////////////////////////////////
 
+typedef enum{
+  SLICE_CTRL_OUT_OK,
+  SLICE_CTRL_OUT_ERROR,
+
+  SLICE_ANS_END
+} slice_ctrl_out_e;
+
 typedef struct {
+  slice_ctrl_out_e ans;
   uint32_t len_diag;
   char* diagnostic; // human-readable diagnostic for northbound
 } slice_ctrl_out_t;
@@ -441,12 +457,13 @@ slice_func_def_t cp_slice_func_def(slice_func_def_t* src);
 bool eq_slice_func_def(slice_func_def_t* m0, slice_func_def_t* m1);
 
 
-
+/*
 void slice_free_ind_msg(slice_ind_msg_t* msg);
 
 void slice_free_ctrl_msg(slice_ctrl_msg_t* msg);
 
 void slice_free_ctrl_out(slice_ctrl_out_t* out);
+*/
 
 /////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -477,6 +494,10 @@ typedef struct{
   slice_call_proc_id_t* proc_id;
 } slice_ind_data_t;
 
+void free_slice_ind_data(slice_ind_data_t* ind);
+
+slice_ind_data_t cp_slice_ind_data(slice_ind_data_t const* src);
+
 ///////////////
 // RIC Control
 ///////////////
@@ -505,6 +526,11 @@ typedef struct{
 typedef struct{
   slice_func_def_t func_def;
 } slice_ric_service_update_t;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

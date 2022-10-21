@@ -19,15 +19,11 @@
  *      contact@openairinterface.org
  */
 
-
-
 #ifndef E2AP_EP
 #define E2AP_EP
 
 #include <assert.h>
-
 #include <arpa/inet.h>
-#include <sys/socket.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/sctp.h>
@@ -38,15 +34,13 @@
 #include <unistd.h> 
 
 #include "util/byte_array.h"
+#include "sctp_msg.h"
 
-typedef struct
-{
+
+typedef struct{
   const char addr[16]; // only ipv4 supported
   const int port;
   const int fd;
-  struct sockaddr_in to; 
-  struct sctp_sndrcvinfo sri;
-  int msg_flags;
   pthread_mutex_t mtx;
 } e2ap_ep_t;
 
@@ -54,9 +48,9 @@ void e2ap_ep_init(e2ap_ep_t* ep);
 
 void e2ap_ep_free(e2ap_ep_t* ep);
 
-void e2ap_send_bytes(const e2ap_ep_t* ep, byte_array_t ba);
+void e2ap_send_sctp_msg(const e2ap_ep_t* ep, sctp_msg_t* msg);
 
-void e2ap_recv_bytes(e2ap_ep_t* ep, byte_array_t* ba);
+sctp_msg_t e2ap_recv_sctp_msg(e2ap_ep_t* ep);
 
 #endif
 

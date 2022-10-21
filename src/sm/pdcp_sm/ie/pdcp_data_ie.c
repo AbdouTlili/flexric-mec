@@ -100,7 +100,7 @@ void free_pdcp_ind_hdr(pdcp_ind_hdr_t* src)
   (void)src;
 }
 
-pdcp_ind_hdr_t cp_pdcp_ind_hdr(pdcp_ind_hdr_t* src)
+pdcp_ind_hdr_t cp_pdcp_ind_hdr(pdcp_ind_hdr_t const* src)
 {
   assert(src != NULL);
   pdcp_ind_hdr_t dst = {0}; 
@@ -156,7 +156,7 @@ bool check_pdcp_bearer(pdcp_radio_bearer_stats_t* rb)
 }
 
 static
-bool check_pdcp_invariants(pdcp_ind_msg_t* msg)
+bool check_pdcp_invariants(pdcp_ind_msg_t const* msg)
 {
   assert(msg != NULL);
 
@@ -179,7 +179,7 @@ void free_pdcp_ind_msg(pdcp_ind_msg_t* msg)
     free(msg->rb);
 }
 
-pdcp_ind_msg_t cp_pdcp_ind_msg(pdcp_ind_msg_t* src)
+pdcp_ind_msg_t cp_pdcp_ind_msg(pdcp_ind_msg_t const* src)
 {
   assert(src != NULL);
   assert(check_pdcp_invariants(src));
@@ -405,6 +405,34 @@ bool eq_pdcp_func_def(pdcp_func_def_t* m0, pdcp_func_def_t* m1)
   return true;
 }
 
+///////////////
+// RIC Indication
+///////////////
 
+void free_pdcp_ind_data(pdcp_ind_data_t* ind)
+{
+  assert(ind != NULL);
+  
+  free_pdcp_ind_hdr(&ind->hdr);
+  free_pdcp_ind_msg(&ind->msg);
+  free_pdcp_call_proc_id(ind->proc_id);
+}
 
+pdcp_ind_data_t cp_pdcp_ind_data(pdcp_ind_data_t const* src)
+{
+  assert(src != NULL);
+
+  pdcp_ind_data_t dst = {0}; 
+
+  dst.hdr = cp_pdcp_ind_hdr(&src->hdr);
+  dst.msg = cp_pdcp_ind_msg(&src->msg);
+
+  if(src->proc_id != NULL){
+    dst.proc_id = malloc(sizeof(*dst.proc_id) );
+    assert(dst.proc_id != NULL && "Memory exhausted");
+    *dst.proc_id = cp_pdcp_call_proc_id(src->proc_id);
+  }
+
+  return dst;
+}
 

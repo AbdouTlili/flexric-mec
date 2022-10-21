@@ -25,8 +25,8 @@
 
 #include <stddef.h>
 
-#include "lib/ap/e2ap_types/common/e2ap_global_node_id.h"
-#include "lib/ap/e2ap_types/e2_setup_response.h"
+#include "../lib/ap/e2ap_types/common/e2ap_global_node_id.h"
+#include "../lib/ap/e2ap_types/e2_setup_response.h"
 
 
 typedef struct{
@@ -42,6 +42,10 @@ typedef struct{
 void init_e2_node(e2_node_t* n, global_e2_node_id_t const* id, size_t len_acc, accepted_ran_function_t accepted[len_acc]);
 
 void free_e2_node(e2_node_t* n);
+
+void free_e2_node_void(void *n);
+
+e2_node_t cp_e2_node(e2_node_t const* n);
 
 #endif
 
