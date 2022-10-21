@@ -307,8 +307,6 @@ void init_nng_iapp()
 
   init_pub_server(url_pub);
 
-
-
   // at exit clean the resources taken
   atexit(stop_nng_listener);
 }
@@ -324,8 +322,8 @@ void notify_nng_listener(sm_ag_if_rd_t const* data)
   if(data->type == MAC_STATS_V0){
     mac_ind_msg_t const* ind =  &data->mac_stats.msg;
     for(uint32_t i = 0; i < ind->len_ue_stats; ++i){
-      char stats[512] = {0};
-      to_string_mac_ue_stats(&ind->ue_stats[i], ind->tstamp, stats, 512);
+      char stats[1024] = {0};
+      to_string_mac_ue_stats(&ind->ue_stats[i], ind->tstamp, stats, 1024);
       int rv = -1;
       if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
         fatal("nng_send", rv);
@@ -357,8 +355,8 @@ void notify_nng_listener(sm_ag_if_rd_t const* data)
   } else if(data->type == SLICE_STATS_V0){
     slice_ind_msg_t const* ind = &data->slice_stats.msg;
 
-    char stats[512] = {0};
-    to_string_slice(ind, ind->tstamp, stats, 512);
+    char stats[2048] = {0};
+    to_string_slice(ind, ind->tstamp, stats, 2048);
       int rv;
       if ((rv = nng_send(sock, stats, strlen(stats) + 1, 0)) != 0) {
         fatal("nng_send", rv);

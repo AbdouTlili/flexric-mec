@@ -24,6 +24,7 @@
 
 #include "util/alg_ds/alg/alg.h"
 #include "util/compare.h"
+#include "util/conf_file.h"
 
 #include <assert.h>
 
@@ -68,6 +69,14 @@ void check_dl_error(void)
 }
 
 static
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+static
 void load_all_pugin_ric(plugin_ric_t* p, const char* dir_path)
 {
   /* Scanning the in directory */
@@ -99,7 +108,7 @@ void load_all_pugin_ric(plugin_ric_t* p, const char* dir_path)
 
     const char* needle = ".conf"; 
     const char* ans = strstr(file_path, needle);
-    if(ans == NULL) // Not a Configuration file
+    if(ans == NULL && is_regular_file(file_path)) // Not a Configuration file
       load_plugin_ric(p, file_path);
 
     in_file = readdir(fd);
@@ -140,7 +149,7 @@ void load_plugin_ric(plugin_ric_t* p, const char* path)
   assert(path != NULL);
   void* handle = dlopen(path, RTLD_NOW);
   if(handle == NULL){
-    printf("Not valid path = %s \n", path);
+    printf("Not valid path for the SM plugins. Check the path (%s)!\n", path);
   }
   assert(handle != NULL && "Could not open the file path");
   dlerror();    
@@ -297,7 +306,6 @@ void tx_plugin_ric(plugin_ric_t* p, size_t len, char const file_path[len])
 
   // Send the file itself 
   send_udp_socket(&fd, size, data);
-
 
   free(data);
 

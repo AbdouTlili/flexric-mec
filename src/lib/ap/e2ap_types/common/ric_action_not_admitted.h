@@ -34,5 +34,7 @@ typedef struct ric_action_not_admitted {
 
 bool eq_ric_action_not_admitted(const   ric_action_not_admitted_t* m0, const   ric_action_not_admitted_t* m1);
 
+ric_action_not_admitted_t cp_ric_action_not_admitted(ric_action_not_admitted_t* src);
+
 #endif
 

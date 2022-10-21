@@ -22,20 +22,24 @@
 
 
 #include "stdout.h"
-#include <assert.h>                                      // for assert
-#include <stdint.h>                                      // for uint32_t
-#include <stdio.h>                                       // for NULL, fputs
-#include <stdlib.h>                                      // for atexit
 #include "ric/iApps/../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ind_msg_t
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_ind_msg_t
 #include "ric/iApps/../../sm/rlc_sm/ie/rlc_data_ie.h"    // for rlc_ind_msg_t
 #include "string_parser.h"                               // for to_string_ma..
 
+#include "../../util/time_now_us.h"
+
+#include <assert.h>                                      // for assert
+#include <stdint.h>                                      // for uint32_t
+#include <stdio.h>                                       // for NULL, fputs
+#include <stdlib.h>                                      // for atexit
+#include <time.h>
 
 static
 FILE *fp = NULL;
 
 const char* file_path = "log.txt";
+
 
 static
 void close_fp(void)
@@ -70,6 +74,8 @@ void print_mac_stats(mac_ind_msg_t const* msg )
   if(fp == NULL)
     init_fp(&fp, file_path);
 
+  int64_t now = time_now_us();
+  printf("Time diff at iApp = %ld \n", now - msg->tstamp);
 
   for(uint32_t i = 0; i < msg->len_ue_stats; ++i){
     char stats[1024] = {0};
@@ -139,8 +145,8 @@ void print_slice_stats(slice_ind_msg_t const* slice)
   if(fp == NULL)
     init_fp(&fp, file_path);
 
-  char stats[512] = {0};
-  to_string_slice(slice, slice->tstamp, stats, 512); 
+  char stats[2048] = {0};
+  to_string_slice(slice, slice->tstamp, stats, 2048);
 
   int const rc = fputs(stats , fp);
   // Edit: The C99 standard §7.19.1.3 states:
@@ -150,6 +156,114 @@ void print_slice_stats(slice_ind_msg_t const* slice)
   // several functions to indicate end-of-ﬁle, that is, no more input from a stream;
   assert(rc > -1);
 
+}
+
+static
+void print_gtp_stats(gtp_ind_msg_t const* gtp)
+{
+  assert(gtp != NULL);
+  if(fp == NULL)
+  init_fp(&fp, file_path);
+
+  for(uint32_t i = 0; i < gtp->len; ++i){
+    char stats[1024] = {0};
+    to_string_gtp_ngu(&gtp->ngut[i], gtp->tstamp , stats , 1024);
+
+    int const rc = fputs(stats , fp);
+    // Edit: The C99 standard §7.19.1.3 states:
+    // The macros are [...]
+    // EOF which expands to an integer constant expression, 
+    // with type int and a negative value, that is returned by 
+    // several functions to indicate end-of-ﬁle, that is, no more input from a stream;
+    assert(rc > -1);
+  }
+
+}
+
+void print_kpm_stats(kpm_ind_data_t const* kpm)
+{
+  assert(kpm != NULL);
+  char stats[1024] = {0};
+  int max = 1024;
+
+  if(fp == NULL)
+    init_fp(&fp, file_path);
+
+  for(size_t i = 0; i < kpm->msg.MeasData_len; i++){
+    adapter_MeasDataItem_t* curMeasData = &kpm->msg.MeasData[i];
+    uint64_t truncated_ts = (uint64_t)kpm->hdr.collectStartTime * 1000000;
+    if (i == 0 && kpm->msg.granulPeriod){
+      int rc = snprintf(stats, max,  "kpm_stats: "
+                      "tstamp=%lu"
+                      ",granulPeriod=%lu"
+                      ",MeasData_len=%zu"
+                      , truncated_ts
+                      , *(kpm->msg.granulPeriod)
+                      , kpm->msg.MeasData_len
+                      );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
+      assert(rc > -1);
+    }else if(i == 0 && kpm->msg.granulPeriod == NULL){
+      int rc = snprintf(stats, max,  "kpm_stats: "
+                      "tstamp=%lu"
+                      ",granulPeriod=NULL"
+                      ",MeasData_len=%zu"
+                      , truncated_ts
+                      , kpm->msg.MeasData_len
+                      );
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
+      assert(rc > -1);
+    }
+
+    memset(stats, 0, sizeof(stats));
+    int rc = snprintf(stats, max,",MeasData[%zu]=(incompleteFlag=%ld, Record_len=%zu ",
+                                  i, curMeasData->incompleteFlag, curMeasData->measRecord_len);
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    rc = fputs(stats , fp);
+    assert(rc > -1);
+
+    for(size_t j = 0; j < curMeasData->measRecord_len; j++){
+      adapter_MeasRecord_t* curMeasRecord = &(curMeasData->measRecord[j]);
+      memset(stats, 0, sizeof(stats));
+      to_string_kpm_measRecord(curMeasRecord, j, stats, max);
+      int rc = fputs(stats , fp);
+      assert(rc > -1);
+    }
+  }
+  int rc = snprintf(stats, max, ",MeasInfo_len=%zu", kpm->msg.MeasInfo_len);
+  assert(rc < (int)max && "Not enough space in the char array to write all the data");
+  rc = fputs(stats , fp);
+  assert(rc > -1);
+
+  for(size_t i = 0; i < kpm->msg.MeasInfo_len; i++){
+    MeasInfo_t* curMeasInfo = &kpm->msg.MeasInfo[i];
+
+    if (curMeasInfo->measType == MeasurementType_ID){
+      memset(stats, 0, sizeof(stats));
+      int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=ID, content=%ld)", i, curMeasInfo->measID);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
+      assert(rc > -1);
+    } else if (curMeasInfo->measType == MeasurementType_NAME){
+      memset(stats, 0, sizeof(stats));
+      int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=NAME, content=%s)", i, curMeasInfo->measName.buf);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
+      assert(rc > -1);
+    }
+
+    for(size_t j = 0; j < curMeasInfo->labelInfo_len; ++j){
+      adapter_LabelInfoItem_t* curLabelInfo = &curMeasInfo->labelInfo[j];
+      memset(stats, 0, sizeof(stats));
+      to_string_kpm_labelInfo(curLabelInfo, j, stats, max);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      rc = fputs(stats , fp);
+      assert(rc > -1);
+    }
+  }
+  fputs("\n", fp);
 }
 
 void notify_stdout_listener(sm_ag_if_rd_t const* data)
@@ -163,6 +277,10 @@ void notify_stdout_listener(sm_ag_if_rd_t const* data)
     print_pdcp_stats(&data->pdcp_stats.msg);
   else if (data->type == SLICE_STATS_V0)
     print_slice_stats(&data->slice_stats.msg);
+  else if (data->type == GTP_STATS_V0)
+    print_gtp_stats(&data->gtp_stats.msg);
+  else if (data->type == KPM_STATS_V0)
+    print_kpm_stats(&data->kpm_stats);
   else
     assert(0!= 0);
 }

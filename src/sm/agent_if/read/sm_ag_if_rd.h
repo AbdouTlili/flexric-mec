@@ -30,6 +30,9 @@
 #include "../../rlc_sm/ie/rlc_data_ie.h"
 #include "../../pdcp_sm/ie/pdcp_data_ie.h"
 #include "../../slice_sm/ie/slice_data_ie.h"
+#include "../../tc_sm/ie/tc_data_ie.h"
+#include "../../gtp_sm/ie/gtp_data_ie.h"
+#include "../../kpm_sm_v2.02/ie/kpm_data_ie.h"
 
 
 typedef enum{
@@ -37,7 +40,9 @@ typedef enum{
   RLC_STATS_V0,
   PDCP_STATS_V0,
   SLICE_STATS_V0,
-
+  TC_STATS_V0,
+  GTP_STATS_V0, 
+  KPM_STATS_V0, 
   SM_AGENT_IF_READ_V0_END,
 } sm_ag_if_rd_e;
 
@@ -48,13 +53,17 @@ typedef struct{
     rlc_ind_data_t rlc_stats;
     pdcp_ind_data_t pdcp_stats;
     slice_ind_data_t slice_stats;
+    tc_ind_data_t tc_stats;
+    gtp_ind_data_t gtp_stats;
+    kpm_ind_data_t kpm_stats;
   };
   sm_ag_if_rd_e type;
 } sm_ag_if_rd_t;
 
 
-void free_sm_rd_if(sm_ag_if_rd_t* d);
+void free_sm_ag_if_rd(sm_ag_if_rd_t* d);
 
+sm_ag_if_rd_t cp_sm_ag_if_rd(sm_ag_if_rd_t const* d);
 
 #endif
 

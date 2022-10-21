@@ -23,6 +23,9 @@ elseif(E2AP_ENCODING STREQUAL "FLATBUFFERS")
                           $<TARGET_OBJECTS:e2ap_msg_dec_obj>
                           $<TARGET_OBJECTS:e2ap_msg_free_obj>
                           )
+
+else()
+  message(FATAL_ERROR "Unknonw E2AP encoding type")
 endif()
 
 # Set the MACRO variable that will be used by the compiler to select the encoding/decoding

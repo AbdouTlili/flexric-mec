@@ -23,7 +23,7 @@ static
 void maybe_shrink(seq_arr_t* arr)
 {
   const float occ = (float)arr->size / (float)arr->cap; 
-  printf("Occ = %f and size = %ld \n", occ, arr->size);
+  //printf("Occ = %f and size = %ld \n", occ, arr->size);
   if(arr->size > MIN_SIZE && occ < 0.25){
     assert(arr->cap > MIN_SIZE); 
     seq_arr_t tmp = {.data = NULL, .size = arr->size, .elt_size = arr->elt_size, .cap = arr->cap/2};
@@ -98,6 +98,24 @@ void seq_arr_erase(seq_arr_t* arr, void* start_it, void* end_it)
 
   maybe_shrink(arr);
 }
+
+/*
+void seq_arr_erase_free(seq_arr_t *arr, void *start_it, void *end_it,
+                        void (*free_func)(void *)) {
+  assert(arr != NULL);
+  assert(start_it != NULL);
+  assert(end_it != NULL);
+  assert(end_it >= start_it);
+  assert(free_func != NULL && "Use seq_arr_erase instead ");
+
+  while (start_it != end_it) {
+    free_func(start_it);
+    start_it = seq_arr_next(arr, start_it);
+  }
+
+  seq_arr_erase(arr, start_it, end_it);
+}
+*/
 
 size_t seq_arr_size(seq_arr_t* arr)
 {

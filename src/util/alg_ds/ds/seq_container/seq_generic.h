@@ -39,6 +39,10 @@
                                           seq_ring_t*: seq_ring_erase,\
                                           default: seq_arr_erase)(T,U,W)
 
+#define seq_erase_free(T, U, W, X)                                             \
+  _Generic((T), seq_arr_t *                                                    \
+           : seq_arr_erase_free, default                                       \
+           : seq_arr_erase_free)(T, U, W, X)
 
 // Capacity
 #define seq_size(T) _Generic ((T), seq_arr_t*: seq_arr_size, \

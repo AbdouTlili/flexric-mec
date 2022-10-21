@@ -53,24 +53,38 @@ void init_agent_api(int mcc,
                     int mnc, 
                     int mnc_digit_len,
                     int nb_id,
-                    sm_io_ag_t io
-                    )
+                    int cu_du_id,
+                    ngran_node_t ran_type,
+                    sm_io_ag_t io,
+		                fr_args_t const* args)
 {
   assert(agent == NULL);  
   assert(mcc > 0);
   assert(mnc > 0);
   assert(mnc_digit_len > 0);
   assert(nb_id > 0);
+  assert(ran_type >= 0);
 
-
-  char* server_ip_str = get_near_ric_ip();
-  printf("[E2 AGENT]: RIC IP Address = %s\n", server_ip_str);
+  char* server_ip_str = get_near_ric_ip(args);
 
   const plmn_t plmn = {.mcc = mcc, .mnc = mnc, .mnc_digit_len = mnc_digit_len};
-  const global_e2_node_id_t ge2ni = {.type = ngran_gNB, .plmn = plmn, .nb_id = nb_id };
+  global_e2_node_id_t ge2ni = {.type = ran_type, .plmn = plmn, .nb_id = nb_id, .cu_du_id = NULL};
   const int e2ap_server_port = 36421;
 
-  agent = e2_init_agent(server_ip_str, e2ap_server_port, ge2ni, io);
+  char* ran_type_str = get_ngran_name(ran_type);
+  if (NODE_IS_MONOLITHIC(ran_type)) {
+    printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %d, RAN type = %s, nb_id = %d\n", server_ip_str, e2ap_server_port, ran_type_str, nb_id);
+  } else if (NODE_IS_CU(ran_type) || NODE_IS_DU(ran_type)) {
+    assert(cu_du_id > 0);
+    ge2ni.cu_du_id = calloc(1, sizeof(uint64_t));
+    assert(ge2ni.cu_du_id != NULL && "memory exhausted");
+    *ge2ni.cu_du_id = cu_du_id;
+    printf("[E2 AGENT]: nearRT-RIC IP Address = %s, PORT = %d, RAN type = %s, nb_id = %d, cu_du_id = %ld\n", server_ip_str, e2ap_server_port, ran_type_str, nb_id, *ge2ni.cu_du_id);
+  } else {
+    assert(0 != 0 && "not support RAN type\n");
+  }
+
+  agent = e2_init_agent(server_ip_str, e2ap_server_port, ge2ni, io, args);
 
   // Spawn a new thread for the agent
   const int rc = pthread_create(&thrd_agent, NULL, static_start_agent, NULL);

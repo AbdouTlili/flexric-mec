@@ -70,7 +70,6 @@ void add_fd_asio_agent(asio_agent_t* io, int fd)
   struct epoll_event event = {.events = e_events, .data = e_data};
   int rc = epoll_ctl(io->efd, op, fd, &event);
   assert(rc != -1);
-
 }
 
 void rm_fd_asio_agent(asio_agent_t* io, int fd)
@@ -139,6 +138,5 @@ int event_asio_agent(asio_agent_t const* io)
   assert((events[0].events & EPOLLERR) == 0);
   return events[0].data.fd; 
 }
-
 
 

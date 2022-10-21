@@ -19,8 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
-
 #ifndef RIC_INDICATION_H
 #define RIC_INDICATION_H
 
@@ -43,8 +41,9 @@ typedef struct ric_indication {
   byte_array_t* call_process_id; // optional
 } ric_indication_t;
 
-
 bool eq_ric_indication(const ric_indication_t* m0, const ric_indication_t* m1);
+
+ric_indication_t mv_ric_indication(ric_indication_t* ind);
 
 #endif
 

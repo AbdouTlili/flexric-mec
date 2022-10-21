@@ -27,6 +27,7 @@
 #include "util/alg_ds/ds/assoc_container/assoc_generic.h"
 #include "util/alg_ds/ds/assoc_container/bimap.h"
 
+#include "util/conf_file.h"
 #include "util/ngran_types.h"
 
 #include "lib/ap/global_consts.h"
@@ -50,7 +51,7 @@ typedef struct e2_agent_s
   e2ap_ep_ag_t ep; 
   e2ap_agent_t ap;
   asio_agent_t io;
-  handle_msg_fp_agent handle_msg[26]; // note that not all the slots will be occupied
+  handle_msg_fp_agent handle_msg[30]; // 26 E2AP + 4 E42AP note that not all the slots will be occupied
 
   // Registered SMs
   plugin_ag_t plugin;
@@ -67,7 +68,7 @@ typedef struct e2_agent_s
   atomic_bool agent_stopped;
 } e2_agent_t;
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io);
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, fr_args_t const* args);
 
 // Blocking call
 void e2_start_agent(e2_agent_t* ag);

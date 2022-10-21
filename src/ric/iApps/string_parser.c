@@ -22,45 +22,76 @@
 
 
 #include "string_parser.h"
+#include "string.h"
 #include <assert.h>                                      // for assert
 #include <stdio.h>                                       // for snprintf
 #include "ric/iApps/../../sm/mac_sm/ie/mac_data_ie.h"    // for mac_ue_stats...
 #include "ric/iApps/../../sm/pdcp_sm/ie/pdcp_data_ie.h"  // for pdcp_radio_b...
 #include "ric/iApps/../../sm/rlc_sm/ie/rlc_data_ie.h"    // for rlc_radio_be...
+#include "ric/iApps/../../sm/slice_sm/ie/slice_data_ie.h"
+#include "ric/iApps/../../sm/kpm_sm_v2.02/ie/kpm_data_ie.h"
 
 
 void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* out, size_t out_len)
 {
   assert(stats != NULL);
   assert(out != NULL);
-  const size_t max = 512;
+  const size_t max = 1024;
   assert(out_len >= max);
   int rc = snprintf(out, max, "mac_stats: "
         "tstamp=%ld,"
+        "frame=%d,"
+        "slot=%d,"
         "dl_aggr_tbs=%lu,"
         "ul_aggr_tbs=%lu,"
         "dl_aggr_bytes_sdus=%lu,"
         "ul_aggr_bytes_sdus=%lu,"
+        "dl_curr_tbs=%lu,"
+        "ul_curr_tbs=%lu,"
+        "dl_sched_rb=%lu,"
+        "ul_sched_rb=%lu,"
         "pusch_snr=%g,"
         "pucch_snr=%g,"
-        "rnti=%u,"
+        "rnti=%x,"
         "dl_aggr_prb=%u,"
         "ul_aggr_prb=%u,"
         "dl_aggr_sdus=%u,"
         "ul_aggr_sdus=%u,"
         "dl_aggr_retx_prb=%u,"
+        "ul_aggr_retx_prb=%u,"
         "wb_cqi=%u,"
         "dl_mcs1=%u,"
         "ul_mcs1=%u,"
         "dl_mcs2=%u,"
         "ul_mcs2=%u,"
-        "phr=%d"
+        "phr=%d,"
+        "bsr=%u,"
+        "dl_bler=%f,"
+        "ul_bler=%f,"
+        "dl_num_harq=%d,"
+        "dl_harq[0]=%u,"
+        "dl_harq[1]=%u,"
+        "dl_harq[2]=%u,"
+        "dl_harq[3]=%u,"
+        "dlsch_errors=%u,"
+        "ul_num_harq=%d,"
+        "ul_harq[0]=%u,"
+        "ul_harq[1]=%u,"
+        "ul_harq[2]=%u,"
+        "ul_harq[3]=%u,"
+        "ulsch_errors=%u"
         "\n"
         ,tstamp
+        ,stats->frame
+        ,stats->slot
         ,stats->dl_aggr_tbs
         ,stats->ul_aggr_tbs 
         ,stats->dl_aggr_bytes_sdus 
         ,stats->ul_aggr_bytes_sdus  
+        ,stats->dl_curr_tbs
+        ,stats->ul_curr_tbs
+        ,stats->dl_sched_rb
+        ,stats->ul_sched_rb
         ,stats->pusch_snr 
         ,stats->pucch_snr 
         ,stats->rnti 
@@ -69,12 +100,28 @@ void to_string_mac_ue_stats(mac_ue_stats_impl_t* stats, int64_t tstamp, char* ou
         ,stats->dl_aggr_sdus 
         ,stats->ul_aggr_sdus 
         ,stats->dl_aggr_retx_prb  
+        ,stats->ul_aggr_retx_prb
         ,stats->wb_cqi
         ,stats->dl_mcs1
         ,stats->ul_mcs1
         ,stats->dl_mcs2
         ,stats->ul_mcs2
         ,stats->phr 
+        ,stats->bsr
+        ,stats->dl_bler
+        ,stats->ul_bler
+        ,stats->dl_num_harq
+        ,stats->dl_harq[0]
+        ,stats->dl_harq[1]
+        ,stats->dl_harq[2]
+        ,stats->dl_harq[3]
+        ,stats->dl_harq[4]
+        ,stats->ul_num_harq
+        ,stats->ul_harq[0]
+        ,stats->ul_harq[1]
+        ,stats->ul_harq[2]
+        ,stats->ul_harq[3]
+        ,stats->ul_harq[4]
         );
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
 }
@@ -217,14 +264,266 @@ void to_string_slice(slice_ind_msg_t const* slice, int64_t tstamp, char* out, si
 {
   assert(slice != NULL);
   assert(out != NULL);
+  const size_t max = 2048;
+  assert(out_len >= max);
+
+  char temp[2048] = {0};
+  size_t sz = 0;
+
+  if (slice->slice_conf.dl.len_slices == 0) {
+    int rc = snprintf(temp, out_len,  "slice_stats: "
+                      "tstamp=%ld"
+                      ",dl->sched_name=%s"
+                      , tstamp
+                      , slice->slice_conf.dl.sched_name
+                      );
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+    memcpy(out, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  for(uint32_t i = 0; i < slice->slice_conf.dl.len_slices; ++i) {
+    fr_slice_t* s = &slice->slice_conf.dl.slices[i];
+
+    if (i == 0) {
+      int rc = snprintf(temp, out_len, "slice_stats: tstamp=%ld,slice_conf,dl,len_slices=%u", tstamp, slice->slice_conf.dl.len_slices);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+      memcpy(out, temp, strlen(temp));
+      sz += strlen(temp);
+    }
+
+    memset(temp, 0, sizeof(temp));
+    // static
+    if (s->params.type == SLICE_ALG_SM_V0_STATIC) {
+      int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,static"
+                        ",sched=%s"
+                        ",pos_high=%u"
+                        ",pos_low=%u",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.sta.pos_high,
+                        s->params.u.sta.pos_low);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    } else if (s->params.type == SLICE_ALG_SM_V0_NVS) {
+      // nvs
+      if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_RATE) {
+         int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,nvs"
+                        ",sched=%s"
+                        ",conf=%d,rate"
+                        ",mbps_required=%.2f"
+                        ",mbps_reference=%.2f",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.nvs.conf,
+                        s->params.u.nvs.u.rate.u1.mbps_required,
+                        s->params.u.nvs.u.rate.u2.mbps_reference);
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      } else if (s->params.u.nvs.conf == SLICE_SM_NVS_V0_CAPACITY) {
+        int rc = snprintf(temp, out_len,
+                          ",slice[%u]"
+                          ",id=%u"
+                          ",label=%s"
+                          ",type=%d,nvs"
+                          ",sched=%s"
+                          ",conf=%d,capacity"
+                          ",pct_reserved=%.2f",
+                          i,
+                          s->id,
+                          s->label,
+                          s->params.type,
+                          s->sched,
+                          s->params.u.nvs.conf,
+                          s->params.u.nvs.u.capacity.u.pct_reserved);
+        assert(rc < (int)max && "Not enough space in the char array to write all the data");
+      }
+    } else if (s->params.type == SLICE_ALG_SM_V0_EDF) {
+      // edf
+      int rc = snprintf(temp, out_len,
+                        ",slice[%u]"
+                        ",id=%u"
+                        ",label=%s"
+                        ",type=%d,edf"
+                        ",sched=%s"
+                        ",deadline=%u"
+                        ",guaranteed_prbs=%u"
+                        ",max_replenish=%u",
+                        i,
+                        s->id,
+                        s->label,
+                        s->params.type,
+                        s->sched,
+                        s->params.u.edf.deadline,
+                        s->params.u.edf.guaranteed_prbs,
+                        s->params.u.edf.max_replenish);
+      // TODO: edf.len_over & edf.over[]
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+    }
+    memcpy(out + sz, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  for(uint32_t i = 0; i < slice->ue_slice_conf.len_ue_slice; ++i) {
+    ue_slice_assoc_t * u = &slice->ue_slice_conf.ues[i];
+
+    if (i == 0) {
+      memset(temp, 0, sizeof(temp));
+      int rc = snprintf(temp, out_len, ",ue_slice_conf,len_ue_slice=%u", slice->ue_slice_conf.len_ue_slice);
+      assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+      memcpy(out + sz, temp, strlen(temp));
+      sz += strlen(temp);
+    }
+
+    memset(temp, 0, sizeof(temp));
+    int rc = snprintf(temp, out_len,
+                      ",ues[%u]"
+                      ",rnti=%x"
+                      ",dl_id=%d",
+                      i,
+                      u->rnti,
+                      u->dl_id);
+    assert(rc < (int)max && "Not enough space in the char array to write all the data");
+
+    memcpy(out + sz, temp, strlen(temp));
+    sz += strlen(temp);
+  }
+
+  char end[] = "\n";
+  memcpy(out + sz, end, strlen(end));
+  sz += strlen(end);
+  out[sz] = '\0';
+  assert(strlen(out) < max && "Not enough space in the char array to write all the data");
+}
+
+void to_string_gtp_ngu(gtp_ngu_t_stats_t const* gtp, int64_t tstamp , char* out, size_t out_len)
+{
+  assert(gtp != NULL);
+  assert(out != NULL);
   const size_t max = 512;
   assert(out_len >= max);
  
-  int rc = snprintf(out, out_len,  "slice_stats: " 
-        "tstamp=%ld,"
+  int const rc = snprintf(out, max,
+        "gtp_stats: tstamp=%ld,"
+        "rnti=%u,"
+        "qfi=%u,"
+        "teidgnb=%u,"
+        "teidupf=%u"
         "\n"
-        , tstamp
+        , tstamp 
+        , gtp->rnti
+        , gtp->qfi
+        , gtp->teidgnb
+        , gtp->teidupf
         );
   assert(rc < (int)max && "Not enough space in the char array to write all the data");
 }
 
+void to_string_kpm_labelInfo(adapter_LabelInfoItem_t const* labelInfo, size_t idx,  char *out, size_t out_len)
+{
+  assert(labelInfo != NULL);
+  
+  size_t avail = out_len;
+  char *begp = out;
+  
+  int nprinted = snprintf(begp, avail, ", labelInfo[%lu]=", idx);
+  assert((nprinted > 0) && ((size_t) nprinted < avail) && "Not enough space in the char array to write all the data");
+  avail -= nprinted;
+  begp += nprinted;
+
+  if (labelInfo->noLabel) {
+    nprinted = snprintf(begp, avail, "(noLabel = %ld)", *(labelInfo->noLabel));
+    assert((nprinted > 0) && ((size_t) nprinted < avail) && "Not enough space in the char array to write all the data");
+    avail -= nprinted;
+    begp += nprinted;
+  }
+/*
+  nprinted = snprintf(out, out_len,
+                        ",labelInfo"
+                        ",noLabel=%ld"
+                        ",plmnID->len=%zu"
+                        ",plmnID->buf=%u"
+                        ",sliceID->sD->len=%zu"
+                        ",sliceID->sD->buf=%u"
+                        ",sliceID->sST->len=%zu"
+                        ",sliceID->sST->buf=%u"
+                        ",fiveQI=%ld"
+                        ",qFI=%ld"
+                        ",qCI=%ld"
+                        ",qFI=%ld"
+                        ",qCImax=%ld"
+                        ",qCImin=%ld"
+                        ",aRPmax=%ld"
+                        ",aRPmin=%ld"
+                        ",bitrateRange=%ld"
+                        ",layerMU_MIMO=%ld"
+                        ",sUM=%ld"
+                        ",distBinX=%ld"
+                        ",distBinY=%ld"
+                        ",distBinZ=%ld"
+                        ",preLabelOverride=%ld"
+                        ",startEndInd=%ld"
+                        ",min=%ld"
+                        ",max=%ld"
+                        ",avg=%ld"
+                        , *labelInfo->noLabel
+                        , labelInfo->plmnID->len
+                        , *labelInfo->plmnID->buf
+                        , labelInfo->sliceID->sD->len
+                        , *labelInfo->sliceID->sD->buf
+                        , labelInfo->sliceID->sST.len
+                        , *labelInfo->sliceID->sST.buf
+                        , *labelInfo->fiveQI
+                        , *labelInfo->qFI
+                        , *labelInfo->qCI
+                        , *labelInfo->qFI
+                        , *labelInfo->qCImax
+                        , *labelInfo->qCImin
+                        , *labelInfo->aRPmax
+                        , *labelInfo->aRPmin
+                        , *labelInfo->bitrateRange
+                        , *labelInfo->layerMU_MIMO
+                        , *labelInfo->sUM
+                        , *labelInfo->distBinX
+                        , *labelInfo->distBinY
+                        , *labelInfo->distBinZ
+                        , *labelInfo->preLabelOverride
+                        , *labelInfo->startEndInd
+                        , *labelInfo->min
+                        , *labelInfo->max
+                        , *labelInfo->avg
+                        );
+
+    assert(rc < (int)out_len && "Not enough space in the char array to write all the data");
+    */
+}
+
+void to_string_kpm_measRecord(adapter_MeasRecord_t const* measRecord, size_t idx, char *out, size_t out_len)
+{
+  assert(measRecord != NULL);
+  int rc = 0;
+  if (measRecord->type == MeasRecord_int){
+    rc = snprintf(out, out_len, ",Record[%lu]=%ld", idx, measRecord->int_val);
+  } else if(measRecord->type == MeasRecord_real){
+    rc = snprintf(out, out_len, ",Record[%lu]=%ld", idx, measRecord->int_val);
+  } else {
+    rc = snprintf(out, out_len, ",Record[%lu]=nulltype", idx); 
+  }
+
+  assert(rc < (int)out_len && "Not enough space in the char array to write all the data");
+}

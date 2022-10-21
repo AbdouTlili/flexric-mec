@@ -19,7 +19,7 @@
  *      contact@openairinterface.org
  */
 
-
+#include "../../../../test/common/fill_ind_data.h"
 #include "../../pdcp_sm/pdcp_sm_agent.h"
 #include "../../pdcp_sm/pdcp_sm_ric.h"
 
@@ -38,53 +38,6 @@
 static
 pdcp_ind_data_t cp;
 
-static
-void fill_pdcp_ind_data(pdcp_ind_data_t* ind_data)
-{
-  srand(time(0));
-
-  pdcp_ind_msg_t* ind_msg = &ind_data->msg; 
-
-  ind_msg->len = abs(rand()%10);
-  ind_msg->tstamp = 1234567894;
-//  ind_msg->slot = 3;
-
-  if(ind_msg->len > 0){
-    ind_msg->rb = calloc(ind_msg->len, sizeof(pdcp_radio_bearer_stats_t));
-    assert(ind_msg->rb != NULL && "Memory exhausted!");
-  }
-
-  for(uint32_t i = 0; i < ind_msg->len; ++i){
-    pdcp_radio_bearer_stats_t* rb = &ind_msg->rb[i];
-
-    int const mod = 1024;
-    rb->txpdu_bytes = abs(rand()%mod);    /* aggregated bytes of tx packets */
-    rb->txpdu_pkts = rb->txpdu_bytes != 0 ? rb->txpdu_bytes - rand()%rb->txpdu_bytes : 0;     /* aggregated number of tx packets */
-    rb->txpdu_sn= abs(rand()%mod);       /* current sequence number of last tx packet (or TX_NEXT) */
-
-    rb->rxpdu_bytes = abs(rand()%mod);    /* aggregated bytes of rx packets */
-    rb->rxpdu_pkts = rb->rxpdu_bytes != 0 ? rb->rxpdu_bytes - rand()%rb->rxpdu_bytes : 0;     /* aggregated number of rx packets */
-    rb->rxpdu_sn= abs(rand()%mod);       /* current sequence number of last rx packet (or  RX_NEXT) */
-    rb->rxpdu_oo_pkts= abs(rand()%mod);       /* aggregated number of out-of-order rx pkts  (or RX_REORD) */
-    rb->rxpdu_oo_bytes= abs(rand()%mod); /* aggregated amount of out-of-order rx bytes */
-    rb->rxpdu_dd_pkts= abs(rand()%mod);  /* aggregated number of duplicated discarded packets (or dropped packets because of other reasons such as integrity failure) (or RX_DELIV) */
-    rb->rxpdu_dd_bytes= abs(rand()%mod); /* aggregated amount of discarded packets' bytes */
-    rb->rxpdu_ro_count= abs(rand()%mod); /* this state variable indicates the COUNT value following the COUNT value associated with the PDCP Data PDU which triggered t-Reordering. (RX_REORD) */
-    rb->txsdu_bytes = abs(rand()%mod);    /* number of bytes of SDUs delivered */
-    rb->txsdu_pkts = rb->txsdu_bytes != 0 ? rb->txsdu_bytes - rand()% rb->txsdu_bytes : 0;     /* number of SDUs delivered */
-
-    rb->rxsdu_bytes = abs(rand()%mod);    /* number of bytes of SDUs received */
-    rb->rxsdu_pkts =  rb->rxsdu_bytes != 0 ? rb->rxsdu_bytes - rand()%rb->rxsdu_bytes : 0;     /* number of SDUs received */
-
-    rb->rnti= abs(rand()%mod);
-    rb->mode= abs(rand()%3);               /* 0: PDCP AM, 1: PDCP UM, 2: PDCP TM */
-    rb->rbid= abs(rand()%11);
-  }
-
-  cp.hdr = cp_pdcp_ind_hdr(&ind_data->hdr);
-  cp.msg = cp_pdcp_ind_msg(&ind_data->msg);
-}
-
 /////
 // AGENT
 ////
@@ -96,6 +49,8 @@ void read_RAN(sm_ag_if_rd_t* read)
   assert(read->type == PDCP_STATS_V0);
 
   fill_pdcp_ind_data(&read->pdcp_stats);
+  cp.hdr = cp_pdcp_ind_hdr(&read->pdcp_stats.hdr);
+  cp.msg = cp_pdcp_ind_msg(&read->pdcp_stats.msg);
 }
 
 

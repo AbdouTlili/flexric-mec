@@ -5,6 +5,70 @@
 #include <string.h>
 #include <stdio.h>
 
+
+//////////////////////////////////////
+// RIC Event Trigger Definition
+/////////////////////////////////////
+
+void free_slice_event_trigger(slice_event_trigger_t* src)
+{
+  assert(src != NULL);
+
+  assert(0 != 0 && "not implemented");
+}
+
+slice_event_trigger_t cp_slice_event_trigger( slice_event_trigger_t* src)
+{
+  assert(src != NULL);
+
+  assert(0 != 0 && "not implemented");
+
+  slice_event_trigger_t ans;
+  return ans;
+}
+
+bool eq_slice_event_trigger(slice_event_trigger_t* m0, slice_event_trigger_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  assert(0 != 0 && "not implemented");
+
+  return false;
+}
+
+
+
+//////////////////////////////////////
+// RIC Action Definition 
+/////////////////////////////////////
+
+void free_slice_action_def(slice_action_def_t* src)
+{
+  assert(src != NULL);
+
+  assert(0 != 0 && "not implemented");
+}
+
+slice_action_def_t cp_slice_action_def(slice_action_def_t* src)
+{
+  assert(src != NULL);
+  assert(0 != 0 && "not implemented");
+
+  slice_action_def_t ans;
+  return ans;
+}
+
+bool eq_slice_action_def(slice_event_trigger_t* m0,  slice_event_trigger_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  assert(0 != 0 && "not implemented");
+
+  return false;
+}
+
 static
 void free_slice_param(slice_params_t* param)
 {
@@ -42,7 +106,7 @@ void free_ul_dl_slice_conf(ul_dl_slice_conf_t* conf)
    
     for(size_t i = 0; i < conf->len_slices; ++i){
 
-      slice_t* slice = &conf->slices[i];
+      fr_slice_t* slice = &conf->slices[i];
       if(slice->len_label > 0){
         assert(slice->label != NULL);
         free(slice->label);
@@ -133,8 +197,20 @@ void free_slice_ind_hdr(slice_ind_hdr_t* src)
   (void)src;
 } 
 
+slice_ind_hdr_t cp_slice_ind_hdr(slice_ind_hdr_t const* src)
+{
+  assert(src != NULL);
+  slice_ind_hdr_t dst = {.dummy = src->dummy}; 
+  return dst;
+}
 
+bool eq_slice_ind_hdr(slice_ind_hdr_t* m0, slice_ind_hdr_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
 
+  return m0->dummy == m1->dummy;
+}
 
 
 //////////////////////////////////////
@@ -235,6 +311,23 @@ bool eq_scn19_slice(scn19_slice_t const* m0, scn19_slice_t const* m1)
 }
 
 static
+bool eq_edf_slice(edf_slice_t const* m0, edf_slice_t const* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  for(size_t i = 0; i < m0->len_over; ++i){
+    if(m0->over[i] != m1->over[i])
+      return false;
+  }
+
+  return m0->deadline == m1->deadline
+         && m0->guaranteed_prbs == m1->guaranteed_prbs
+         && m0->max_replenish == m1->max_replenish
+         && m0->len_over == m1->len_over;
+}
+
+static
 bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
 {
   assert(m0 != NULL);
@@ -251,7 +344,7 @@ bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
   } else if(m0->type == SLICE_ALG_SM_V0_SCN19){
     ret = eq_scn19_slice(&m0->u.scn19, &m1->u.scn19);
   } else if(m0->type == SLICE_ALG_SM_V0_EDF){
-    assert("Not implemented");
+    ret = eq_edf_slice(&m0->u.edf, &m1->u.edf);
   } else {
     assert("Unknown type");
   }
@@ -260,7 +353,7 @@ bool eq_slice_params(slice_params_t const* m0, slice_params_t const* m1)
 }
 
 static
-bool eq_slice(slice_t const* m0, slice_t const* m1)
+bool eq_slice(fr_slice_t const* m0, fr_slice_t const* m1)
 {
   assert(m0 != NULL);
   assert(m1 != NULL);
@@ -386,7 +479,6 @@ slice_params_t cp_slice_params(slice_params_t const* src)
 
   slice_params_t dst = {0};
 
-  assert(src->type != SLICE_ALG_SM_V0_EDF && "Not supported yet");
   dst.type = src->type;
 
   if(src->type == SLICE_ALG_SM_V0_STATIC  ){
@@ -405,6 +497,13 @@ slice_params_t cp_slice_params(slice_params_t const* src)
     }
   } else if(src->type == SLICE_ALG_SM_V0_SCN19){
       dst.u.scn19 = cp_scn19_slice(&src->u.scn19);
+  } else if(src->type == SLICE_ALG_SM_V0_EDF){
+      dst.u.edf.deadline = src->u.edf.deadline;
+      dst.u.edf.guaranteed_prbs = src->u.edf.guaranteed_prbs;
+      dst.u.edf.max_replenish = src->u.edf.max_replenish;
+      dst.u.edf.len_over = src->u.edf.len_over;
+      for(size_t i = 0; i < src->u.edf.len_over; ++i)
+        dst.u.edf.over[i] = src->u.edf.over[i];
   } else {
     assert(0!=0 && "Not implemented or unknown");
   }
@@ -415,10 +514,10 @@ slice_params_t cp_slice_params(slice_params_t const* src)
 }
 
 static
-slice_t cpy_slice(slice_t const* src)
+fr_slice_t cpy_slice(fr_slice_t const* src)
 {
   assert(src != NULL);
-  slice_t dst = {0}; 
+  fr_slice_t dst = {0};
 
   dst.id = src->id;
   dst.len_label = src->len_label;
@@ -456,8 +555,10 @@ ul_dl_slice_conf_t cpy_ul_dl_slice_conf(ul_dl_slice_conf_t const* src)
     memcpy(dst.sched_name, src->sched_name, src->len_sched_name);
   }
 
-  dst.slices = calloc(src->len_slices, sizeof(slice_t));
-  assert(dst.slices != NULL && "Memory exhausted");
+  if (src->len_slices > 0) {
+    dst.slices = calloc(src->len_slices, sizeof(fr_slice_t));
+    assert(dst.slices != NULL && "Memory exhausted");
+  }
 
   for(size_t i = 0; i < src->len_slices; ++i){
     dst.slices[i] = cpy_slice(&src->slices[i]); 
@@ -467,7 +568,6 @@ ul_dl_slice_conf_t cpy_ul_dl_slice_conf(ul_dl_slice_conf_t const* src)
   return dst;
 }
 
-static
 slice_conf_t cp_slice_conf(slice_conf_t const* src)
 {
   assert(src != NULL);
@@ -494,7 +594,6 @@ ue_slice_assoc_t cp_ue_slice_assoc(ue_slice_assoc_t const* src)
   return dst;
 }
 
-static
 ue_slice_conf_t cp_ue_slice_conf(ue_slice_conf_t const* src)
 {
   assert(src != NULL);
@@ -513,7 +612,7 @@ ue_slice_conf_t cp_ue_slice_conf(ue_slice_conf_t const* src)
   return dst;
 }
 
-slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t* src)
+slice_ind_msg_t cp_slice_ind_msg(slice_ind_msg_t const* src)
 {
   assert(src != NULL);
 
@@ -540,6 +639,29 @@ void free_slice_call_proc_id( slice_call_proc_id_t* src)
 
   assert(0!=0 && "Not implemented");
 }
+
+slice_call_proc_id_t cp_slice_call_proc_id( slice_call_proc_id_t* src)
+{
+  assert(src != NULL);
+
+  assert(0!=0 && "Not implemented");
+  slice_call_proc_id_t ans = {0}; 
+  return ans;
+}
+
+bool eq_slice_call_proc_id(slice_call_proc_id_t* m0, slice_call_proc_id_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  assert(0!=0 && "Not implemented");
+  return false;
+}
+
+
+
+
+
 
 //////////////////////////////////////
 // RIC Control Header 
@@ -613,12 +735,18 @@ del_slice_conf_t cp_del_slice(del_slice_conf_t const* src)
     dst.len_dl = src->len_dl;
     dst.dl = calloc(src->len_dl, sizeof(uint32_t));
     assert(dst.dl != NULL && "Memory exhausted");
+    for(size_t i = 0; i < src->len_dl; ++i){
+      dst.dl[i] = src->dl[i];
+    }
   }
 
   if(src->len_ul > 0){
     dst.len_ul = src->len_ul;
     dst.ul = calloc(dst.len_ul, sizeof(uint32_t)); 
     assert(dst.ul != NULL && "Memory exhausted");
+    for(size_t i = 0; i < src->len_ul; ++i){
+      dst.ul[i] = src->ul[i];
+    }
   }
 
   return dst;
@@ -724,5 +852,78 @@ bool eq_slice_ctrl_out(slice_ctrl_out_t* m0, slice_ctrl_out_t* m1)
   }
 
   return true;
+}
+
+//////////////////////////////////////
+// RAN Function Definition 
+/////////////////////////////////////
+
+void free_slice_func_def( slice_func_def_t* src)
+{
+  assert(src != NULL);
+  if(src->len_supported_alg > 0)
+    free(src->supported_alg);
+}
+
+slice_func_def_t cp_slice_func_def(slice_func_def_t* src)
+{
+  assert(src != NULL);
+
+  slice_func_def_t ans = {.len_supported_alg = src->len_supported_alg}; 
+  if(ans.len_supported_alg > 0){
+    ans.supported_alg = calloc(ans.len_supported_alg, sizeof( slice_algorithm_e ));
+    assert( ans.supported_alg != NULL && "Memory exhauested");
+  }
+  for(size_t i = 0; i < ans.len_supported_alg; ++i){
+    ans.supported_alg[i] = src->supported_alg[i];
+  }
+
+  return ans;
+}
+
+bool eq_slice_func_def(slice_func_def_t* m0, slice_func_def_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  if(m0->len_supported_alg != m1->len_supported_alg)
+    return false;
+
+  for(size_t i = 0; i < m0->len_supported_alg; ++i){
+    if(m0->supported_alg[i] != m1->supported_alg[i] )
+      return false;
+  }
+  return true;
+}
+
+///////////////
+// RIC Indication
+///////////////
+
+void free_slice_ind_data(slice_ind_data_t* ind)
+{
+  assert(ind != NULL);
+
+  free_slice_ind_hdr(&ind->hdr);
+  free_slice_ind_msg(&ind->msg);
+  free_slice_call_proc_id(ind->proc_id);
+}
+
+slice_ind_data_t cp_slice_ind_data(slice_ind_data_t const* src)
+{
+  assert(src != NULL);
+
+
+  slice_ind_data_t dst = {0};
+  dst.hdr = cp_slice_ind_hdr(&src->hdr);
+  dst.msg = cp_slice_ind_msg(&src->msg);
+
+  if(src->proc_id != NULL){
+    dst.proc_id = malloc(sizeof(slice_call_proc_id_t));
+    assert(dst.proc_id != NULL && "Memory exhausted");
+    *dst.proc_id = cp_slice_call_proc_id(src->proc_id);
+  }
+
+  return dst;
 }
 

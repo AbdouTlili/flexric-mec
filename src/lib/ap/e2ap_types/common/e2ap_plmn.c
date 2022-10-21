@@ -21,7 +21,23 @@
 
 
 #include "e2ap_plmn.h"
+
+#include <assert.h>
 #include <stddef.h>
+
+
+plmn_t cp_plmn(const plmn_t* src)
+{
+  assert(src != NULL);
+
+  plmn_t dst = {0};
+
+  dst.mcc = src->mcc;
+  dst.mnc = src->mnc;
+  dst.mnc_digit_len = src->mnc_digit_len;
+
+  return dst;
+}
 
 bool eq_plmn(const plmn_t* m0, const plmn_t* m1)
 {
@@ -40,3 +56,28 @@ bool eq_plmn(const plmn_t* m0, const plmn_t* m1)
 
   return true;
 }
+
+
+int cmp_plmn(const plmn_t* m0, const plmn_t* m1)
+{
+  assert(m0 != NULL);
+  assert(m1 != NULL);
+
+  if(m0->mcc < m1->mcc)
+    return -1;
+  else if(m0->mcc > m1->mcc )
+    return 1;
+
+  if(m0->mnc < m1->mnc)
+    return -1;
+  else if(m0->mnc > m1->mnc )
+    return 1;
+
+  if(m0->mnc_digit_len < m1->mnc_digit_len)
+    return -1;
+  else if(m0->mnc_digit_len  > m1->mnc_digit_len)
+    return 1;
+
+  return 0;
+}
+

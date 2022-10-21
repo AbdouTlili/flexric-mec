@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(flexric VERSION 0.0.1 LANGUAGES C)
+project(Flexric VERSION 0.0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -28,16 +28,43 @@ set_property(CACHE BUILDING_LIBRARY PROPERTY STRINGS "STATIC" "DYNAMIC")
 message(STATUS "Selected LIBRARY TYPE: ${BUILDING_LIBRARY}")
 
 
+########
+### xApp 
+########
+
+set(XAPP_DB "SQLITE3_XAPP" CACHE STRING "xApp DB")
+set_property(CACHE XAPP_DB PROPERTY STRINGS "SQLITE3_XAPP" "NONE_XAPP")
+message(STATUS "Selected xApp DB : ${XAPP_DB}")
+
+set(XAPP_DB_DIR "/tmp/" CACHE STRING "The xApp DB write directory")
+if(NOT XAPP_DB_DIR  MATCHES "/$")
+  message(FATAL_ERROR "xApp directory path needs to terminate in one / char")
+endif() 
+
+if(NOT EXISTS ${XAPP_DB_DIR})
+  message(FATAL_ERROR "Selected XAPP_DB_DIR does not exist. Please create it or change path")
+endif()
+
+message(STATUS "Selected xApp dir : ${XAPP_DB_DIR}")
+
+
+########
+### SANITIZER 
+########
+
 set(SANITIZER "NONE" CACHE STRING "Sanitizers")
 set_property(CACHE SANITIZER PROPERTY STRINGS "NONE" "ADDRESS" "THREAD")
 message(STATUS "Selected SANITIZER TYPE: ${SANITIZER}")
 
-if(SANITIZER STREQUAL "ADDRESS")
+if(${SANITIZER} STREQUAL "ADDRESS")
    add_compile_options("-fno-omit-frame-pointer;-fsanitize=address")
    add_link_options("-fsanitize=address")
-elseif(SANITIZER STREQUAL "THREAD")
+elseif(${SANITIZER} STREQUAL "THREAD")
   add_compile_options("-fsanitize=thread;-g;")
-  add_link_options("$-fsanitize=thread")
+  add_link_options("-fsanitize=thread")
+elseif(${SANITIZER} STREQUAL "STACK")
+  add_compile_options("-fstack-protector-all")
+  add_link_options("-fstack-protector-all")
 endif()
 
 option(CODE_COVERAGE "Code coverage" OFF)
@@ -56,16 +83,21 @@ if( CODE_PROFILER )
 endif()
 
 option(INCL_WHAT_YOU_USE "Include what you use tool: iwyu" OFF)
-if( INCL_WHAT_YOU_USE  )
+if(INCL_WHAT_YOU_USE)
   message(STATUS "IWYU: Include what you use ON")
 endif()
 
+#option(IAPP_EMULATOR "iApp emulator" OFF)
+#if(IAPP_EMULATOR)
+#  message(STATUS "iApp emulator ON")
+#endif()
 
 
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(BUILDING_LIBRARY STREQUAL "STATIC")
-  add_compile_options("-W;-Wall;-Wextra;-g")
+  add_compile_options("-W;-Wall;-Wextra;-g;-Wno-unused-result;-fopt-info")
 elseif(BUILDING_LIBRARY STREQUAL "DYNAMIC")
   # -fPIC flag
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -83,6 +115,13 @@ message(STATUS "Selected E2AP_ENCODING: ${E2AP_ENCODING}")
 #######
 ## Service Models 
 #######
+
+add_definitions(-DSERVICE_MODEL_DIR_PATH="${SM_DIR_PATH}/")
+
+# KPM service Model encoding definitions
+set(SM_ENCODING_KPM "ASN" CACHE STRING "The KPM SM encoding to use")
+set_property(CACHE SM_ENCODING_KPM PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
+message(STATUS "Selected KPM SM_ENCODING: ${SM_ENCODING_KPM}")
 
 # MAC Service Model
 set(SM_ENCODING_MAC "PLAIN" CACHE STRING "The MAC SM encoding to use")
@@ -104,8 +143,10 @@ set(SM_ENCODING_SLICE "PLAIN" CACHE STRING "The SLICE SM encoding to use")
 set_property(CACHE SM_ENCODING_SLICE PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
 message(STATUS "Selected SLICE SM_ENCODING: ${SM_ENCODING_SLICE}")
 
-
-
+# GTP Service Model
+set(SM_ENCODING_GTP "PLAIN" CACHE STRING "The GTP SM encoding to use")
+set_property(CACHE SM_ENCODING_GTP PROPERTY STRINGS "PLAIN")
+message(STATUS "Selected GTP SM_ENCODING: ${SM_ENCODING_GTP}")
 
 ########
 ### Flatbuffer 
@@ -121,12 +162,30 @@ if(E2AP_ENCODING STREQUAL "FLATBUFFERS")
     )
 endif()
 
-
+###
+# set install options
+###
+set(NEAR_RIC "FALSE" CACHE STRING "NEAR real time RIC install selection")
+set_property(CACHE NEAR_RIC PROPERTY STRINGS "TRUE" "FALSE")
+set(EMU_AGENT "FALSE" CACHE STRING "emulator of E2 agent")
+set_property(CACHE EMU_AGENT PROPERTY STRINGS "TRUE" "FALSE")
+set(XAPP_C "FALSE" CACHE STRING "XAPP in C install selection")
+set_property(CACHE XAPP_C PROPERTY STRINGS "TRUE" "FALSE")
+set(UNIT_TEST "TRUE" CACHE STRING "build test cases")
+set_property(CACHE UNIT_TEST PROPERTY STRINGS "TRUE" "FALSE")
 
 include_directories(src)
 add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(examples)
 
+if (UNIT_TEST)
+  add_subdirectory(test)
+endif ()
+
+
+
+# Build SWIG interface
+#add_subdirectory(src/xApp/swig)
 
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON )
 # For YouCompleteMe configuration
@@ -141,14 +200,53 @@ ENDIF()
 ###
 # Install the Service models
 ###
-install(TARGETS mac_sm DESTINATION /usr/lib/flexric)
-install(TARGETS rlc_sm DESTINATION /usr/lib/flexric)
-install(TARGETS pdcp_sm DESTINATION /usr/lib/flexric)
-install(TARGETS slice_sm DESTINATION /usr/lib/flexric)
+
+message(STATUS "install prefix path ${CMAKE_INSTALL_PREFIX}/flexric")
+include(GNUInstallDirs)
+install(TARGETS mac_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS rlc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS pdcp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS slice_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS tc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS gtp_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+install(TARGETS kpm_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
 
 ###
 # Install the configuration file
 ###
 
-install(FILES flexric.conf DESTINATION /usr/lib/flexric)
+install(FILES flexric.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/flexric)
+enable_testing()
+
+###
+# Install Near real-time RIC
+###
+if (NEAR_RIC)
+  install(TARGETS nearRT-RIC DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+###
+# Install Emulator Agent
+###
+if (EMU_AGENT)
+  install(TARGETS emu_agent_gnb emu_agent_gnb_cu emu_agent_gnb_du emu_agent_enb DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+###
+# Install Emulator Agent
+###
+if (XAPP_C)
+  install(TARGETS xapp_mac_rlc_pdcp_moni xapp_slice_moni_ctrl xapp_kpm_moni xapp_gtp_moni xapp_hw DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
+
+# make uninstall
+add_custom_target("uninstall" COMMENT "Uninstall installed files")
+add_custom_command(
+        TARGET "uninstall"
+        POST_BUILD
+        COMMENT "Uninstall files with install_manifest.txt"
+        COMMAND xargs rm -vf < install_manifest.txt || echo Nothing in
+        install_manifest.txt to be uninstalled!
+)
 

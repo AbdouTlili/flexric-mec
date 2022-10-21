@@ -78,7 +78,7 @@ void* assoc_reg_key(assoc_reg_t* reg, void* it);
 void* assoc_reg_value(assoc_reg_t* reg, void* it);
 
 // Erase the elements in the range
-void assoc_reg_erase(assoc_reg_t* reg, void* start_it, void* end_it);
+void assoc_reg_erase(assoc_reg_t* reg, void* start_it, void* end_it, void(free_func)(void*));
 
 //Capacity
 size_t assoc_reg_size(assoc_reg_t* reg);

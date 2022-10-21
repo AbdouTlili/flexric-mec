@@ -95,14 +95,12 @@ sm_ctrl_out_data_t on_control_slice_sm_ag(sm_agent_t* sm_agent, sm_ctrl_req_data
   assert(data != NULL);
   sm_slice_agent_t* sm = (sm_slice_agent_t*) sm_agent;
 
-
   sm_ag_if_wr_t wr = {.type = SLICE_CTRL_REQ_V0 };
   wr.slice_req_ctrl.hdr = slice_dec_ctrl_hdr(&sm->enc, data->len_hdr, data->ctrl_hdr);
   defer({ free_slice_ctrl_hdr(&wr.slice_req_ctrl.hdr ); });
 
   wr.slice_req_ctrl.msg = slice_dec_ctrl_msg(&sm->enc, data->len_msg, data->ctrl_msg);
   defer({ free_slice_ctrl_msg(&wr.slice_req_ctrl.msg); });
-   
 
   sm_ag_if_ans_t ans = sm->base.io.write(&wr);
   assert(ans.type == SLICE_AGENT_IF_CTRL_ANS_V0);

@@ -613,12 +613,82 @@ void e2ap_free_node_connection_update_failure(e2_node_connection_update_failure_
   }
 }
 
-/*
-void e2ap_msg_free(e2ap_free_fp (*free_msg)[26], e2ap_msg_t* msg)
+// xApp -> iApp
+void e2ap_free_e42_setup_request_msg(e2ap_msg_t* msg)
 {
   assert(msg != NULL);
-  const e2_msg_type_t msg_type = msg->type;   
-  (*free_msg)[msg_type](msg); 
+  assert(msg->type == E42_SETUP_REQUEST);
+  e2ap_free_e42_setup_request(&msg->u_msgs.e42_stp_req);
 }
-*/
+
+void e2ap_free_e42_setup_request(e42_setup_request_t* sr) 
+{
+  assert(sr != NULL);
+  for(size_t i = 0; i < sr->len_rf; ++i){
+    ran_function_t* dst = &sr->ran_func_item[i];
+    free_byte_array(dst->def);
+    free_ba_if_not_null(dst->oid);
+  }
+  free(sr->ran_func_item);
+}
+
+// iApp -> xApp
+void e2ap_free_e42_setup_response_msg(e2ap_msg_t* msg)
+{
+  assert(msg != NULL);
+  assert(msg->type == E42_SETUP_RESPONSE);
+  e2ap_free_e42_setup_response(&msg->u_msgs.e42_stp_resp);
+}
+ 
+void e2ap_free_e42_setup_response(e42_setup_response_t* sr) 
+{
+  assert(sr != NULL);
+
+  for(size_t i = 0; i < sr->len_e2_nodes_conn; ++i){
+    e2_node_connected_t* n = &sr->nodes[i];
+      free_e2_node_connected(n);
+  }
+  free(sr->nodes);
+}
+
+void e2ap_free_e42_ric_subscription_request_msg(e2ap_msg_t* msg)
+{
+  assert(msg != NULL);
+  assert(msg->type == E42_RIC_SUBSCRIPTION_REQUEST);
+  e2ap_free_e42_ric_subscription_request(&msg->u_msgs.e42_ric_sub_req);
+}
+
+void e2ap_free_e42_ric_subscription_request(e42_ric_subscription_request_t* e42_sr)
+{
+  assert(e42_sr != NULL);
+  e2ap_free_subscription_request(&e42_sr->sr);
+  free_global_e2_node_id(&e42_sr->id);
+}
+
+void e2ap_free_e42_ric_subscription_delete_request_msg(e2ap_msg_t* msg)
+{
+  assert(msg != NULL);
+  assert(msg->type == E42_RIC_SUBSCRIPTION_DELETE_REQUEST);
+  e2ap_free_e42_ric_subscription_delete_request(&msg->u_msgs.e42_ric_sub_del_req);
+}
+
+void e2ap_free_e42_ric_subscription_delete_request(e42_ric_subscription_delete_request_t* e42_sr)
+{
+  assert(e42_sr != NULL);
+  e2ap_free_subscription_delete_request(&e42_sr->sdr);
+}
+
+void e2ap_free_e42_ric_control_request_msg(e2ap_msg_t* msg)
+{
+  assert(msg != NULL);
+  assert(msg->type == E42_RIC_CONTROL_REQUEST);
+  e2ap_free_e42_ric_control_request(&msg->u_msgs.e42_ric_ctrl_req);
+}
+
+void e2ap_free_e42_ric_control_request(e42_ric_control_request_t* e42_ctrl)
+{
+  assert(e42_ctrl != NULL);
+  e2ap_free_control_request(&e42_ctrl->ctrl_req);
+  free_global_e2_node_id(&e42_ctrl->id);
+}
 

@@ -5,10 +5,12 @@ import sys
 
 def gen_asn(pdf_file):
     cmd_totxt = "pdftotext -layout " + pdf_file + " /tmp/tmp.txt"
+    # E42 diff file with a w at the end so that ed can write
+    cmd_toE42 = "patch e2ap-v01.01.asn1 e42.patch"
     cmd_toasn = 'asn1c -gen-PER -no-gen-OER -fcompound-names -no-gen-example -findirect-choice -fno-include-deps e2ap-v01.01.asn1'
 
-    os.system(cmd_totxt)
 
+    os.system(cmd_totxt)
 
     fd_o = open('e2ap-v01.01.asn1', 'w' )
     fd_i = open('/tmp/tmp.txt', 'r')
@@ -75,6 +77,9 @@ def gen_asn(pdf_file):
     # Closing files
     fd_i.close()
     fd_o.close()
+
+    # E42 script
+    os.system(cmd_toE42)
 
     # ASN.1 Compiler
     os.system(cmd_toasn)

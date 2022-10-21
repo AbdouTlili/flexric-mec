@@ -19,21 +19,16 @@
  *      contact@openairinterface.org
  */
 
-
-
-#include "e2_agent.h"
-
 #include "asio_agent.h"
-#include "msg_handler_agent.h"
+#include "e2_agent.h"
 #include "endpoint_agent.h"
-#include "async_event_agent.h"
-
+#include "msg_handler_agent.h"
+#include "not_handler_agent.h"
+#include "lib/async_event.h"
 #include "lib/ap/e2ap_ap.h"
 #include "lib/ap/free/e2ap_msg_free.h"
-
 #include "sm/mac_sm/mac_sm_agent.h"
 #include "sm/rlc_sm/rlc_sm_agent.h"
-
 #include "util/alg_ds/alg/alg.h"
 #include "util/compare.h"
 
@@ -46,7 +41,7 @@ e2_setup_request_t generate_setup_request(e2_agent_t* ag)
   assert(ag != NULL);
 
   const size_t len_rf = assoc_size(&ag->plugin.sm_ds);
-  assert(len_rf > 0 && "No RAN function/service model registered. Check if the Service Models are at the /usr/lib/flexric/ path");
+  assert(len_rf > 0 && "No RAN function/service model registered. Check if the Service Models are located at shared library paths, default location is /usr/local/flexric/");
 
   ran_function_t* ran_func = calloc(len_rf, sizeof(*ran_func));
   assert(ran_func != NULL);
@@ -149,16 +144,38 @@ void init_pending_events(e2_agent_t* ag)
 }
 
 static inline
+void free_ind_event(void* key, void* value)
+{
+  assert(key != NULL);
+  assert(value != NULL);
+
+  (void)key;
+
+  ind_event_t* ev = (ind_event_t* )value;
+  free(ev);
+}
+
+static inline
+void free_key(void* key, void* value)
+{
+  assert(key != NULL);
+  assert(value != NULL);
+
+  (void)key;
+
+  int* fd = (int* )value;
+  free(fd);
+}
+
+
+static inline
 void init_indication_event(e2_agent_t* ag)
 {
   assert(ag != NULL);
   size_t key_sz_fd = sizeof(int);
   size_t key_sz_ind = sizeof(ind_event_t);
 
-  free_func_t free_key = NULL;
-  free_func_t free_ind_event = NULL;
-
-  bi_map_init(&ag->ind_event, key_sz_fd, key_sz_ind, cmp_fd, cmp_ind_event, free_key, free_ind_event);
+  bi_map_init(&ag->ind_event, key_sz_fd, key_sz_ind, cmp_fd, cmp_ind_event, free_ind_event, free_key);
 }
 
 static inline
@@ -173,7 +190,6 @@ void* ind_fd(e2_agent_t* ag, int fd)
   void* it = find_if(&ag->ind_event.left, start_it, end_it, &fd, eq_fd );
   return it;
 }
-
 
 static inline
 bool net_pkt(const e2_agent_t* ag, int fd)
@@ -196,7 +212,6 @@ bool ind_event(e2_agent_t* ag, int fd, ind_event_t** i_ev)
     return false;
 }
 
-
 static inline
 bool pend_event(e2_agent_t* ag, int fd, pending_event_t** p_ev)
 {
@@ -216,6 +231,7 @@ bool pend_event(e2_agent_t* ag, int fd, pending_event_t** p_ev)
   return *p_ev != NULL;
 }
 
+/*
 static
 async_event_t find_event_type(e2_agent_t* ag, int fd)
 {
@@ -233,6 +249,7 @@ async_event_t find_event_type(e2_agent_t* ag, int fd)
   }
   return e;
 }
+*/
 
 static
 void consume_fd(int fd)
@@ -244,71 +261,124 @@ void consume_fd(int fd)
 }
 
 static
+async_event_t next_async_event_agent(e2_agent_t* ag)
+{
+  assert(ag != NULL);
+
+  int const fd = event_asio_agent(&ag->io);
+
+  async_event_t e = {.type = UNKNOWN_EVENT,
+                     .fd = fd};
+
+  if(fd == -1){ // no event happened. Just for checking the stop_token condition
+    e.type = CHECK_STOP_TOKEN_EVENT;
+  } else if (net_pkt(ag, fd) == true){
+
+    e.msg = e2ap_recv_msg_agent(&ag->ep);
+    if(e.msg.type == SCTP_MSG_NOTIFICATION){
+      e.type = SCTP_CONNECTION_SHUTDOWN_EVENT;
+    } else if (e.msg.type == SCTP_MSG_PAYLOAD){
+       e.type = SCTP_MSG_ARRIVED_EVENT;
+    } else { 
+      assert(0!=0 && "Unknown type");
+    }
+
+  } else if (ind_event(ag, fd, &e.i_ev) == true) {
+    e.type = INDICATION_EVENT;
+  } else if (pend_event(ag, fd, &e.p_ev) == true){
+    e.type = PENDING_EVENT;
+  } else {
+    assert(0!=0 && "Unknown event happened!");
+  }
+  return e;
+}
+
+static
 void e2_event_loop_agent(e2_agent_t* ag)
 {
   assert(ag != NULL);
-  while (ag->stop_token == false) {
-    int fd = event_asio_agent(&ag->io);
-    if(fd == -1) continue; // no event happened. Just for checking the stop_token condition
+  while(ag->stop_token == false){
 
-    async_event_t const e = find_event_type(ag,fd);
-
+    async_event_t e = next_async_event_agent(ag); 
     assert(e.type != UNKNOWN_EVENT && "Unknown event triggered ");
 
-    if(e.type == NETWORK_EVENT ){ 
+    switch(e.type){
+      case SCTP_MSG_ARRIVED_EVENT:
+        {
+          defer({free_sctp_msg(&e.msg);});
 
-      byte_array_t ba = e2ap_recv_msg_agent(&ag->ep);
-      defer( {free_byte_array(ba);} );
+          e2ap_msg_t msg = e2ap_msg_dec_ag(&ag->ap, e.msg.ba);
+          defer( { e2ap_msg_free_ag(&ag->ap, &msg);} );
 
-      e2ap_msg_t msg = e2ap_msg_dec_ag(&ag->ap, ba);
-      defer( { e2ap_msg_free_ag(&ag->ap, &msg);} );
+          e2ap_msg_t ans = e2ap_msg_handle_agent(ag, &msg);
+          defer( { e2ap_msg_free_ag(&ag->ap, &ans);} );
 
-      e2ap_msg_t ans = e2ap_msg_handle_agent(ag, &msg);
-      defer( { e2ap_msg_free_ag(&ag->ap, &ans);} );
+          if(ans.type != NONE_E2_MSG_TYPE){
+            byte_array_t ba_ans = e2ap_msg_enc_ag(&ag->ap, &ans); 
+            defer ({free_byte_array(ba_ans); } );
 
-      if(ans.type != NONE_E2_MSG_TYPE){
-        byte_array_t ba_ans = e2ap_msg_enc_ag(&ag->ap, &ans); 
-        defer ({free_byte_array(ba_ans); } );
+            e2ap_send_bytes_agent(&ag->ep, ba_ans);
+          }
 
-        e2ap_send_bytes_agent(&ag->ep, ba_ans);
-      }
-    } else if(e.type == INDICATION_EVENT){
+          break;
+        }
+      case INDICATION_EVENT:
+        {
+          sm_agent_t* sm = e.i_ev->sm;
+          sm_ind_data_t data = sm->proc.on_indication(sm);
 
-      sm_agent_t* sm = e.i_ev->sm;
-      sm_ind_data_t data = sm->proc.on_indication(sm);
+          ric_indication_t ind = generate_indication(ag, &data, e.i_ev);
+          defer({ e2ap_free_indication(&ind); } );
 
-      ric_indication_t ind = generate_indication(ag, &data, e.i_ev);
-      defer({ e2ap_free_indication(&ind); } );
+          byte_array_t ba = e2ap_enc_indication_ag(&ag->ap, &ind); 
+          defer({ free_byte_array(ba); } );
 
-      byte_array_t ba = e2ap_enc_indication_ag(&ag->ap, &ind); 
-      defer({ free_byte_array(ba); } );
-      
-      e2ap_send_bytes_agent(&ag->ep, ba);
+          e2ap_send_bytes_agent(&ag->ep, ba);
 
-      consume_fd(fd);
-    } else if(e.type == PENDING_EVENT){
-      assert(*e.p_ev == SETUP_REQUEST_PENDING_EVENT && "Unforeseen pending event happened!" );
+          consume_fd(e.fd);
 
-      // Resend the subscription request message
-      e2_setup_request_t sr = generate_setup_request(ag); 
-      defer({ e2ap_free_setup_request(&sr); } );
+          break;
+        }
+      case PENDING_EVENT:
+        {
+          assert(*e.p_ev == SETUP_REQUEST_PENDING_EVENT && "Unforeseen pending event happened!" );
 
-      printf("[E2AP] Resending Setup Request after timeout\n");
-      byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
-      defer({ free_byte_array(ba); } ); 
+          // Resend the subscription request message
+          e2_setup_request_t sr = generate_setup_request(ag); 
+          defer({ e2ap_free_setup_request(&sr); } );
 
-      e2ap_send_bytes_agent(&ag->ep, ba);
+          printf("[E2AP] Resending Setup Request after timeout\n");
+          byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
+          defer({ free_byte_array(ba); } ); 
 
-      consume_fd(fd);
-    } else {
-      assert(0!=0 && "An interruption that it is not a network pkt, an indication event or a timer expired pending event happened!");
+          e2ap_send_bytes_agent(&ag->ep, ba);
+
+          consume_fd(e.fd);
+
+          break;
+        }
+      case SCTP_CONNECTION_SHUTDOWN_EVENT: 
+        {
+          notification_handle_ag(ag, &e.msg);
+          break;
+        }
+      case CHECK_STOP_TOKEN_EVENT:
+        {
+          break;
+        }
+      default:
+        {
+          assert(0!=0 && "Unknown event happened");
+          break;
+        }
     }
-
   }
+
+  printf("ag->agent_stopped = true \n");
   ag->agent_stopped = true;
 }
 
-e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io)
+e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid, sm_io_ag_t io, fr_args_t const* args)
 {
   assert(addr != NULL);
   assert(port > 0 && port < 65535);
@@ -328,7 +398,7 @@ e2_agent_t* e2_init_agent(const char* addr, int port, global_e2_node_id_t ge2nid
 
   init_handle_msg_agent(&ag->handle_msg);
 
-  init_plugin_ag(&ag->plugin, "/usr/lib/flexric/", io);
+  init_plugin_ag(&ag->plugin, args->libs_dir, io);
 
   init_pending_events(ag);
 
@@ -346,23 +416,20 @@ void e2_start_agent(e2_agent_t* ag)
 {
   assert(ag != NULL);
 
-//  e2_gen_send_setup_request(ag);
   // Resend the subscription request message
   e2_setup_request_t sr = generate_setup_request(ag); 
   defer({ e2ap_free_setup_request(&sr);  } );
 
-
-  printf("[E2AP] Sending setup request\n");
+  printf("[E2-AGENT]: Sending setup request\n");
   byte_array_t ba = e2ap_enc_setup_request_ag(&ag->ap, &sr); 
   defer({free_byte_array(ba); } ); 
 
   e2ap_send_bytes_agent(&ag->ep, ba);
 
-
-  // A pending event is created along with a timer of 1000 ms,
+  // A pending event is created along with a timer of 3000 ms,
   // after which an event will be generated
   pending_event_t ev = SETUP_REQUEST_PENDING_EVENT;
-  long const wait_ms = 1000;
+  long const wait_ms = 3000;
   int fd_timer = create_timer_ms_asio_agent(&ag->io, wait_ms, wait_ms); 
   //printf("fd_timer with value created == %d\n", fd_timer);
 

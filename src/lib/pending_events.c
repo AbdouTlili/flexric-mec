@@ -42,8 +42,10 @@ int cmp_pending_event(void const* pend_v1, void const* pend_v2)
 bool valid_pending_event(pending_event_t ev)
 {
   assert(ev == SETUP_REQUEST_PENDING_EVENT
-          || ev == SUBSCRIPTION_REQUEST_EVENT
-          || ev == SUBSCRIPTION_DELETE_REQUEST_EVENT);
+          || ev == SUBSCRIPTION_REQUEST_PENDING_EVENT
+          || ev == SUBSCRIPTION_DELETE_REQUEST_PENDING_EVENT
+          || ev == E42_SETUP_REQUEST_PENDING_EVENT
+          );
   return true;
-
 }
+

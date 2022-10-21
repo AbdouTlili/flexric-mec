@@ -90,4 +90,6 @@ typedef struct {
 
 bool eq_cause(const cause_t* m0, const cause_t* m1);
 
+cause_t cp_cause(cause_t const* src);
+
 #endif

@@ -60,6 +60,8 @@ sm_subs_data_t on_subscription_rlc_sm_ric(sm_ric_t const* sm_ric, const char* cm
     ev.ms = 2;
   } else if (strncmp(cmd, "5_ms", max_str_sz) == 0 ) {
     ev.ms = 5;
+  } else if (strncmp(cmd, "10_ms", max_str_sz) == 0 ) {
+    ev.ms = 10;
   } else {
     assert(0 != 0 && "Invalid input");
   }
@@ -79,7 +81,7 @@ sm_subs_data_t on_subscription_rlc_sm_ric(sm_ric_t const* sm_ric, const char* cm
 }
 
 static
- sm_ag_if_rd_t on_indication_rlc_sm_ric(sm_ric_t const* sm_ric, sm_ind_data_t* data)
+sm_ag_if_rd_t on_indication_rlc_sm_ric(sm_ric_t const* sm_ric, sm_ind_data_t* data)
 {
   assert(sm_ric != NULL); 
   assert(data != NULL); 
