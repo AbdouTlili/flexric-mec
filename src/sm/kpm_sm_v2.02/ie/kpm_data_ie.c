@@ -42,7 +42,7 @@ void free_kpm_action_def(kpm_action_def_t* src)
       free_label_info(&src->MeasInfo[i].labelInfo[j]);
     free(src->MeasInfo[i].labelInfo);
         
-    if (src->MeasInfo[i].measType == MeasurementType_NAME)
+    if (src->MeasInfo[i].meas_type == KPM_V2_MEASUREMENT_TYPE_NAME)
       free_byte_array(src->MeasInfo[i].measName);
   }
   
@@ -77,7 +77,7 @@ void free_kpm_ind_msg(kpm_ind_msg_t* src)
   if (src->MeasInfo != NULL){
     for (i=0; i<src->MeasInfo_len; i++)
     {
-      if (src->MeasInfo[i].measType == MeasurementType_NAME)
+      if (src->MeasInfo[i].meas_type ==  KPM_V2_MEASUREMENT_TYPE_NAME)
         free_byte_array(src->MeasInfo[i].measName);
       for (size_t j = 0; j< src->MeasInfo[i].labelInfo_len; j++)
         free_label_info(&src->MeasInfo[i].labelInfo[j]);
@@ -147,8 +147,8 @@ kpm_ind_msg_t cp_kpm_ind_msg(kpm_ind_msg_t const* src) {
       memcpy (ret.MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo, src->MeasInfo[i].labelInfo_len * sizeof(adapter_LabelInfoItem_t));
       for (size_t j = 0; j < src->MeasInfo[i].labelInfo_len; j++)
       {
-        ret.MeasInfo[i].measType = src->MeasInfo[i].measType;
-        if (ret.MeasInfo[i].measType == MeasurementType_NAME)
+        ret.MeasInfo[i].meas_type = src->MeasInfo[i].meas_type;
+        if (ret.MeasInfo[i].meas_type == KPM_V2_MEASUREMENT_TYPE_NAME)
           ret.MeasInfo[i].measName = copy_byte_array(src->MeasInfo[i].measName);
         else 
           ret.MeasInfo[i].measID = src->MeasInfo[i].measID;
@@ -224,7 +224,7 @@ void cp_label_info(adapter_LabelInfoItem_t *dst, adapter_LabelInfoItem_t const *
   }
   if (src->plmnID != NULL) {
     dst->plmnID = malloc(sizeof(*(dst->plmnID)));
-    copy_byte_array(*(src->plmnID));
+    *dst->plmnID = copy_byte_array(*(src->plmnID));
   } else {
     assert (0!=0 && "Programming error: should be null as the remaining fileds have not been implemented yet");
   }

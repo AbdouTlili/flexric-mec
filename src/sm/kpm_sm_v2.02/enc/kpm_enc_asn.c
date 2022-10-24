@@ -72,8 +72,8 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
   assert(action_def != NULL);
   E2SM_KPM_ActionDefinition_t *pdu = calloc(1, sizeof(E2SM_KPM_ActionDefinition_t));
   assert (pdu != NULL && "Memory exhausted");
-  
-  assert ((action_def->ric_style_type > 5 || action_def->ric_style_type < 1) == false && 
+ 
+  assert ((action_def->ric_style_type > 0 && action_def->ric_style_type < 6) && 
           "Not valid RIC style Type"); // range defined in $7.4.1
   pdu->ric_Style_Type = action_def->ric_style_type;
   
@@ -94,7 +94,11 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
       {
         MeasurementInfoItem_t *mInfo = calloc(1, sizeof(MeasurementInfoItem_t));
         assert (mInfo != NULL && "Memory exhausted");
-        mInfo->measType.present = action_def->MeasInfo[i].measType;
+        const meas_type_e meas_type =  action_def->MeasInfo[i].meas_type;
+        assert(meas_type == KPM_V2_MEASUREMENT_TYPE_NAME || meas_type == KPM_V2_MEASUREMENT_TYPE_ID  );
+
+        mInfo->measType.present = meas_type == KPM_V2_MEASUREMENT_TYPE_NAME 
+                                               ? MeasurementType_PR_measName : MeasurementType_PR_measID; 
         if (mInfo->measType.present == MeasurementType_PR_measName){
           ret = OCTET_STRING_fromBuf( &(mInfo->measType.choice.measName), 
                                       (char *)action_def->MeasInfo[i].measName.buf, 
@@ -119,31 +123,42 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
 
       // 2. granular period
       adf_p->granulPeriod = action_def->granularity_period;
-      
+     
+      cell_global_id_t const cell_global_id = action_def->cell_global_id; 
       // 3. cell Global ID (optional)
-      if (action_def->cellGlobalIDtype == choice_NOTHING)
-        break;
-
-      adf_p->cellGlobalID->present = action_def->cellGlobalIDtype;
-      if (action_def->cellGlobalIDtype == choice_nR_CGI) {
+      if (cell_global_id == KPMV2_CELL_ID_CHOICE_NOTHING){
+        break; // 
+        // FIX ME this is a bug. cellGlobalID needs to be heap allocated rather than using a break
+        adf_p->cellGlobalID->present = CGI_PR_NOTHING;
+      } else if (cell_global_id == KPMV2_CELL_ID_CHOICE_NR_CGI) {
+        adf_p->cellGlobalID->present = CGI_PR_nR_CGI;
           ret = OCTET_STRING_fromBuf( &adf_p->cellGlobalID->choice.nR_CGI->pLMNIdentity, 
                                       (const char *)action_def->pLMNIdentity.buf, 
                                       action_def->pLMNIdentity.len);
           assert(ret == 0);
+          // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
           defer({OCTET_STRING_free(&asn_DEF_PLMNIdentity, &adf_p->cellGlobalID->choice.nR_CGI->pLMNIdentity, ASFM_FREE_UNDERLYING);});
 
           NR_CELL_ID_TO_BIT_STRING(action_def->nRCellIdentity, &adf_p->cellGlobalID->choice.nR_CGI->nRCellIdentity);
 	        defer({BIT_STRING_free(&asn_DEF_NRCellIdentity, &adf_p->cellGlobalID->choice.nR_CGI->nRCellIdentity, ASFM_FREE_UNDERLYING);});
-      } else if (action_def->cellGlobalIDtype == choice_eUTRA_CGI){
+
+      } else if (cell_global_id == KPMV2_CELL_ID_CHOICE_EUTRA_CGI ){
+        adf_p->cellGlobalID->present = CGI_PR_eUTRA_CGI;
         ret = OCTET_STRING_fromBuf(&adf_p->cellGlobalID->choice.eUTRA_CGI->pLMNIdentity, 
                                    (const char *)action_def->pLMNIdentity.buf, 
                                    action_def->pLMNIdentity.len);
         assert(ret == 0);
+
+        // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
         defer({OCTET_STRING_free(&asn_DEF_PLMNIdentity, &adf_p->cellGlobalID->choice.eUTRA_CGI->pLMNIdentity, ASFM_FREE_UNDERLYING);});
 
         NR_CELL_ID_TO_BIT_STRING(action_def->eUTRACellIdentity, &adf_p->cellGlobalID->choice.eUTRA_CGI->eUTRACellIdentity);
 	      defer({BIT_STRING_free(&asn_DEF_EUTRACellIdentity, &adf_p->cellGlobalID->choice.eUTRA_CGI->eUTRACellIdentity, ASFM_FREE_UNDERLYING);});
+
+      } else {
+        assert(0!=0 && "Unknown cellGlobalIDtype");
       }
+
       break;
     default: 
       assert(0!=0 && "Unexpected action definition format. Only type 1 is suppoorted");
@@ -152,6 +167,8 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
   /* XXX-tuning: 
    * below bytearray sizing needs to be reviewed and made dynamic. It looks too small for the general case of action definition.
    */
+
+  // FIXME Create one function for encoding common to all the methods.
   byte_array_t ba = {.buf = malloc(2048), .len = 2048}; 
   const enum asn_transfer_syntax syntax = ATS_ALIGNED_BASIC_PER;
   asn_enc_rval_t er = asn_encode_to_buffer(NULL, syntax, &asn_DEF_E2SM_KPM_ActionDefinition, pdu, ba.buf, ba.len);
@@ -171,7 +188,7 @@ byte_array_t kpm_enc_action_def_asn(kpm_action_def_t const* action_def)
 byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
 {
   assert(ind_hdr != NULL);
-
+  // FIXME: Do not allocate heap memory. Use the stack. This applies to all the functions
   E2SM_KPM_IndicationHeader_t *pdu = calloc(1,sizeof(E2SM_KPM_IndicationHeader_t));
   assert( pdu !=NULL && "Memory exhausted" );
 
@@ -183,6 +200,7 @@ byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
   INT32_TO_OCTET_STRING(ts, &ih_p->colletStartTime);
   int ret;
   if (ind_hdr->fileFormatversion != NULL){
+        // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
     ret = OCTET_STRING_fromBuf(ih_p->fileFormatversion, 
                               (const char *)ind_hdr->fileFormatversion->buf, 
                               ind_hdr->fileFormatversion->len);
@@ -191,6 +209,7 @@ byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
   }
 
   if (ind_hdr->senderName != NULL){
+        // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
     ret = OCTET_STRING_fromBuf(ih_p->senderName, 
                               (const char *)ind_hdr->senderName->buf, 
                               ind_hdr->senderName->len);
@@ -199,6 +218,8 @@ byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
   }
 
   if (ind_hdr->senderType != NULL){
+
+        // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
     ret = OCTET_STRING_fromBuf(ih_p->senderType, 
                               (const char *)ind_hdr->senderType->buf, 
                               ind_hdr->senderType->len);
@@ -207,6 +228,8 @@ byte_array_t kpm_enc_ind_hdr_asn(kpm_ind_hdr_t const* ind_hdr)
   }
 
 	if (ind_hdr->vendorName != NULL) {
+
+        // FIXME These all are bugs. The memory is freed when it goes out of scope, and thus, nothing is written
     ret = OCTET_STRING_fromBuf(ih_p->vendorName, 
                               (const char *)ind_hdr->vendorName->buf, 
                               ind_hdr->vendorName->len);
@@ -263,17 +286,20 @@ byte_array_t kpm_enc_ind_msg_asn(kpm_ind_msg_t const* ind_msg)
       switch (ind_msg->MeasData[i].measRecord[j].type){
         case MeasRecord_int:
           mRecord->choice.integer = ind_msg->MeasData[i].measRecord[j].int_val;
+          mRecord->present = MeasurementRecordItem_PR_integer;
           break;
         case MeasRecord_real:
+          mRecord->present = MeasurementRecordItem_PR_real;
           mRecord->choice.real = ind_msg->MeasData[i].measRecord[j].real_val;
           break;
         case MeasRecord_noval:
+          mRecord->present = MeasurementRecordItem_PR_noValue;
           mRecord->choice.noValue = 0;
           break;
         default:
           assert(0!= 0 && "unexpected Record type");
       }
-      mRecord->present = ind_msg->MeasData[i].measRecord[j].type;
+
       int rc1 = ASN_SEQUENCE_ADD(&mData->measRecord.list, mRecord);
       assert(rc1 == 0);
     }
@@ -290,20 +316,22 @@ byte_array_t kpm_enc_ind_msg_asn(kpm_ind_msg_t const* ind_msg)
       MeasurementInfoItem_t *mInfo = calloc(1, sizeof(MeasurementInfoItem_t));
       assert (mInfo != NULL && "Memory exhausted");
       int ret1;
-      switch (ind_msg->MeasInfo[i].measType){
-        case MeasurementType_NAME:
+      switch (ind_msg->MeasInfo[i].meas_type){
+        case KPM_V2_MEASUREMENT_TYPE_NAME:
+          mInfo->measType.present = MeasurementType_PR_measName;
           ret1 = OCTET_STRING_fromBuf(&mInfo->measType.choice.measName, 
                                           (const char *)ind_msg->MeasInfo[i].measName.buf, 
                                           ind_msg->MeasInfo[i].measName.len);
           assert(ret1 == 0);
           break;
-        case MeasurementType_ID:
+        case  KPM_V2_MEASUREMENT_TYPE_ID:
+          mInfo->measType.present = MeasurementType_PR_measID;
           mInfo->measType.choice.measID = ind_msg->MeasInfo[i].measID;
           break;
         default:
             assert(0!= 0 && "unexpected Measurement type");
       }
-      mInfo->measType.present = ind_msg->MeasInfo[i].measType;
+
       for (size_t j=0; j<ind_msg->MeasInfo[i].labelInfo_len; j++)
       {
         LabelInfoItem_t *lInfo = cp_label_info_item_into_asn(&ind_msg->MeasInfo[i].labelInfo[j]);

@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.15) # setting this is required
 project(tc_sm)            # this sets the project name
 
 
-set(SM_ENCODING "PLAIN" CACHE STRING "The E2AP encoding to use")
-set_property(CACHE SM_ENCODING PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
-message(STATUS "Selected SM_ENCODING: ${SM_ENCODING}")
+set(SM_ENCODING_TC "PLAIN" CACHE STRING "The E2AP encoding to use")
+set_property(CACHE SM_ENCODING_TC PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
+message(STATUS "Selected SM_ENCODING: ${SM_ENCODING_TC}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../util)
 
 
-if(SM_ENCODING STREQUAL "PLAIN")
+if(SM_ENCODING_TC STREQUAL "PLAIN")
   add_library(tc_sm SHARED
                       ../sm_proc_data.c 
                       tc_sm_agent.c 
@@ -26,7 +26,7 @@ if(SM_ENCODING STREQUAL "PLAIN")
                       ie/tc_data_ie.c 
                       )
 
-elseif(SM_ENCODING STREQUAL "ASN" )
+elseif(SM_ENCODING_TC STREQUAL "ASN" )
 
   add_subdirectory(ie/asn)
 
@@ -46,7 +46,7 @@ elseif(SM_ENCODING STREQUAL "ASN" )
   target_compile_options(tc_sm PUBLIC "-DASN_DISABLE_OER_SUPPORT")
   target_compile_options(tc_sm PRIVATE -Wno-missing-field-initializers -Wno-unused-parameter)
 
-elseif(SM_ENCODING STREQUAL "FLATBUFFERS" )
+elseif(SM_ENCODING_TC STREQUAL "FLATBUFFERS" )
   add_library(tc_sm SHARED
                       ../sm_proc_data.c 
                       tc_sm_agent.c 
@@ -60,6 +60,6 @@ else()
 
 endif()
 
-target_compile_definitions(tc_sm PUBLIC ${SM_ENCODING})
+target_compile_definitions(tc_sm PUBLIC ${SM_ENCODING_TC})
 
 

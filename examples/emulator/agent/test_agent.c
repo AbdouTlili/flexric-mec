@@ -81,6 +81,18 @@ sm_ag_if_ans_t write_RAN(sm_ag_if_wr_t const* data)
 
     sm_ag_if_ans_t ans = {.type =  SLICE_AGENT_IF_CTRL_ANS_V0};
     return ans;
+  } else  if(data->type == TC_CTRL_REQ_V0){
+    tc_ctrl_req_data_t const* ctrl = &data->tc_req_ctrl;
+
+    tc_ctrl_msg_e const t = ctrl->msg.type;
+
+    assert(t == TC_CTRL_SM_V0_CLS || t == TC_CTRL_SM_V0_PLC 
+          || t == TC_CTRL_SM_V0_QUEUE || t ==TC_CTRL_SM_V0_SCH 
+          || t == TC_CTRL_SM_V0_SHP || t == TC_CTRL_SM_V0_PCR);
+
+    sm_ag_if_ans_t ans = {.type =  TC_AGENT_IF_CTRL_ANS_V0};
+    return ans;
+
   } else {
     assert(0 != 0 && "Not supported function ");
   }

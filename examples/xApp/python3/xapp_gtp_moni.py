@@ -36,9 +36,12 @@ for i in range(0, len(conn)):
 #### GTP INDICATION
 ####################
 
+gtp_hndlr = []
+
 for i in range(0, len(conn)):
     gtp_cb = GTPCallback()
-    ric.report_gtp_sm(conn[i].id, ric.Interval_ms_1, gtp_cb)
+    hndlr = ric.report_gtp_sm(conn[i].id, ric.Interval_ms_1, gtp_cb)
+    gtp_hndlr.append(hndlr)
     time.sleep(1)
 
 
@@ -46,8 +49,10 @@ time.sleep(10)
 
 ### End
 
-ric.rm_report_gtp_sm()
+for i in range(0, len(gtp_hndlr)):
+    ric.rm_report_gtp_sm(gtp_hndlr[i])
 
 # Avoid deadlock. ToDo revise architecture 
 while ric.try_stop == 0:
     time.sleep(1)
+

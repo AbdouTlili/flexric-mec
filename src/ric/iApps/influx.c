@@ -194,20 +194,20 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
         assert(rc != -1);
       }
 
-      if (curMeasInfo->measType == MeasurementType_ID){
+      if (curMeasInfo->meas_type == KPM_V2_MEASUREMENT_TYPE_ID){
         memset(stats, 0, sizeof(stats));
         int rc = snprintf(stats, max,
                           ",MeasInfo[%zu]"
                           ",measType=%d"
                           ",measID=%ld"
                           , i
-                          , curMeasInfo->measType
+                          , curMeasInfo->meas_type
                           , curMeasInfo->measID
                           );
         assert(rc < (int)max && "Not enough space in the char array to write all the data");
         rc = sendto(sockfd, stats, strlen(stats),  MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
         assert(rc != -1);
-      } else if (curMeasInfo->measType == MeasurementType_NAME){
+      } else if (curMeasInfo->meas_type == KPM_V2_MEASUREMENT_TYPE_NAME){
         memset(stats, 0, sizeof(stats));
         int rc = snprintf(stats, max,
                           ",MeasInfo[%zu]"
@@ -215,7 +215,7 @@ void notify_influx_listener(sm_ag_if_rd_t const* data)
                           ",measName->len=%zu"
                           ",measName->buf=%s"
                           , i
-                          , curMeasInfo->measType
+                          , curMeasInfo->meas_type
                           , curMeasInfo->measName.len
                           , curMeasInfo->measName.buf
                           );

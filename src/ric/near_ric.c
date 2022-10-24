@@ -336,7 +336,9 @@ bool pend_event(near_ric_t* ric, int fd, pending_event_t** p_ev)
   assert(ric != NULL);
   assert(fd > 0);
   assert(*p_ev == NULL);
-  
+ 
+  {
+  lock_guard(&ric->pend_mtx);
   assert(bi_map_size(&ric->pending) == 1 );
 
   void* start_it = assoc_front(&ric->pending.left);
@@ -346,6 +348,7 @@ bool pend_event(near_ric_t* ric, int fd, pending_event_t** p_ev)
 
   assert(it != end_it);
   *p_ev = assoc_value(&ric->pending.left ,it);
+  }
   return *p_ev != NULL;
 }
 

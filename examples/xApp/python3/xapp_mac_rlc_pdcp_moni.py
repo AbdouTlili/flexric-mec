@@ -78,38 +78,47 @@ for i in range(0, len(conn)):
 #### MAC INDICATION
 ####################
 
+mac_hndlr = []
 for i in range(0, len(conn)):
     mac_cb = MACCallback()
-    ric.report_mac_sm(conn[i].id, ric.Interval_ms_1, mac_cb)
+    hndlr = ric.report_mac_sm(conn[i].id, ric.Interval_ms_1, mac_cb)
+    mac_hndlr.append(hndlr)     
     time.sleep(1)
 
 ####################
 #### RLC INDICATION
 ####################
 
+rlc_hndlr = []
 for i in range(0, len(conn)):
     rlc_cb = RLCCallback()
-    ric.report_rlc_sm(conn[i].id, ric.Interval_ms_1, rlc_cb)
+    hndlr = ric.report_rlc_sm(conn[i].id, ric.Interval_ms_1, rlc_cb)
+    rlc_hndlr.append(hndlr) 
     time.sleep(1)
 
 ####################
 #### PDCP INDICATION
 ####################
 
+pdcp_hndlr = []
 for i in range(0, len(conn)):
     pdcp_cb = PDCPCallback()
-    ric.report_pdcp_sm(conn[i].id, ric.Interval_ms_1, pdcp_cb)
+    hndlr = ric.report_pdcp_sm(conn[i].id, ric.Interval_ms_1, pdcp_cb)
+    pdcp_hndlr.append(hndlr) 
     time.sleep(1)
 
 time.sleep(10)
 
 ### End
 
-ric.rm_report_mac_sm()
+for i in range(0, len(mac_hndlr)):
+    ric.rm_report_mac_sm(mac_hndlr[i])
 
-ric.rm_report_rlc_sm()
+for i in range(0, len(rlc_hndlr)):
+    ric.rm_report_rlc_sm(rlc_hndlr[i])
 
-ric.rm_report_pdcp_sm()
+for i in range(0, len(pdcp_hndlr)):
+    ric.rm_report_pdcp_sm(pdcp_hndlr[i])
 
 # Avoid deadlock. ToDo revise architecture 
 while ric.try_stop == 0:

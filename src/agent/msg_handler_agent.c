@@ -134,13 +134,13 @@ e2ap_msg_t e2ap_handle_subscription_request_agent(e2_agent_t* ag, const e2ap_msg
   assert(ag != NULL);
   assert(msg != NULL);
   assert(msg->type == RIC_SUBSCRIPTION_REQUEST);
+  printf("[E2-AGENT]: RIC_SUBSCRIPTION_REQUEST rx\n");
 
   ric_subscription_request_t const* sr = &msg->u_msgs.ric_sub_req;
   assert(supported_ric_subscription_request(sr) == true);
 
   sm_subs_data_t data = generate_sm_subs_data(sr);
   uint16_t const ran_func_id = sr->ric_id.ran_func_id; 
-//  sm_agent_t* sm = get_sm(ag, ran_func_id);
   sm_agent_t* sm = sm_plugin_ag(&ag->plugin, ran_func_id);
   subscribe_timer_t t = sm->proc.on_subscription(sm, &data);
   int fd_timer = create_timer_ms_asio_agent(&ag->io, t.ms, t.ms); 
@@ -152,8 +152,6 @@ e2ap_msg_t e2ap_handle_subscription_request_agent(e2_agent_t* ag, const e2ap_msg
   ev.ric_id = sr->ric_id;
   ev.sm = sm;
   bi_map_insert(&ag->ind_event, &fd_timer, sizeof(fd_timer), &ev, sizeof(ev));
-
-  printf("[E2-AGENT]: RIC_SUBSCRIPTION_REQUEST rx\n");
 
   uint8_t const ric_act_id = sr->action[0].id;
   e2ap_msg_t ans = {.type = RIC_SUBSCRIPTION_RESPONSE, 
@@ -177,6 +175,7 @@ e2ap_msg_t e2ap_handle_subscription_delete_request_agent(e2_agent_t* ag, const e
   assert(ag != NULL);
   assert(msg != NULL);
   assert(msg->type == RIC_SUBSCRIPTION_DELETE_REQUEST);
+  printf("[E2-AGENT]: RIC_SUBSCRIPTION_DELETE_REQUEST rx\n");
 
   const ric_subscription_delete_request_t* sdr = &msg->u_msgs.ric_sub_del_req;
 

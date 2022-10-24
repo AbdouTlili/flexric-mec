@@ -78,6 +78,7 @@ tc_ctrl_msg_t gen_add_osi_cls(uint32_t src_port)
 
 int main(int argc, char* argv[])
 {
+  assert(argc == 2 && "Port number needed" );
   fr_args_t args = init_fr_args(argc, argv);
   //Init the xApp
   init_xapp_api(&args);

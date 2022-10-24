@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   printf("Connected E2 nodes = %d\n", nodes.len);
 
   // KPM indication
-  inter_xapp_e i_0 = ms_1;
+  inter_xapp_e i_0 = ms_5;
   sm_ans_xapp_t* kpm_handle = NULL;
 
   if(nodes.len > 0){

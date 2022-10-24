@@ -33,12 +33,18 @@
 #include <stdint.h>                                      // for uint32_t
 #include <stdio.h>                                       // for NULL, fputs
 #include <stdlib.h>                                      // for atexit
+#include <string.h>                                      // for memset
 #include <time.h>
+#include <pthread.h>                                     // for pthread_once
 
 static
 FILE *fp = NULL;
 
 const char* file_path = "log.txt";
+
+
+static 
+pthread_once_t init_fp_once = PTHREAD_ONCE_INIT;
 
 
 static
@@ -50,6 +56,7 @@ void close_fp(void)
   assert(rc == 0);
 }
 
+/*
 static
 void init_fp(FILE** fp, const char* path)
 {
@@ -64,6 +71,22 @@ void init_fp(FILE** fp, const char* path)
 
   atexit(close_fp);
 }
+*/
+
+static
+void init_fp(void)
+{
+  assert(fp == NULL);
+  assert(file_path != NULL);
+
+//  const char* append = "a"; 
+  const char* write = "w"; 
+
+  fp = fopen(file_path, write);
+  assert(fp != NULL);
+
+  atexit(close_fp);
+}
 
 
 static
@@ -71,8 +94,8 @@ void print_mac_stats(mac_ind_msg_t const* msg )
 {
   assert(msg != NULL);
 
-  if(fp == NULL)
-    init_fp(&fp, file_path);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
 
   int64_t now = time_now_us();
   printf("Time diff at iApp = %ld \n", now - msg->tstamp);
@@ -95,9 +118,8 @@ static
 void print_rlc_stats(rlc_ind_msg_t const* rlc)
 {
   assert(rlc != NULL);
-
-  if(fp == NULL)
-    init_fp(&fp, file_path);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
 
   for(uint32_t i = 0; i < rlc->len; ++i){
     char stats[1024] = {0};
@@ -117,9 +139,8 @@ static
 void print_pdcp_stats(pdcp_ind_msg_t const* pdcp)
 {
   assert(pdcp != NULL);
-
-  if(fp == NULL)
-    init_fp(&fp, file_path);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
 
   for(uint32_t i = 0; i < pdcp->len; ++i){
 
@@ -141,9 +162,8 @@ static
 void print_slice_stats(slice_ind_msg_t const* slice)
 {
   assert(slice != NULL);
-
-  if(fp == NULL)
-    init_fp(&fp, file_path);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
 
   char stats[2048] = {0};
   to_string_slice(slice, slice->tstamp, stats, 2048);
@@ -162,8 +182,8 @@ static
 void print_gtp_stats(gtp_ind_msg_t const* gtp)
 {
   assert(gtp != NULL);
-  if(fp == NULL)
-  init_fp(&fp, file_path);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
 
   for(uint32_t i = 0; i < gtp->len; ++i){
     char stats[1024] = {0};
@@ -183,11 +203,11 @@ void print_gtp_stats(gtp_ind_msg_t const* gtp)
 void print_kpm_stats(kpm_ind_data_t const* kpm)
 {
   assert(kpm != NULL);
+  pthread_once(&init_fp_once, init_fp);
+  assert(fp != NULL);
+
   char stats[1024] = {0};
   int max = 1024;
-
-  if(fp == NULL)
-    init_fp(&fp, file_path);
 
   for(size_t i = 0; i < kpm->msg.MeasData_len; i++){
     adapter_MeasDataItem_t* curMeasData = &kpm->msg.MeasData[i];
@@ -240,13 +260,13 @@ void print_kpm_stats(kpm_ind_data_t const* kpm)
   for(size_t i = 0; i < kpm->msg.MeasInfo_len; i++){
     MeasInfo_t* curMeasInfo = &kpm->msg.MeasInfo[i];
 
-    if (curMeasInfo->measType == MeasurementType_ID){
+    if (curMeasInfo->meas_type == KPM_V2_MEASUREMENT_TYPE_NAME){
       memset(stats, 0, sizeof(stats));
       int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=ID, content=%ld)", i, curMeasInfo->measID);
       assert(rc < (int)max && "Not enough space in the char array to write all the data");
       rc = fputs(stats , fp);
       assert(rc > -1);
-    } else if (curMeasInfo->measType == MeasurementType_NAME){
+    } else if (curMeasInfo->meas_type == KPM_V2_MEASUREMENT_TYPE_ID){
       memset(stats, 0, sizeof(stats));
       int rc = snprintf(stats, max, ",MeasInfo[%zu]=(type=NAME, content=%s)", i, curMeasInfo->measName.buf);
       assert(rc < (int)max && "Not enough space in the char array to write all the data");

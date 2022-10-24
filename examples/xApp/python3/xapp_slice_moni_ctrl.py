@@ -405,7 +405,7 @@ node_idx = 0
 ####################
 
 slice_cb = SLICECallback()
-ric.report_slice_sm(conn[node_idx].id, ric.Interval_ms_5, slice_cb)
+hndlr = ric.report_slice_sm(conn[node_idx].id, ric.Interval_ms_5, slice_cb)
 time.sleep(5)
 
 ####################
@@ -444,7 +444,7 @@ with open("rt_slice_stats.json", "w") as outfile:
     outfile.write(json.dumps({}))
 
 ### End
-ric.rm_report_slice_sm()
+ric.rm_report_slice_sm(hndlr)
 
 # Avoid deadlock. ToDo revise architecture 
 while ric.try_stop == 0:

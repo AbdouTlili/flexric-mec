@@ -161,7 +161,7 @@ void fill_kpm_ind_data(kpm_ind_data_t* ind)
     
     MeasInfo_t* info1 = &ind->msg.MeasInfo[0];
     assert(info1 != NULL && "memory exhausted");
-    info1->measType = MeasurementType_NAME;
+    info1->meas_type = KPM_V2_MEASUREMENT_TYPE_NAME;
     char* measName = "PrbDlUsage";
     info1->measName.len = strlen(measName) + 1;
     info1->measName.buf = malloc(strlen(measName)+1) ;
@@ -178,7 +178,7 @@ void fill_kpm_ind_data(kpm_ind_data_t* ind)
 
     MeasInfo_t* info2 = &ind->msg.MeasInfo[1];
     assert(info2 != NULL && "memory exhausted");
-    info2->measType = MeasurementType_ID;
+    info2->meas_type = KPM_V2_MEASUREMENT_TYPE_ID;
     info2->measID = 1L;
     info2->labelInfo_len = 1;
     info2->labelInfo = calloc(info2->labelInfo_len, sizeof(adapter_LabelInfoItem_t));
