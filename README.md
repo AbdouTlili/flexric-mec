@@ -43,13 +43,7 @@ Below is the list of features available in this version divided per component an
   make install
   ```
 
-- asn1c compiler. 
-
-  We use `asn1c` as an generator tool for auto creating new enc/dec files. Below an example of how to install it in ubuntu
-  ```bash
-  sudo apt-get -y install asn1c
-  ```
-- flatbuffer encoding(optional). 
+- Flatbuffer encoding(optional). 
   
   We also provide a flatbuffers encoding/decoding scheme as alternative to ASN.1. In case that you want to use it  follow the
   instructions at https://github.com/dvidelabs/flatcc and provide the path for the lib and include when selecting it at `ccmake ..` from the build directory 
@@ -65,14 +59,9 @@ sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev python-dev
 
 * Download the code
 
-  Check the [release page](https://gitlab.eurecom.fr/mosaic5g/flexric/-/releases) the release you want to install. You can download directly from the web or
-  use git in the following way:
-
   ```bash
   # i.e.: 
   $ git clone https://gitlab.eurecom.fr/mosaic5g/flexric.git 
-  # i.e. git checkout v1.0.0
-  $ git checkout <here put the release tag>
   ```
 
 * Build 
@@ -94,8 +83,7 @@ sudo apt install libsctp-dev python3.8 cmake-curses-gui libpcre2-dev python-dev
 
 There are some tests you can run. Precisely:
 * Service Model unit test. See directory `build/test/sm`
-* 3 nodes test. See directory `build/examples/xApp/c/monitor`. This test check a simulated scenario using an E2 node's agent emulator that uses random data
-  filled via `fill_kpm_ind_data()` function in the code. Example or run with 3 terminals for easying the console output:
+* 3 nodes test. See directory `build/examples/xApp/c/monitor`. This test simulates an scenario with  an E2 node's, a nearRT-RIC and an xApp. Data is randomly filled. Example running in 3 terminals.
     ```bash
     # terminal 1: start E2 Node agent
     ./build/examples/emulator/agent/agent_1
@@ -106,13 +94,12 @@ There are some tests you can run. Precisely:
     ```
 * All-in-one test. See directory `build/test/agent-ric-xapp`
 
-Most of the tests can also be triggered by `ctest` automation framework. You would need to install ctest as further dependency if you want to use this
-feature. From the build directory it is sufficent to launch `ctest` to launch the tests.
+Most of the tests can be triggered using `ctest`. From the build directory launch `ctest` to start the tests.
 
 ## 2. Usage/deployment
 
 Before starting the nearRT-RIC, check that the IP address where your nearRT-RIC will be listening is the desired one at `/usr/local/lib/flexric/flexric.conf`.
-Infact the default configuration assumes all the components are located in the same localhost. 
+The default configuration assumes that all the components are located in localhost. 
 
 Start the nearRT-RIC with:
 ```bash
@@ -126,7 +113,7 @@ $ ./build/examples/emulator/agent/emu_agnet_gnb_du
 ```
 or a customized one, i.e.:
 ```bash
-$ ./build/examples/emulator/agent/emu_agent_gnb_cu -c ~/flexric1.conf  &
+$ ./build/examples/emulator/agent/emu_agent_gnb_cu -c ~/flexric1.conf &
 $ ./build/examples/emulator/agent/emu_agnet_gnb_du -c ~/flexric2.conf &
 ```
 where, for example, flexric1.conf is: 
@@ -155,8 +142,8 @@ Next, you can fetch some statistics from the E2 Agents using python xApps via `$
 You can also start wireshark and see how E2AP messages are flowing. 
 At this point, FlexRIC is working correctly in your computer and you have already tested the multi-agent, multi-xApp and multi-language capabilities. 
 
-The latency that you observe in your monitor xApp is the latency from the E2 Agent to the nearRT-RIC and xApp. In modern computers the latency should be around 200 microseconds or 50x faster than the O-RAN specified maximum nearRT-RIC latency of 10 ms.
-Additionally, all the data received in the xApp has also been written to /tmp/xapp_db in case that offline data processing is wanted (e.g., Machine
+The latency that you observe in your monitor xApp is the latency from the E2 Agent to the nearRT-RIC and xApp. In modern computers the latency should be less than 200 microseconds or 50x faster than the O-RAN specified maximum nearRT-RIC latency of 10 ms.
+Additionally, all the data received in the xApp is also written to /tmp/xapp_db in case that offline data processing is wanted (e.g., Machine
 Learning/Artificial Intelligence applications). Please, check the example folder for other working xApp use cases.
 
 ## 3. Integration with RAN and example of deployment
@@ -200,7 +187,7 @@ In this release MAC, RLC, PDCP and partially Slicing are supported SMs.
 ### 3.3 (opt) Synchronize clock
 
 Before running the various components (RAN/flexric), you probably want to align the machines' clock. At this aim, you can use `ptp4l` in all the machines
-involved (if you have for example deploed the various components on different hosts)
+involved (if you have for example deployed the various components on different hosts)
 
 ```bash
 sudo ptp4l -m -i InterfaceName #for master
@@ -256,8 +243,8 @@ sudo phc2sys -m -s InterfaceName -w
 * demo: [here](DEMO.md) you can find a demo 
 * [wiki page](https://gitlab.eurecom.fr/mosaic5g/flexric/-/wikis/home)
 * [ppt](https://gitlab.eurecom.fr/mosaic5g/flexric/-/wikis/home) presentation with a gentle introduction to flexric 
-* [Flexric paper ACN 2021](https://bit.ly/3uOXuCV)
+* [Original FlexRIC paper ACM CoNEXT 2021](https://bit.ly/3uOXuCV)
 
 ## 5. Roadmap
 
-Check on https://gitlab.eurecom.fr/mosaic5g/flexric/-/milestones
+Check https://gitlab.eurecom.fr/mosaic5g/flexric/-/milestones
