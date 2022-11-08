@@ -25,11 +25,13 @@
 
 #include "../../../../src/sm/slice_sm/slice_sm_id.h"
 
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 
+_Atomic
 uint16_t assoc_rnti = 0;
 
 static

@@ -52,9 +52,9 @@ struct mac_cb {
     virtual ~mac_cb() {}
 };
 
-void report_mac_sm(global_e2_node_id_t* id, Interval inter, mac_cb* handler);
+int report_mac_sm(global_e2_node_id_t* id, Interval inter, mac_cb* handler);
 
-void rm_report_mac_sm(void);
+void rm_report_mac_sm(int);
 
 //////////////////////////////////////
 // RLC SM   
@@ -70,9 +70,9 @@ struct rlc_cb {
     virtual ~rlc_cb() {}
 };
 
-void report_rlc_sm(global_e2_node_id_t* id, Interval inter, rlc_cb* handler);
+int report_rlc_sm(global_e2_node_id_t* id, Interval inter, rlc_cb* handler);
 
-void rm_report_rlc_sm(void);
+void rm_report_rlc_sm(int);
 
 //////////////////////////////////////
 // PDCP SM   
@@ -88,9 +88,9 @@ struct pdcp_cb {
     virtual ~pdcp_cb() {}
 };
 
-void report_pdcp_sm(global_e2_node_id_t* id, Interval inter, pdcp_cb* handler);
+int report_pdcp_sm(global_e2_node_id_t* id, Interval inter, pdcp_cb* handler);
 
-void rm_report_pdcp_sm(void);
+void rm_report_pdcp_sm(int);
 
 //////////////////////////////////////
 // SLICE SM   
@@ -137,9 +137,9 @@ struct slice_cb {
     virtual ~slice_cb() {}
 };
 
-void report_slice_sm(global_e2_node_id_t* id, Interval inter, slice_cb* handler);
+int report_slice_sm(global_e2_node_id_t* id, Interval inter, slice_cb* handler);
 
-void rm_report_slice_sm(void);
+void rm_report_slice_sm(int);
 
 void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl);
 
@@ -157,9 +157,9 @@ struct gtp_cb {
     virtual ~gtp_cb() {}
 };
 
-void report_gtp_sm(global_e2_node_id_t* id, Interval inter, gtp_cb* handler);
+int report_gtp_sm(global_e2_node_id_t* id, Interval inter, gtp_cb* handler);
 
-void rm_report_gtp_sm(void);
+void rm_report_gtp_sm(int);
 
 #endif
 

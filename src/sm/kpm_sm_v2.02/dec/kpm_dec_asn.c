@@ -91,11 +91,11 @@ kpm_action_def_t kpm_dec_action_def_asn(size_t len, uint8_t const action_def[len
             continue;
           case MeasurementType_PR_measName:
             BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ret.MeasInfo[i].measName, adf_p->measInfoList.list.array[i]->measType.choice.measName);
-            ret.MeasInfo[i].measType = MeasurementType_NAME;
+            ret.MeasInfo[i].meas_type = KPM_V2_MEASUREMENT_TYPE_NAME;
             break;
           case MeasurementType_PR_measID:
             ret.MeasInfo[i].measID = adf_p->measInfoList.list.array[i]->measType.choice.measID;
-            ret.MeasInfo[i].measType = MeasurementType_ID;
+            ret.MeasInfo[i].meas_type =  KPM_V2_MEASUREMENT_TYPE_ID;
             break;
           default:
             break;
@@ -145,24 +145,31 @@ kpm_ind_hdr_t kpm_dec_ind_hdr_asn(size_t len, uint8_t const ind_hdr[len])
     ret.collectStartTime = ntohl(reversed_ts);
     
     if (hdr->fileFormatversion){
+    // FIXME: You don't really want to allocate a pointer. You want to allocate what the pointer points to 
       ret.fileFormatversion = calloc(1, sizeof(ret.fileFormatversion));
       assert(ret.fileFormatversion !=NULL && "Memory exhausted" );
       BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS(ret.fileFormatversion, hdr->fileFormatversion);
     }
 
     if (hdr->senderName){
+
+    // FIXME: You don't really want to allocate a pointer. You want to allocate what the pointer points to 
       ret.senderName = calloc(1, sizeof(ret.senderName));
       assert(ret.senderName !=NULL && "Memory exhausted" );
       BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS(ret.senderName, hdr->senderName);
     }
 
     if (hdr->senderType){
+
+    // FIXME: You don't really want to allocate a pointer. You want to allocate what the pointer points to 
       ret.senderType = calloc(1, sizeof(ret.senderType));
       assert(ret.senderType !=NULL && "Memory exhausted" );
       BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS(ret.senderType, hdr->senderType);
     }
 
     if (hdr->vendorName){
+
+    // FIXME: You don't really want to allocate a pointer. You want to allocate what the pointer points to 
       ret.vendorName = calloc(1, sizeof(ret.vendorName));
       assert(ret.vendorName !=NULL && "Memory exhausted" );
       BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING_POINTERS(ret.vendorName, hdr->vendorName);
@@ -203,15 +210,24 @@ kpm_ind_msg_t kpm_dec_ind_msg_asn(size_t len, uint8_t const ind_msg[len])
       mData[i].incompleteFlag = (item->incompleteFlag) ? 0 : -1;
       adapter_MeasRecord_t * rec = calloc(item->measRecord.list.count, sizeof(adapter_MeasRecord_t));
       for (size_t j = 0; j < (size_t) item->measRecord.list.count; j++){
-        rec[j].type = item->measRecord.list.array[j]->present;
-        switch (rec[j].type){
-        case MeasRecord_int:
+        switch (item->measRecord.list.array[j]->present){
+
+        case MeasurementRecordItem_PR_noValue:
+          rec[j].type = MeasRecord_noval;
+          break;
+
+        case MeasurementRecordItem_PR_integer:
+          rec[j].type = MeasRecord_int;
           rec[j].int_val = item->measRecord.list.array[j]->choice.integer;
           break;
-        case MeasRecord_real: 
+
+        case  MeasurementRecordItem_PR_real: 
+          rec[j].type = MeasRecord_real;
           rec[j].real_val = item->measRecord.list.array[j]->choice.real;
           break;
+
         default:
+          assert( 0!=0 && "Unknown type");
           break;
         } 
       }
@@ -226,13 +242,14 @@ kpm_ind_msg_t kpm_dec_ind_msg_asn(size_t len, uint8_t const ind_msg[len])
       for (int i=0; i<msg->measInfoList->list.count; i++)
       {
         MeasurementInfoItem_t * mInfo = msg->measInfoList->list.array[i];
-        ret.MeasInfo[i].measType = mInfo->measType.present;
         switch (mInfo->measType.present)
         {
         case MeasurementType_PR_measName:
+          ret.MeasInfo[i].meas_type =  KPM_V2_MEASUREMENT_TYPE_NAME; 
           BYTE_ARRAY_HEAP_CP_FROM_OCTET_STRING(ret.MeasInfo[i].measName, mInfo->measType.choice.measName);
           break;
         case MeasurementType_PR_measID:
+          ret.MeasInfo[i].meas_type =  KPM_V2_MEASUREMENT_TYPE_ID; 
           ret.MeasInfo[i].measID = mInfo->measType.choice.measID;
           break;
         default:

@@ -34,7 +34,6 @@
 #include "../../gtp_sm/ie/gtp_data_ie.h"
 #include "../../kpm_sm_v2.02/ie/kpm_data_ie.h"
 
-
 typedef enum{
   MAC_STATS_V0,
   RLC_STATS_V0,

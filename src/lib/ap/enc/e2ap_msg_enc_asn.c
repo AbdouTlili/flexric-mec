@@ -2862,7 +2862,7 @@ struct E2AP_PDU* e2ap_enc_e42_subscription_delete_request_asn_pdu(const e42_ric_
   assert(rc == 0);
 
   // RIC RAN Function ID. Mandatory
-  E42RICsubscriptionRequest_IEs_t* ran_id = calloc(1, sizeof(E42RICsubscriptionDeleteRequest_IEs_t));
+  E42RICsubscriptionDeleteRequest_IEs_t* ran_id = calloc(1, sizeof(E42RICsubscriptionDeleteRequest_IEs_t));
   ran_id->id = ProtocolIE_ID_id_RANfunctionID;
   ran_id->criticality = Criticality_reject;
   ran_id->value.present = E42RICsubscriptionDeleteRequest_IEs__value_PR_RANfunctionID;

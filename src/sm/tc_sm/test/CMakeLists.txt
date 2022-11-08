@@ -9,11 +9,9 @@ project (TC_SM)
 set(CMAKE_BUILD_TYPE Debug)
 set (CMAKE_C_FLAGS "-Wall -Wextra -std=c11 -g -fno-omit-frame-pointer") 
 
-
-
-set(SM_ENCODING "PLAIN" CACHE STRING "The E2AP encoding to use")
-set_property(CACHE SM_ENCODING PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
-message(STATUS "Selected SM_ENCODING: ${SM_ENCODING}")
+set(SM_ENCODING_TC "PLAIN" CACHE STRING "The E2AP encoding to use")
+set_property(CACHE SM_ENCODING_TC PROPERTY STRINGS "PLAIN" "ASN" "FLATBUFFERS")
+message(STATUS "Selected SM_ENCODING_TC: ${SM_ENCODING_TC}")
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} )
@@ -47,7 +45,7 @@ add_executable(test_tc_sm main.c
                       ../../tc_sm/ie/tc_data_ie.c
                       )
 
-target_compile_definitions(test_tc_sm PUBLIC ${SM_ENCODING})
+target_compile_definitions(test_tc_sm PUBLIC ${SM_ENCODING_TC})
 target_compile_options(test_tc_sm PUBLIC "-DASN_DISABLE_OER_SUPPORT")
 target_link_libraries(test_tc_sm PUBLIC -pthread)
 

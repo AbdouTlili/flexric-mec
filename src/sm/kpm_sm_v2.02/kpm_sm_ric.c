@@ -80,7 +80,7 @@ static sm_subs_data_t on_subscription_kpm_sm_ric(sm_ric_t const* sm_ric, const c
   long noLabelnum = 0; 
 	adapter_LabelInfoItem_t	dummylabelInfo = {.noLabel = &noLabelnum}; 
   MeasInfo_t dummy_MeasInfo = { 
-    .measType = MeasurementType_NAME, 
+    .meas_type = KPM_V2_MEASUREMENT_TYPE_NAME, 
     .measName = {.buf = (unsigned char *)"test", .len = 5}, 
     .labelInfo = &dummylabelInfo, 
     .labelInfo_len = 1
@@ -90,9 +90,8 @@ static sm_subs_data_t on_subscription_kpm_sm_ric(sm_ric_t const* sm_ric, const c
     .granularity_period = 1,
     .MeasInfo = &dummy_MeasInfo,
     .MeasInfo_len = 1, 
-    .cellGlobalIDtype = choice_NOTHING
+    .cell_global_id = KPMV2_CELL_ID_CHOICE_NOTHING
   };
-
 
   const byte_array_t ba_ad = kpm_enc_action_def_asn(&action_def);
   data.action_def = ba_ad.buf;

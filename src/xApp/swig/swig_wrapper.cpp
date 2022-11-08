@@ -25,41 +25,6 @@
 #include <unistd.h>
 #include <iostream>
 
-/*
-static
-int64_t time_now_us(void)
-{
-  struct timespec tms;
-
-  if (clock_gettime(CLOCK_REALTIME, &tms)) {
-    return -1;
-  }
-  // seconds, multiplied with 1 million 
-  int64_t micros = tms.tv_sec * 1000000;
-
-  // Add full microseconds 
-  micros += tms.tv_nsec/1000;
-
-  // Round up if necessary 
-  if (tms.tv_nsec % 1000 >= 500) {
-    ++micros;
-  }
-  return micros;
-}
-*/
-
-/*
-static
-bool valid_ipv4(const char* addr)
-{
-  assert(addr != NULL);
-
-  struct sockaddr_in sa;
-  int result = inet_pton(AF_INET, addr, &(sa.sin_addr));
-  return result == 1;
-}
-*/
-
 static
 bool initialized = false;
 
@@ -114,9 +79,6 @@ static
 mac_cb* hndlr_mac_cb; 
 
 static
-sm_ans_xapp_t hndlr_mac_ans;
-
-static
 void sm_cb_mac(sm_ag_if_rd_t const* rd)
 {
   assert(rd != NULL);
@@ -146,7 +108,7 @@ void sm_cb_mac(sm_ag_if_rd_t const* rd)
 
 }
 
-void report_mac_sm(global_e2_node_id_t* id, Interval inter_arg, mac_cb* handler)
+int report_mac_sm(global_e2_node_id_t* id, Interval inter_arg, mac_cb* handler)
 {
   assert(id != NULL);
   assert(handler != NULL);
@@ -168,11 +130,11 @@ void report_mac_sm(global_e2_node_id_t* id, Interval inter_arg, mac_cb* handler)
 
   sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_MAC_ID, i, sm_cb_mac);
   assert(ans.success == true); 
-  hndlr_mac_ans = ans;
+  return ans.u.handle;
 }
 
 
-void rm_report_mac_sm(void)
+void rm_report_mac_sm(int handle)
 {
 
 #ifdef XAPP_LANG_PYTHON
@@ -180,8 +142,8 @@ void rm_report_mac_sm(void)
     gstate = PyGILState_Ensure();
 #endif
 
-  assert(hndlr_mac_ans.u.handle != 0);
-  rm_report_sm_xapp_api(hndlr_mac_ans.u.handle);
+//  assert(hndlr_mac_ans.u.handle != 0);
+  rm_report_sm_xapp_api(handle);
 
 #ifdef XAPP_LANG_PYTHON
     PyGILState_Release(gstate);
@@ -199,9 +161,6 @@ void rm_report_mac_sm(void)
 
 static 
 rlc_cb* hndlr_rlc_cb; 
-
-static
-sm_ans_xapp_t hndlr_rlc_ans;
 
 static
 void sm_cb_rlc(sm_ag_if_rd_t const* rd)
@@ -233,7 +192,7 @@ void sm_cb_rlc(sm_ag_if_rd_t const* rd)
 
 }
 
-void report_rlc_sm(global_e2_node_id_t* id, Interval inter_arg, rlc_cb* handler)
+int report_rlc_sm(global_e2_node_id_t* id, Interval inter_arg, rlc_cb* handler)
 {
 
   assert(id != NULL);
@@ -256,11 +215,10 @@ void report_rlc_sm(global_e2_node_id_t* id, Interval inter_arg, rlc_cb* handler)
 
   sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_RLC_ID, i, sm_cb_rlc);
   assert(ans.success == true); 
-  hndlr_rlc_ans = ans;
-
+  return ans.u.handle;
 }
 
-void rm_report_rlc_sm(void)
+void rm_report_rlc_sm(int handler)
 {
 
 #ifdef XAPP_LANG_PYTHON
@@ -268,8 +226,7 @@ void rm_report_rlc_sm(void)
     gstate = PyGILState_Ensure();
 #endif
 
-  assert(hndlr_rlc_ans.u.handle != 0);
-  rm_report_sm_xapp_api(hndlr_rlc_ans.u.handle);
+  rm_report_sm_xapp_api(handler);
 
 #ifdef XAPP_LANG_PYTHON
     PyGILState_Release(gstate);
@@ -285,9 +242,6 @@ void rm_report_rlc_sm(void)
 
 static 
 pdcp_cb* hndlr_pdcp_cb; 
-
-static
-sm_ans_xapp_t hndlr_pdcp_ans;
 
 static
 void sm_cb_pdcp(sm_ag_if_rd_t const* rd)
@@ -319,7 +273,7 @@ void sm_cb_pdcp(sm_ag_if_rd_t const* rd)
 
 }
 
-void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handler)
+int report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handler)
 {
   assert(id != NULL);
   assert(handler != NULL);
@@ -341,11 +295,10 @@ void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handle
 
   sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_PDCP_ID, i, sm_cb_pdcp);
   assert(ans.success == true); 
-  hndlr_pdcp_ans = ans;
-
+  return ans.u.handle;
 }
 
-void rm_report_pdcp_sm(void)
+void rm_report_pdcp_sm(int handler)
 {
 
 #ifdef XAPP_LANG_PYTHON
@@ -353,78 +306,13 @@ void rm_report_pdcp_sm(void)
     gstate = PyGILState_Ensure();
 #endif
 
-  assert(hndlr_pdcp_ans.u.handle != 0);
-  rm_report_sm_xapp_api(hndlr_pdcp_ans.u.handle);
+  rm_report_sm_xapp_api(handler);
 
 #ifdef XAPP_LANG_PYTHON
     PyGILState_Release(gstate);
 #endif
 
 }
-
-/*
-
-static
-pthread_t t_pdcp;
-
-static 
-pdcp_cb* hndlr_pdcp; 
-
-static
-void *start_routine_pdcp(void *arg)
-{
-  Interval inter = *(Interval*)arg;
-  delete (Interval*)arg;
-  assert(hndlr_pdcp != NULL);
-  for(int i = 0; i < 3; ++i){
-    swig_pdcp_ind_msg_t ind;
-    ind.tstamp = time_now_us();
-
-    for(int j = 0; j < 2; ++j){
-      pdcp_radio_bearer_stats_t tmp;
-      tmp.rnti = 42 + j;
-      ind.rb_stats.emplace_back(tmp);
-    }
-
-#ifdef XAPP_LANG_PYTHON
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-#endif
-
-    hndlr_pdcp->handle(&ind);
-
-#ifdef XAPP_LANG_PYTHON
-    PyGILState_Release(gstate);
-#endif
-
-    sleep(1);
-  }
-
-  std::cout << "Ending the PDCP routine \n";
-  return NULL;
-}
-
-
-
-void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handler)
-{
-  hndlr_pdcp = handler; 
- 
-  Interval* inter = new Interval;
-  *inter = inter_arg;
-
-  if(inter_arg == Interval::ms_1)
-    std::cout << "Everything went fine \n";
-
-  std::cout << "Before thread create \n";
-  int rc = pthread_create(&t_pdcp, NULL, start_routine_pdcp, inter);
-  assert(rc == 0);
-}
-
-*/
-
-
-
 
 //////////////////////////////////////
 // SLICE Indication & Control
@@ -432,9 +320,6 @@ void report_pdcp_sm(global_e2_node_id_t* id, Interval inter_arg, pdcp_cb* handle
 
 static
 slice_cb* hndlr_slice_cb;
-
-static
-sm_ans_xapp_t hndlr_slice_ans;
 
 static
 void sm_cb_slice(sm_ag_if_rd_t const* rd)
@@ -482,7 +367,7 @@ void sm_cb_slice(sm_ag_if_rd_t const* rd)
 
 }
 
-void report_slice_sm(global_e2_node_id_t* id, Interval inter_arg, slice_cb* handler)
+int report_slice_sm(global_e2_node_id_t* id, Interval inter_arg, slice_cb* handler)
 {
   assert( id != NULL);
   (void)inter_arg;
@@ -505,10 +390,10 @@ void report_slice_sm(global_e2_node_id_t* id, Interval inter_arg, slice_cb* hand
 
   sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_SLICE_ID, i, sm_cb_slice);
   assert(ans.success == true);
-  hndlr_slice_ans = ans;
+  return ans.u.handle;
 }
 
-void rm_report_slice_sm(void)
+void rm_report_slice_sm(int handler)
 {
 
 #ifdef XAPP_LANG_PYTHON
@@ -516,8 +401,7 @@ void rm_report_slice_sm(void)
     gstate = PyGILState_Ensure();
 #endif
 
-  assert(hndlr_slice_ans.u.handle != 0);
-  rm_report_sm_xapp_api(hndlr_slice_ans.u.handle);
+  rm_report_sm_xapp_api(handler);
 
 #ifdef XAPP_LANG_PYTHON
   PyGILState_Release(gstate);
@@ -595,14 +479,8 @@ void control_slice_sm(global_e2_node_id_t* id, slice_ctrl_msg_t* ctrl)
 // GTP SM   
 /////////////////////////////////////
 
-//static
-//pthread_t t_gtp;
-
 static 
 gtp_cb* hndlr_gtp_cb; 
-
-static
-sm_ans_xapp_t hndlr_gtp_ans;
 
 static
 void sm_cb_gtp(sm_ag_if_rd_t const* rd)
@@ -634,9 +512,8 @@ void sm_cb_gtp(sm_ag_if_rd_t const* rd)
 
 }
 
-void report_gtp_sm(global_e2_node_id_t* id, Interval inter_arg, gtp_cb* handler)
+int report_gtp_sm(global_e2_node_id_t* id, Interval inter_arg, gtp_cb* handler)
 {
-
   assert(id != NULL);
   assert(handler != NULL);
 
@@ -657,11 +534,10 @@ void report_gtp_sm(global_e2_node_id_t* id, Interval inter_arg, gtp_cb* handler)
 
   sm_ans_xapp_t ans = report_sm_xapp_api(id , SM_GTP_ID, i, sm_cb_gtp);
   assert(ans.success == true); 
-  hndlr_gtp_ans = ans;
-
+  return ans.u.handle;
 }
 
-void rm_report_gtp_sm(void)
+void rm_report_gtp_sm(int handler)
 {
 
 #ifdef XAPP_LANG_PYTHON
@@ -669,8 +545,7 @@ void rm_report_gtp_sm(void)
     gstate = PyGILState_Ensure();
 #endif
 
-  assert(hndlr_gtp_ans.u.handle != 0);
-  rm_report_sm_xapp_api(hndlr_gtp_ans.u.handle);
+  rm_report_sm_xapp_api(handler);
 
 #ifdef XAPP_LANG_PYTHON
     PyGILState_Release(gstate);
