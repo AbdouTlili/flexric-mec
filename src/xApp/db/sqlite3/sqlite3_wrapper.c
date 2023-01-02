@@ -74,7 +74,7 @@ void create_mac_ue_table(sqlite3* db)
                        "ul_mcs1  INT CHECK(ul_mcs1 >= 0 AND ul_mcs1 < 256),"
                        "dl_mcs2  INT CHECK(dl_mcs2 >= 0 AND dl_mcs2 < 256),"
                        "ul_mcs2 INT CHECK(ul_mcs2 >= 0 AND ul_mcs2 < 256),"
-                       "phr INT CHECK(phr > -24 AND  phr < 41)," // −23 dB to +40 dB
+                       "phr INT ," // −23 dB to +40 dB
                        "bsr INT CHECK(bsr >= 0 AND  bsr < 4294967296),"
                        "dl_bler REAL CHECK(dl_bler  >= 0 AND dl_bler < 4294967296),"
                        "ul_bler REAL CHECK(ul_bler  >= 0 AND ul_bler < 4294967296),"
@@ -317,7 +317,9 @@ void insert_db(sqlite3* db, char const* sql)
 
   char* err_msg = NULL;
   int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+  printf("the error message 1 is : %s \n",err_msg);
   assert(rc == SQLITE_OK && "Error while inserting into the DB. Check the err_msg string for further info");
+  printf("the error message 2 is : %s \n",err_msg);
 }
 
 
